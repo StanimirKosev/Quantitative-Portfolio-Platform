@@ -44,7 +44,7 @@ Store returns, not prices
 
 
 MC-003: Calculate Mean Returns and Covariance
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: MC-002
 
@@ -110,4 +110,4 @@ Store all simulation paths
 Each simulation is one possible future
 
 Current Focus
-Active Task: MC-003 - Calculate Mean Returns and Covariance
+Active Task: MC-004 - Generate Random Samples

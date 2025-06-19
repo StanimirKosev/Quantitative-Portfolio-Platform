@@ -43,3 +43,20 @@ def transform_to_daily_returns_percent(close_prices):
     daily_returns = close_prices.pct_change().dropna()
 
     return daily_returns * 100
+
+def calculate_mean_and_covariance(daily_returns):
+    """
+    Calculate the mean daily returns and covariance matrix for a set of assets.
+
+    Parameters:
+        daily_returns (pd.DataFrame): DataFrame of daily returns (percentage change) for each asset,
+                                      indexed by date.
+
+    Returns:
+        tuple:
+            - mean_returns (pd.Series): Mean daily return for each asset.
+            - cov_matrix (pd.DataFrame): Covariance matrix of daily returns between assets.
+    """
+    mean_returns = daily_returns.mean()
+    cov_matrix = daily_returns.cov()
+    return mean_returns, cov_matrix
