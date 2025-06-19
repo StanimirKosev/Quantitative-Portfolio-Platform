@@ -1,6 +1,6 @@
 Current Sprint Tasks
 MC-001: Create Portfolio Assets Data
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: None
 
@@ -110,4 +110,4 @@ Store all simulation paths
 Each simulation is one possible future
 
 Current Focus
-Active Task: MC-001 - Create Portfolio Assets Data
+Active Task: MC-002 - Download Historical Stock Data
