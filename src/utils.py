@@ -1,5 +1,6 @@
 import yfinance as yf
 
+
 def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
     """
     Fetches daily closing prices for specified tickers within a date range using yfinance.
@@ -19,11 +20,12 @@ def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
         data = yf.download(tickers, start=start, end=end)
     except Exception as e:
         print(f"Error downloading data: {e}")
-    
-    if data is None or data.empty or 'Close' not in data:
+
+    if data is None or data.empty or "Close" not in data:
         return None
-   
-    return data['Close']
+
+    return data["Close"]
+
 
 def transform_to_daily_returns_percent(close_prices):
     """
@@ -43,6 +45,7 @@ def transform_to_daily_returns_percent(close_prices):
     daily_returns = close_prices.pct_change().dropna()
 
     return daily_returns * 100
+
 
 def calculate_mean_and_covariance(daily_returns):
     """

@@ -1,5 +1,5 @@
 def get_portfolio():
-    tickers = ['BTC-EUR', '5MVW.DE', 'SPYL.DE', 'WMIN.DE', 'IS3N.DE', '4GLD.DE']
+    tickers = ["BTC-EUR", "5MVW.DE", "SPYL.DE", "WMIN.DE", "IS3N.DE", "4GLD.DE"]
     weights = [0.6, 0.13, 0.105, 0.07, 0.06, 0.035]
 
     if len(tickers) != len(weights):
@@ -10,6 +10,3 @@ def get_portfolio():
         raise ValueError("Weights must sum to 1.0")
 
     return (tickers, weights)
-
-
-
