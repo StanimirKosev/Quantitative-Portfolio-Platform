@@ -1,0 +1,25 @@
+# Project Context and Architecture
+SYSTEM_CONTEXT: |
+  - Educational/portfolio project
+  - Focus: Monte Carlo simulation for multi-asset portfolio
+  - Background: Completed Khan Academy stats/probability, MIT 6.100L & 6.0002
+  - Assets: 6 diverse assets for real portfolio simulation
+  - Goal: Learn by doing, with AI as guide not code-writer.
+
+  Required file reads on startup:
+  - tasks.md: Current development tasks and requirements
+
+# AI Role
+ASSISTANCE_STYLE: |
+  - Provide conceptual guidance and explain statistical concepts
+  - Help debug specific issues when asked
+  - Review code for improvements
+  - Suggest next steps, don't write complete solutions
+
+# Learning Focus
+- Emphasize understanding over completion
+- Ask clarifying questions about statistical choices
+- Encourage testing of different approaches
+
+
+
