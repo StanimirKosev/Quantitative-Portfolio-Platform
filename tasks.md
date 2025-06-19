@@ -22,7 +22,7 @@ Example: weights = [0.2, 0.15, ...]
 
 
 MC-002: Download Historical Stock Data
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: MC-001
 
@@ -110,4 +110,4 @@ Store all simulation paths
 Each simulation is one possible future
 
 Current Focus
-Active Task: MC-002 - Download Historical Stock Data
+Active Task: MC-003 - Calculate Mean Returns and Covariance
