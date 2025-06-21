@@ -41,11 +41,11 @@ def plot_simulation_results(portfolio_paths):
     )
 
     # Calculate final statistics
-    final_values = portfolio_paths[:, -1]  # Last day values
+    final_values = [path[-1] for path in portfolio_paths]  # Last day values
     mean_final = np.mean(final_values)
     worst_case = np.min(final_values)
     best_case = np.max(final_values)
-    initial_value = portfolio_paths[0, 0]
+    initial_value = portfolio_paths[0][0]
 
     # Calculate percentage returns
     mean_return_pct = ((mean_final / initial_value) - 1) * 100

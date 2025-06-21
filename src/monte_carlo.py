@@ -57,3 +57,43 @@ def simulate_portfolio_paths(
         portfolio_paths.append(portfolio_path)
 
     return portfolio_paths
+
+
+def calculate_risk_metrics(portfolio_paths):
+    """
+    Calculate professional risk metrics from Monte Carlo simulation results.
+
+    Parameters:
+        portfolio_paths (list): List of portfolio value paths.
+        initial_value (float): Initial portfolio value for percentage calculations.
+
+    Returns:
+        dict: Dictionary containing risk metrics with dollar amounts and percentages.
+    """
+
+    final_values = [path[-1] for path in portfolio_paths]
+
+    # Value at Risk
+    var_95 = np.percentile(final_values, 5)
+    var_99 = np.percentile(final_values, 1)
+
+    # Conditional Value at Risk
+    cvar_95 = np.mean([v for v in final_values if v <= var_95])
+    cvar_99 = np.mean([v for v in final_values if v <= var_99])
+
+    initial_value = portfolio_paths[0][0]
+    var_95_pct = ((var_95 / initial_value) - 1) * 100
+    var_99_pct = ((var_99 / initial_value) - 1) * 100
+    cvar_95_pct = ((cvar_95 / initial_value) - 1) * 100
+    cvar_99_pct = ((cvar_99 / initial_value) - 1) * 100
+
+    return {
+        "var_95": var_95,
+        "var_99": var_99,
+        "cvar_95": cvar_95,
+        "cvar_99": cvar_99,
+        "var_95_pct": var_95_pct,
+        "var_99_pct": var_99_pct,
+        "cvar_95_pct": cvar_95_pct,
+        "cvar_99_pct": cvar_99_pct,
+    }
