@@ -134,5 +134,103 @@ Use different colors for mean, median, and confidence bands
 Add statistics text box on the plot
 Include proper axis labels and title
 
+
+MC-007: Calculate Risk Metrics
+Status: Not Started
+Priority: High
+Dependencies: MC-006
+
+Calculate industry-standard risk measures for portfolio analysis
+Implement Value at Risk (VaR) and Expected Shortfall calculations
+Analyze maximum drawdown and other risk indicators
+
+Acceptance Criteria
+
+Calculate VaR at 95% and 99% confidence levels
+Calculate Conditional VaR (Expected Shortfall) at same levels
+Determine maximum drawdown from all simulation paths
+Display risk metrics in clear, interpretable format
+
+Technical Notes
+
+VaR = percentile of final portfolio values
+CVaR = mean of values below VaR threshold
+Max drawdown = largest peak-to-trough decline
+Use numpy.percentile() and conditional calculations
+
+
+MC-008: Create Summary Report
+Status: Not Started
+Priority: Medium
+Dependencies: MC-007
+
+Generate professional summary report of simulation results
+Present portfolio composition, performance, and risk metrics
+Create clean, shareable output format
+
+Acceptance Criteria
+
+Portfolio composition table with weights and tickers
+Key performance statistics summary
+Risk metrics in organized table format
+Professional formatting suitable for presentation
+
+Technical Notes
+
+Use formatted strings or markdown for clean output
+Include both absolute values and percentages
+Structure data in readable tables
+Consider saving as text file or markdown
+
+
+MC-009: Add Your Unique Angle
+Status: Not Started
+Priority: Medium
+Dependencies: MC-008
+
+Implement forward-looking macroeconomic scenario analysis
+Create class-based system for hardcoding macro views and adjusting simulation parameters
+Compare portfolio performance across different economic regimes and personal macro theses
+
+Acceptance Criteria
+
+Base MacroRegime class with methods to modify historical parameters
+Subclasses implementing specific macro views (Dollar Debasement, AI Boom, etc.)
+Simple arithmetic modifications to mean returns and covariance matrices
+Comparison analysis showing how macro views change portfolio outcomes
+Personal macro thesis implementation (your specific views on future markets)
+
+Technical Notes
+
+Use inheritance to create regime-specific parameter modifications
+Implement simple arithmetic adjustments (multiply returns, adjust correlations)
+Hardcode specific macro views (e.g., "tech gets 20% haircut in inflation")
+Compare risk/return profiles across different macro scenarios
+Show how forward-looking analysis differs from historical extrapolation
+
+
+MC-010: Documentation & README
+Status: Not Started
+Priority: High
+Dependencies: MC-009
+
+Create comprehensive project documentation
+Write clear README with methodology explanation
+Provide usage instructions and result interpretation
+
+Acceptance Criteria
+
+Clear README.md explaining project purpose and methodology
+Installation and usage instructions
+Interpretation guide for simulation results
+Professional project structure and documentation
+
+Technical Notes
+
+Include problem statement and solution approach
+Document all dependencies and installation steps
+Explain key concepts and statistical methodology
+Provide examples of how to interpret results
+
 Current Focus
-Project Complete! All core simulation and visualization tasks are finished.
+Active Task: MC-007 - Calculate Risk Metrics
