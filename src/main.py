@@ -5,6 +5,7 @@ from utils import (
     calculate_mean_and_covariance,
 )
 from monte_carlo import simulate_portfolio_paths
+from visualization import plot_simulation_results
 
 tickers, weights = get_portfolio()
 
@@ -16,4 +17,4 @@ mean_returns, cov_matrix = calculate_mean_and_covariance(daily_returns)
 
 portfolio_paths = simulate_portfolio_paths(mean_returns, cov_matrix, weights)
 
-print(portfolio_paths)
+plot_simulation_results(portfolio_paths)
