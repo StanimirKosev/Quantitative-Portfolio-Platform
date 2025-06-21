@@ -4,7 +4,7 @@ from utils import (
     transform_to_daily_returns_percent,
     calculate_mean_and_covariance,
 )
-from monte_carlo import generate_sample
+from monte_carlo import simulate_portfolio_paths
 
 tickers, weights = get_portfolio()
 
@@ -14,6 +14,6 @@ daily_returns = transform_to_daily_returns_percent(close_values)
 
 mean_returns, cov_matrix = calculate_mean_and_covariance(daily_returns)
 
-portfolio_returns = generate_sample(mean_returns, cov_matrix, weights)
+portfolio_paths = simulate_portfolio_paths(mean_returns, cov_matrix, weights)
 
-print(portfolio_returns)
+print(portfolio_paths)
