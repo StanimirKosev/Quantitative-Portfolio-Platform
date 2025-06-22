@@ -97,3 +97,69 @@ def calculate_risk_metrics(portfolio_paths):
         "cvar_95_pct": cvar_95_pct,
         "cvar_99_pct": cvar_99_pct,
     }
+
+
+def calculate_simulation_statistics(portfolio_paths):
+    """
+    Calculate comprehensive statistics and metrics from Monte Carlo simulation results.
+
+    This function extracts all the calculations currently done in the visualization
+    function, making the code more modular and testable.
+
+    Parameters:
+        portfolio_paths (list): List of portfolio value paths.
+
+    Returns:
+        dict: Dictionary containing all simulation statistics including:
+            - percentiles: 5th, 10th, 25th, 50th, 75th, 90th, 95th percentiles
+            - path_indices: indices of median, best, and worst paths
+            - final_values: final portfolio values for all paths
+            - performance_stats: mean, median, best, worst final values and returns
+    """
+    portfolio_paths = np.array(portfolio_paths)
+
+    # Calculate percentiles across all paths for each time step
+    percentiles = np.percentile(portfolio_paths, [5, 10, 25, 50, 75, 90, 95], axis=0)
+
+    # Get final values and find key paths
+    final_values = [path[-1] for path in portfolio_paths]
+    median_final = np.median(final_values)
+    best_final = np.max(final_values)
+    worst_final = np.min(final_values)
+
+    # Find indices of key paths
+    median_path_idx = np.argmin(
+        [abs(path[-1] - median_final) for path in portfolio_paths]
+    )
+    best_path_idx = np.argmax(final_values)
+    worst_path_idx = np.argmin(final_values)
+
+    # Calculate performance statistics
+    initial_value = portfolio_paths[0][0]
+    mean_final = np.mean(final_values)
+
+    mean_return_pct = ((mean_final / initial_value) - 1) * 100
+    best_return_pct = ((best_final / initial_value) - 1) * 100
+    worst_return_pct = ((worst_final / initial_value) - 1) * 100
+    median_return_pct = ((median_final / initial_value) - 1) * 100
+
+    return {
+        "percentiles": percentiles,
+        "path_indices": {
+            "median": median_path_idx,
+            "best": best_path_idx,
+            "worst": worst_path_idx,
+        },
+        "final_values": final_values,
+        "performance_stats": {
+            "initial_value": initial_value,
+            "mean_final": mean_final,
+            "median_final": median_final,
+            "best_final": best_final,
+            "worst_final": worst_final,
+            "mean_return_pct": mean_return_pct,
+            "median_return_pct": median_return_pct,
+            "best_return_pct": best_return_pct,
+            "worst_return_pct": worst_return_pct,
+        },
+    }
