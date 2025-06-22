@@ -4,7 +4,7 @@ import numpy as np
 from monte_carlo import calculate_simulation_statistics, calculate_risk_metrics
 
 
-def plot_simulation_results(portfolio_paths):
+def plot_simulation_results(portfolio_paths, regime_name=None):
     """Visualizes the results of a Monte Carlo portfolio simulation with percentile bands and key paths.
 
     This function generates a professional plot displaying the outcomes of multiple portfolio
@@ -15,6 +15,7 @@ def plot_simulation_results(portfolio_paths):
     Args:
         portfolio_paths (list or np.ndarray): A 2D sequence where each inner sequence
             represents a single simulation path of portfolio values over time.
+        regime_name (str, optional): Name of the macroeconomic regime for title and filename.
 
     Features:
         - Three percentile bands showing different confidence intervals
@@ -122,7 +123,8 @@ def plot_simulation_results(portfolio_paths):
     )
 
     plt.title(
-        f"Monte Carlo Portfolio Simulation: \n{len(portfolio_paths)} Scenarios Over {x_values[-1]} Trading Days",
+        f"Monte Carlo Portfolio Simulation: \n{len(portfolio_paths)} Scenarios Over {x_values[-1]} Trading Days"
+        + (f" - {regime_name}" if regime_name else ""),
         fontsize=16,
         fontweight="bold",
         pad=20,
@@ -137,5 +139,11 @@ def plot_simulation_results(portfolio_paths):
     plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda x, p: f"${x:,.0f}"))
 
     plt.tight_layout()
-    plt.savefig("charts/monte_carlo_simulation.png", dpi=300, bbox_inches="tight")
+
+    filename = "monte_carlo_simulation"
+    if regime_name:
+        clean_name = regime_name.replace(" ", "_").replace(":", "").replace("-", "_")
+        filename = f"monte_carlo_simulation_{clean_name.lower()}"
+
+    plt.savefig(f"charts/{filename}.png", dpi=300, bbox_inches="tight")
     plt.show()

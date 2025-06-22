@@ -163,3 +163,28 @@ def calculate_simulation_statistics(portfolio_paths):
             "worst_return_pct": worst_return_pct,
         },
     }
+
+
+def modify_returns_for_regime(mean_returns, tickers, asset_factors):
+    """
+    Modify mean returns based on macroeconomic regime factors.
+
+    Args:
+        mean_returns: Historical mean returns for each asset
+        tickers: List of asset tickers
+        asset_factors: Dictionary of factors for each asset with "name" key
+                      Default factors for dollar debasement scenario if None
+
+    Returns:
+        tuple: (modified_returns, regime_name)
+    """
+    if asset_factors is None:
+        return
+
+    modified_returns = mean_returns.copy()
+
+    for i, ticker in enumerate(tickers):
+        if ticker in asset_factors:
+            modified_returns[i] *= asset_factors[ticker]
+
+    return modified_returns

@@ -159,61 +159,48 @@ CVaR = mean of values below VaR threshold
 Max drawdown = largest peak-to-trough decline
 Use numpy.percentile() and conditional calculations
 
-
-MC-008: Create Summary Report
+MC-008: Add Your Unique Angle
 Status: Not Started
 Priority: Medium
 Dependencies: MC-007
 
-Generate professional summary report of simulation results
-Present portfolio composition, performance, and risk metrics
-Create clean, shareable output format
-
-Acceptance Criteria
-
-Portfolio composition table with weights and tickers
-Key performance statistics summary
-Risk metrics in organized table format
-Professional formatting suitable for presentation
-
-Technical Notes
-
-Use formatted strings or markdown for clean output
-Include both absolute values and percentages
-Structure data in readable tables
-Consider saving as text file or markdown
-
-
-MC-009: Add Your Unique Angle
-Status: Not Started
-Priority: Medium
-Dependencies: MC-008
-
 Implement forward-looking macroeconomic scenario analysis
-Create class-based system for hardcoding macro views and adjusting simulation parameters
-Compare portfolio performance across different economic regimes and personal macro theses
+Create generalized system for modifying simulation parameters with simple arithmetic
+Test how different parameter adjustments affect portfolio outcomes
 
 Acceptance Criteria
 
-Base MacroRegime class with methods to modify historical parameters
-Subclasses implementing specific macro views (Dollar Debasement, AI Boom, etc.)
-Simple arithmetic modifications to mean returns and covariance matrices
-Comparison analysis showing how macro views change portfolio outcomes
-Personal macro thesis implementation (your specific views on future markets)
+Create generalized functions that work with any parameter values:
+- modify_returns(mean_returns, inflation_factor=1.0)
+- modify_volatility(cov_matrix, volatility_multiplier=1.0)
+- modify_correlations(cov_matrix, correlation_adjustment=1.0)
+
+Test different parameter combinations:
+- Dollar debasement scenario (your macro view)
+- High inflation vs deflation scenarios
+- High vs low volatility scenarios
+
+Show sensitivity analysis:
+- How small parameter changes affect final outcomes
+- Risk/return profiles under different assumptions
+- Visualization of multiple scenarios
 
 Technical Notes
 
-Use inheritance to create regime-specific parameter modifications
-Implement simple arithmetic adjustments (multiply returns, adjust correlations)
-Hardcode specific macro views (e.g., "tech gets 20% haircut in inflation")
-Compare risk/return profiles across different macro scenarios
-Show how forward-looking analysis differs from historical extrapolation
+Use simple arithmetic operations:
+- mean_returns * inflation_factor
+- cov_matrix * volatility_multiplier
+- correlation_adjustments for asset relationships
+
+Focus on generalization:
+- Parameter-driven approach
+- Easy to test different values
 
 
-MC-010: Documentation & README
+MC-009: Documentation & README
 Status: Not Started
 Priority: High
-Dependencies: MC-009
+Dependencies: MC-008
 
 Create comprehensive project documentation
 Write clear README with methodology explanation
