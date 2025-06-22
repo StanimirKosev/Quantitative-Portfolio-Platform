@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import numpy as np
+from monte_carlo import calculate_risk_metrics
 
 
 def plot_simulation_results(portfolio_paths):
@@ -9,7 +10,7 @@ def plot_simulation_results(portfolio_paths):
     This function generates a comprehensive plot displaying the outcomes of
     multiple portfolio simulation paths. It shows all individual paths with
     transparency, highlights the 90% confidence interval, and displays
-    key summary statistics in a text box on the plot.
+    key summary statistics and risk metrics in a text box on the plot.
 
     Args:
         portfolio_paths (list or np.ndarray): A 2D sequence where each
@@ -52,12 +53,21 @@ def plot_simulation_results(portfolio_paths):
     worst_return_pct = ((worst_case / initial_value) - 1) * 100
     best_return_pct = ((best_case / initial_value) - 1) * 100
 
-    # Add statistics text box
-    stats_text = f"""Final Portfolio Statistics:
-    Mean: ${mean_final:,.0f} ({mean_return_pct:+.1f}%)
-    Best Case: ${best_case:,.0f} ({best_return_pct:+.1f}%)
-    Worst Case: ${worst_case:,.0f} ({worst_return_pct:+.1f}%)
-    Initial: ${initial_value:,.0f}"""
+    rm = calculate_risk_metrics(portfolio_paths)
+
+    stats_text = f"""Portfolio Performance & Risk Metrics:
+    
+    Performance:
+    • Mean: ${mean_final:,.0f} ({mean_return_pct:+.1f}%)
+    • Best Case: ${best_case:,.0f} ({best_return_pct:+.1f}%)
+    • Worst Case: ${worst_case:,.0f} ({worst_return_pct:+.1f}%)
+    • Initial: ${initial_value:,.0f}
+
+    Risk Metrics:
+    • 95% VaR: ${rm['var_95']:,.0f} ({rm['var_95_pct']:+.1f}%)
+    • 99% VaR: ${rm['var_99']:,.0f} ({rm['var_99_pct']:+.1f}%)
+    • 95% CVaR: ${rm['cvar_95']:,.0f} ({rm['cvar_95_pct']:+.1f}%)
+    • 99% CVaR: ${rm['cvar_99']:,.0f} ({rm['cvar_99_pct']:+.1f}%)"""
 
     plt.text(
         0.02,
@@ -65,7 +75,8 @@ def plot_simulation_results(portfolio_paths):
         stats_text,
         transform=plt.gca().transAxes,
         verticalalignment="top",
-        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.8),
+        fontsize=9,
+        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.9),
     )
 
     plt.title(
@@ -85,6 +96,5 @@ def plot_simulation_results(portfolio_paths):
     plt.tight_layout()
 
     plt.savefig("charts/monte_carlo_simulation.png", dpi=300, bbox_inches="tight")
-    print("Chart saved to charts/monte_carlo_simulation.png")
 
     plt.show()

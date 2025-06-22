@@ -151,7 +151,6 @@ Calculate VaR at 95% and 99% confidence levels
 Calculate Conditional VaR (Expected Shortfall) at same levels
 Determine maximum drawdown from all simulation paths
 Display risk metrics in clear, interpretable format
-Create risk-return scatter plot showing risk vs return for each simulation
 
 Technical Notes
 
@@ -159,7 +158,6 @@ VaR = percentile of final portfolio values
 CVaR = mean of values below VaR threshold
 Max drawdown = largest peak-to-trough decline
 Use numpy.percentile() and conditional calculations
-Scatter plot: X-axis = standard deviation of returns, Y-axis = final portfolio value
 
 
 MC-008: Create Summary Report
