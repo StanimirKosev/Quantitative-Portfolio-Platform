@@ -210,3 +210,73 @@ Include problem statement and solution approach
 Document all dependencies and installation steps
 Explain key concepts and statistical methodology
 Provide examples of how to interpret results
+
+MC-010: Covariance Matrix Deep Analysis
+Status: Not Started
+Priority: High
+Dependencies: MC-003
+
+Enhance covariance matrix analysis with eigenvalue decomposition and correlation visualization
+
+Acceptance Criteria
+
+Calculate eigenvalues and eigenvectors of covariance matrix
+Identify dominant risk factors (top 2-3 eigenvalues)
+Create correlation matrix heatmap visualization
+Check matrix conditioning number
+Add interpretation text explaining main risk drivers
+
+Technical Notes
+
+Use np.linalg.eig() for eigenvalue decomposition
+Create correlation matrix from covariance: corr = cov / (std_outer_product)
+Use plt.imshow() or seaborn.heatmap() for correlation visualization
+Conditioning number = max_eigenvalue / min_eigenvalue
+
+
+MC-011: Cholesky Decomposition Sampling
+Status: Not Started
+Priority: High
+Dependencies: MC-004
+
+Replace built-in multivariate normal sampling with custom Cholesky decomposition implementation
+
+Acceptance Criteria
+
+Implement custom multivariate normal sampling using Cholesky decomposition
+Verify results match built-in numpy function
+Add educational comments explaining the linear algebra
+Performance comparison (optional)
+
+Technical Notes
+
+Use np.linalg.cholesky() for matrix decomposition
+Generate uncorrelated random samples first
+Transform using Cholesky factor
+# L = np.linalg.cholesky(cov_matrix)
+# z = np.random.standard_normal((n_sims, n_assets))
+# correlated_returns = mean_returns + z @ L.T
+
+
+MC-012: Principal Component Analysis (PCA)
+Status: Not Started
+Priority: Medium
+Dependencies: MC-010
+
+Add PCA analysis to identify and visualize main risk factors in portfolio
+
+Acceptance Criteria
+
+Calculate principal components of returns data
+Show explained variance ratio for each component
+Create factor loadings visualization
+Identify which assets contribute most to each principal component
+Add interpretation of top 2-3 factors
+
+Technical Notes
+
+Use eigenvalue decomposition from MC-010
+Sort eigenvalues/eigenvectors by importance
+Calculate explained variance ratio
+Create bar charts for factor loadings
+Focus on components explaining >10% of variance
