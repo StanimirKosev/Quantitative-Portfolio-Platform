@@ -98,17 +98,17 @@ def plot_simulation_results(portfolio_paths, regime_name=None):
     stats_text = f"""Portfolio Performance & Risk Metrics:
     
     Performance:
-    • Median: ${perf_stats['median_final']:,.0f} ({perf_stats['median_return_pct']:+.1f}%)
-    • Mean: ${perf_stats['mean_final']:,.0f} ({perf_stats['mean_return_pct']:+.1f}%)
-    • Best Case: ${perf_stats['best_final']:,.0f} ({perf_stats['best_return_pct']:+.1f}%)
-    • Worst Case: ${perf_stats['worst_final']:,.0f} ({perf_stats['worst_return_pct']:+.1f}%)
-    • Initial: ${perf_stats['initial_value']:,.0f}
+    • Median: €{perf_stats['median_final']:,.0f} ({perf_stats['median_return_pct']:+.1f}%)
+    • Mean: €{perf_stats['mean_final']:,.0f} ({perf_stats['mean_return_pct']:+.1f}%)
+    • Best Case: €{perf_stats['best_final']:,.0f} ({perf_stats['best_return_pct']:+.1f}%)
+    • Worst Case: €{perf_stats['worst_final']:,.0f} ({perf_stats['worst_return_pct']:+.1f}%)
+    • Initial: €{perf_stats['initial_value']:,.0f}
 
     Risk Metrics:
-    • 95% VaR: ${risk_metrics['var_95']:,.0f} ({risk_metrics['var_95_pct']:+.1f}%)
-    • 99% VaR: ${risk_metrics['var_99']:,.0f} ({risk_metrics['var_99_pct']:+.1f}%)
-    • 95% CVaR: ${risk_metrics['cvar_95']:,.0f} ({risk_metrics['cvar_95_pct']:+.1f}%)
-    • 99% CVaR: ${risk_metrics['cvar_99']:,.0f} ({risk_metrics['cvar_99_pct']:+.1f}%)"""
+    • 95% VaR: €{risk_metrics['var_95']:,.0f} ({risk_metrics['var_95_pct']:+.1f}%)
+    • 99% VaR: €{risk_metrics['var_99']:,.0f} ({risk_metrics['var_99_pct']:+.1f}%)
+    • 95% CVaR: €{risk_metrics['cvar_95']:,.0f} ({risk_metrics['cvar_95_pct']:+.1f}%)
+    • 99% CVaR: €{risk_metrics['cvar_99']:,.0f} ({risk_metrics['cvar_99_pct']:+.1f}%)"""
 
     plt.text(
         0.02,
@@ -130,13 +130,13 @@ def plot_simulation_results(portfolio_paths, regime_name=None):
         pad=20,
     )
     plt.xlabel("Trading Days", fontsize=12)
-    plt.ylabel("Portfolio Value ($)", fontsize=12)
+    plt.ylabel("Portfolio Value (€)", fontsize=12)
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.margins(x=0)  # Remove horizontal padding to fit the data snugly
 
     # Format y-axis as currency
-    plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda x, p: f"${x:,.0f}"))
+    plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda x, p: f"€{x:,.0f}"))
 
     plt.tight_layout()
 

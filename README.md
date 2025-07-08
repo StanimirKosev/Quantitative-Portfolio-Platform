@@ -8,7 +8,7 @@ This project implements a sophisticated Monte Carlo simulation framework for por
 
 - **Multi-asset portfolio simulation** with 6 diverse assets (cryptocurrency, global stocks, commodities, bonds)
 - **Historical data analysis** using real market data from Yahoo Finance
-- **Macroeconomic scenario modeling** including dollar debasement and geopolitical crisis scenarios
+- **Macroeconomic scenario modeling** including fiat debasement and geopolitical crisis scenarios
 - **Professional risk metrics** including Value at Risk (VaR), Conditional VaR (CVaR), and maximum drawdown
 - **Advanced visualization** with confidence intervals and percentile bands
 
@@ -82,7 +82,7 @@ This will:
 - Calculate mean returns and covariance matrix
 - Run Monte Carlo simulations for three scenarios:
   - Historical (baseline)
-  - Dollar Debasement
+  - Fiat Debasement
   - Geopolitical Crisis
 - Generate visualization charts saved to `charts/` directory
 
@@ -91,7 +91,7 @@ This will:
 The simulation generates three key visualizations:
 
 1. **Historical Scenario**: Baseline performance using historical market data
-2. **Dollar Debasement**: Scenario where USD weakens, benefiting inflation hedges
+2. **Fiat Debasement**: Scenario where fiat weakens, benefiting inflation hedges
 3. **Geopolitical Crisis**: Risk-off scenario favoring safe-haven assets
 
 Each chart displays:
@@ -122,7 +122,7 @@ Each chart displays:
 - Uses actual market data from 2022-2024
 - Represents baseline expectations based on recent market behavior
 
-#### Dollar Debasement Scenario
+#### Fiat Debasement Scenario
 - Models USD weakness and inflationary pressures
 - **Winners**: Bitcoin (+20%), Gold (+15%), Commodities (+15%)
 - **Losers**: US stocks (-10%) due to higher rates

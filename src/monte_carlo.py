@@ -68,7 +68,7 @@ def calculate_risk_metrics(portfolio_paths):
         initial_value (float): Initial portfolio value for percentage calculations.
 
     Returns:
-        dict: Dictionary containing risk metrics with dollar amounts and percentages.
+        dict: Dictionary containing risk metrics with euro amounts and percentages.
     """
 
     final_values = [path[-1] for path in portfolio_paths]
@@ -173,7 +173,6 @@ def modify_returns_for_regime(mean_returns, tickers, asset_factors):
         mean_returns: Historical mean returns for each asset
         tickers: List of asset tickers
         asset_factors: Dictionary of factors for each asset with "name" key
-                      Default factors for dollar debasement scenario if None
 
     Returns:
         tuple: (modified_returns, regime_name)

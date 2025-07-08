@@ -1,7 +1,7 @@
 from portfolio import (
     get_portfolio,
     GEOPOLITICAL_CRISIS_REGIME,
-    DOLLAR_DEBASEMENT_REGIME,
+    FIAT_DEBASEMENT_REGIME,
 )
 from utils import (
     fetch_close_prices,
@@ -22,12 +22,12 @@ mean_historical_returns, cov_matrix = calculate_mean_and_covariance(daily_return
 historical_paths = simulate_portfolio_paths(
     mean_historical_returns, cov_matrix, weights
 )
-
-mean_dollar_debasement_returns = modify_returns_for_regime(
-    mean_historical_returns, tickers, DOLLAR_DEBASEMENT_REGIME
+            
+mean_fiat_debasement_returns = modify_returns_for_regime(
+    mean_historical_returns, tickers, FIAT_DEBASEMENT_REGIME
 )
-dollar_debasement_path = simulate_portfolio_paths(
-    mean_dollar_debasement_returns, cov_matrix, weights
+fiat_debasement_path = simulate_portfolio_paths(
+    mean_fiat_debasement_returns, cov_matrix, weights
 )
 
 mean_geopolitical_crisis_returns = modify_returns_for_regime(
@@ -40,5 +40,5 @@ geopolitical_crisis_path = simulate_portfolio_paths(
 )
 
 plot_simulation_results(historical_paths, "Historical")
-plot_simulation_results(dollar_debasement_path, "Dollar Debasement")
+plot_simulation_results(fiat_debasement_path, "Fiat Debasement")
 plot_simulation_results(geopolitical_crisis_path, "Geopolitical Crisis")

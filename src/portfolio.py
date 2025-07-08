@@ -12,13 +12,13 @@ def get_portfolio():
     return (tickers, weights)
 
 
-DOLLAR_DEBASEMENT_REGIME = {
+FIAT_DEBASEMENT_REGIME = {
     "BTC-EUR": 1.2,  # 20% higher - inflation hedge
     "4GLD.DE": 1.15,  # 15% higher - safe haven
-    "5MVW.DE": 1.1,  # 10% higher - weak dollar helps
+    "5MVW.DE": 1.1,  # 10% higher - weak fiat helps
     "SPYL.DE": 0.9,  # 10% lower - higher rates hurt
     "WMIN.DE": 1.15,  # 15% higher - commodity boom
-    "IS3N.DE": 1.1,  # 10% higher - weak dollar helps
+    "IS3N.DE": 1.1,  # 10% higher - weak fiat helps
 }
 
 GEOPOLITICAL_CRISIS_REGIME = {

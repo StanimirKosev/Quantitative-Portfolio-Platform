@@ -171,7 +171,7 @@ Test how different parameter adjustments affect portfolio outcomes
 Acceptance Criteria
 
 Test different parameter combinations:
-- Dollar debasement scenario (your macro view)
+- Fiat debasement scenario (your macro view)
 - High inflation vs deflation scenarios
 - High vs low volatility scenarios
 
