@@ -187,3 +187,34 @@ def modify_returns_for_regime(mean_returns, tickers, asset_factors):
             modified_returns[i] *= asset_factors[ticker]
 
     return modified_returns
+
+
+def get_cov_matrix_analysis(cov_matrix):
+    """
+    Return the principal components of a covariance matrix for portfolio risk analysis and visualization.
+    Returns eigenvalues, explained variance ratios, eigenvectors, and asset names (tickers).
+    """
+    asset_tickers = list(cov_matrix.columns)
+    eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)
+
+    # Sort eigenvalues and eigenvectors from largest to smallest
+    idx = np.argsort(eigenvalues)[::-1]
+    eigenvalues = eigenvalues[idx]
+    eigenvectors = eigenvectors[:, idx]
+
+    total_variance = sum(eigenvalues)
+    explained_variance_ratio = [eigval / total_variance for eigval in eigenvalues]
+
+    condition_number = max(eigenvalues) / min(eigenvalues)
+
+    # We return the eigenvalues, explained variance, eigenvectors, and asset names.
+    # This lets us understand and visualize the main risk factors in the portfolio.
+    # Each principal component (PC) is a 6D vector (for 6 assets), showing how much each asset contributes to that risk factor.
+    # PC1 is the eigenvector with the highest risk (largest variance explained).
+    return {
+        "eigenvalues": eigenvalues,
+        "explained_variance_ratio": explained_variance_ratio,
+        "eigenvectors": eigenvectors,
+        "asset_tickers": asset_tickers,
+        "condition_number": condition_number,
+    }
