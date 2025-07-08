@@ -234,31 +234,7 @@ Use plt.imshow() or seaborn.heatmap() for correlation visualization
 Conditioning number = max_eigenvalue / min_eigenvalue
 
 
-MC-011: Cholesky Decomposition Sampling
-Status: Not Started
-Priority: High
-Dependencies: MC-004
-
-Replace built-in multivariate normal sampling with custom Cholesky decomposition implementation
-
-Acceptance Criteria
-
-Implement custom multivariate normal sampling using Cholesky decomposition
-Verify results match built-in numpy function
-Add educational comments explaining the linear algebra
-Performance comparison (optional)
-
-Technical Notes
-
-Use np.linalg.cholesky() for matrix decomposition
-Generate uncorrelated random samples first
-Transform using Cholesky factor
-# L = np.linalg.cholesky(cov_matrix)
-# z = np.random.standard_normal((n_sims, n_assets))
-# correlated_returns = mean_returns + z @ L.T
-
-
-MC-012: Principal Component Analysis (PCA)
+MC-011: Principal Component Analysis (PCA)
 Status: Not Started
 Priority: Medium
 Dependencies: MC-010
