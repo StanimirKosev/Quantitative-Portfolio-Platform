@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 
 def simulate_daily_returns(mean_returns, cov_matrix, weights, size=252):
@@ -193,9 +194,9 @@ def modify_returns_for_regime(mean_returns, tickers, asset_factors):
 def get_cov_matrix_analysis(cov_matrix):
     """
     Return the principal components of a covariance matrix for portfolio risk analysis and visualization.
-    Returns eigenvalues, explained variance ratios, eigenvectors, and asset names (tickers).
+    Returns eigenvalues, explained variance ratios, eigenvectors, asset names (tickers), condition number, and correlation matrix.
     """
-    asset_tickers = list(cov_matrix.columns)
+    asset_tickers = cov_matrix.columns
     eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)
 
     # Sort eigenvalues and eigenvectors from largest to smallest
@@ -208,6 +209,16 @@ def get_cov_matrix_analysis(cov_matrix):
 
     condition_number = max(eigenvalues) / min(eigenvalues)
 
+    # Compute correlation matrix
+    std_devs = np.sqrt(np.diag(cov_matrix.values))
+    std_outer = np.outer(std_devs, std_devs)
+    corr_matrix = cov_matrix.values / std_outer
+    corr_matrix = np.clip(corr_matrix, -1, 1)  # Numerical safety
+
+    corr_matrix_df = pd.DataFrame(
+        corr_matrix, index=asset_tickers, columns=asset_tickers
+    )
+
     # We return the eigenvalues, explained variance, eigenvectors, and asset names.
     # This lets us understand and visualize the main risk factors in the portfolio.
     # Each principal component (PC) is a 6D vector (for 6 assets), showing how much each asset contributes to that risk factor.
@@ -216,6 +227,7 @@ def get_cov_matrix_analysis(cov_matrix):
         "eigenvalues": eigenvalues,
         "explained_variance_ratio": explained_variance_ratio,
         "eigenvectors": eigenvectors,
-        "asset_tickers": asset_tickers,
+        "asset_tickers": list(asset_tickers),
         "condition_number": condition_number,
+        "correlation_matrix": corr_matrix_df,
     }

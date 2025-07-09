@@ -1,4 +1,6 @@
 import yfinance as yf
+import os
+import matplotlib.pyplot as plt
 
 
 def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
@@ -65,3 +67,23 @@ def calculate_mean_and_covariance(daily_returns):
     mean_returns = daily_returns.mean()
     cov_matrix = daily_returns.cov()
     return mean_returns, cov_matrix
+
+
+def save_figure(regime_name, prefix, ext):
+    """
+    Save the current matplotlib figure to the scenario-specific charts folder.
+
+    The function normalizes the scenario name, creates the folder if it doesn't exist,
+    and saves the current matplotlib figure with a consistent naming scheme:
+    charts/{scenario}/{prefix}_{scenario}.{ext}
+
+    Args:
+        regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', ...)
+        prefix (str): File prefix (e.g., 'monte_carlo_simulation', 'correlation_matrix')
+        ext (str): File extension (e.g., 'png', 'csv')
+    """
+    scenario = str(regime_name).replace(" ", "_").lower()
+    folder = f"charts/{scenario}"
+    os.makedirs(folder, exist_ok=True)
+    filename = f"{prefix}_{scenario}.{ext}"
+    plt.savefig(os.path.join(folder, filename), dpi=300, bbox_inches="tight")

@@ -2,9 +2,11 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import numpy as np
 from monte_carlo import calculate_simulation_statistics, calculate_risk_metrics
+import seaborn as sns
+from utils import save_figure
 
 
-def plot_simulation_results(portfolio_paths, regime_name=None):
+def plot_simulation_results(portfolio_paths, regime_name):
     """Visualizes the results of a Monte Carlo portfolio simulation with percentile bands and key paths.
 
     This function generates a professional plot displaying the outcomes of multiple portfolio
@@ -140,10 +142,42 @@ def plot_simulation_results(portfolio_paths, regime_name=None):
 
     plt.tight_layout()
 
-    filename = "monte_carlo_simulation"
-    if regime_name:
-        clean_name = regime_name.replace(" ", "_").replace(":", "").replace("-", "_")
-        filename = f"monte_carlo_simulation_{clean_name.lower()}"
+    save_figure(regime_name, "monte_carlo_simulation", "png")
+    plt.show()
 
-    plt.savefig(f"charts/{filename}.png", dpi=300, bbox_inches="tight")
+
+def plot_correlation_heatmap(corr_matrix, regime_name):
+    """
+    Plot a heatmap of the correlation matrix using seaborn.
+
+    Parameters:
+        corr_matrix (pd.DataFrame): Correlation matrix (square, with asset names as index/columns).
+        regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', 'geopolitical_crisis').
+        title (str, optional): Title for the plot.
+    """
+
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(
+        corr_matrix,
+        annot=True,
+        fmt=".2f",
+        cmap="coolwarm",
+        vmin=-1,
+        vmax=1,
+        square=True,
+        cbar_kws={"shrink": 0.8},
+        linewidths=0.5,
+        linecolor="white",
+    )
+    plt.xticks(rotation=45, ha="right")
+    plt.yticks(rotation=0)
+
+    plt.title(
+        f"Portfolio Correlation Matrix: {regime_name.title()}",
+        fontsize=16,
+        fontweight="bold",
+        pad=20,
+    )
+    plt.tight_layout()
+    save_figure(regime_name, "correlation_matrix", "png")
     plt.show()
