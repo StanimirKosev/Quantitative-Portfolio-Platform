@@ -178,7 +178,7 @@ def plot_correlation_heatmap(corr_matrix_analysis, regime_name):
     plt.yticks(rotation=0)
 
     plt.title(
-        f"Portfolio Correlation Matrix: {regime_name.title()}",
+        f"Portfolio Correlation Matrix - {regime_name.title()}",
         fontsize=16,
         fontweight="bold",
         pad=20,
@@ -193,4 +193,78 @@ def plot_correlation_heatmap(corr_matrix_analysis, regime_name):
     plt.figtext(0.01, 0.01, stats_text, ha="left", va="bottom", fontsize=10)
 
     save_figure(regime_name, "correlation_matrix", "png")
+    plt.show()
+
+
+def plot_eigenvalues(corr_matrix_analysis, regime_name):
+    """
+    Plot a bar chart of eigenvalues (sorted), highlighting dominant factors (>1.0),
+    and display a single interpretation box with:
+    - Number of dominant factors
+    - Total explained variance by dominant factors
+    - Top 2 contributing assets for each dominant principal component
+
+    Parameters:
+        corr_matrix_analysis (dict): Output of get_cov_matrix_analysis(), containing eigenvalues, explained variance, dominant_pc_top_assets, and explained_variance_by_dominant_pct.
+        regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', 'geopolitical_crisis').
+    """
+    eigenvalues = np.array(corr_matrix_analysis["eigenvalues"])
+    dominant_pc_top_assets = corr_matrix_analysis["dominant_pc_top_assets"]
+    explained_variance_by_dominant_pct = corr_matrix_analysis[
+        "explained_variance_by_dominant_pct"
+    ]
+
+    # Color scheme: dominant factors (>1.0) in red, others in light blue
+    colors = ["#b22222" if val > 1.0 else "#87aade" for val in eigenvalues]
+
+    plt.figure(figsize=(8, 6))
+    plt.bar(
+        range(1, len(eigenvalues) + 1),
+        eigenvalues,
+        color=colors,
+        edgecolor="black",
+        linewidth=0.5,
+    )
+
+    # Add horizontal line at y=1.0 to show dominance threshold
+    plt.axhline(y=1.0, color="gray", linestyle="--", alpha=0.7, linewidth=1)
+
+    plt.xlabel("Principal Component", fontsize=12)
+    plt.ylabel("Eigenvalue", fontsize=12)
+    plt.title(
+        f"Portfolio Covariance Eigenvalue Spectrum - {regime_name.title()}",
+        fontsize=16,
+        fontweight="bold",
+        pad=20,
+    )
+
+    # Clean up axes
+    plt.xticks(range(1, len(eigenvalues) + 1))
+    plt.grid(axis="y", alpha=0.3)
+
+    # Set y-axis to start at 0 for better visual proportion
+    plt.ylim(0, max(eigenvalues) * 1.1)
+
+    interp_text = (
+        f"Dominant Factors: {len(dominant_pc_top_assets)}\n"
+        f"Explained Variance: {explained_variance_by_dominant_pct:.1f}%\n"
+        f"(Eigenvalues > 1.0 are dominant factors)\n"
+        f"Top contributing assets:\n" + "\n".join(dominant_pc_top_assets)
+    )
+
+    plt.gca().text(
+        0.98,
+        0.98,
+        interp_text,
+        transform=plt.gca().transAxes,
+        verticalalignment="top",
+        horizontalalignment="right",
+        fontsize=10,
+        bbox=dict(
+            boxstyle="round,pad=0.5", facecolor="white", edgecolor="gray", alpha=0.9
+        ),
+    )
+
+    plt.tight_layout()
+    save_figure(regime_name, "eigenvalue_analysis", "png")
     plt.show()

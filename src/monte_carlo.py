@@ -194,7 +194,7 @@ def modify_returns_for_regime(mean_returns, tickers, asset_factors):
 def get_cov_matrix_analysis(cov_matrix):
     """
     Return the principal components of a covariance matrix for portfolio risk analysis and visualization.
-    Returns eigenvalues, explained variance ratios, eigenvectors, asset names (tickers), condition number, and correlation matrix.
+    Returns eigenvalues, explained variance ratios, eigenvectors, asset names (tickers), condition number, correlation matrix, dominant PC asset info, and explained_variance_by_dominant_pct.
     """
     asset_tickers = cov_matrix.columns
     eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)
@@ -219,6 +219,19 @@ def get_cov_matrix_analysis(cov_matrix):
         corr_matrix, index=asset_tickers, columns=asset_tickers
     )
 
+    # Dominant PC asset info
+    dominant_pc_top_assets = []
+    dominant_count = sum(ev > 1.0 for ev in eigenvalues)
+    for i in range(dominant_count):
+        vec = eigenvectors[:, i]
+        top_idx = np.argsort(np.abs(vec))[::-1][:2]
+        top_assets = ", ".join([asset_tickers[j] for j in top_idx])
+        dominant_pc_top_assets.append(f"PC{i+1}: {top_assets}")
+
+    explained_variance_by_dominant_pct = 100 * np.sum(
+        np.array(explained_variance_ratio)[:dominant_count]
+    )
+
     # We return the eigenvalues, explained variance, eigenvectors, and asset names.
     # This lets us understand and visualize the main risk factors in the portfolio.
     # Each principal component (PC) is a 6D vector (for 6 assets), showing how much each asset contributes to that risk factor.
@@ -230,4 +243,6 @@ def get_cov_matrix_analysis(cov_matrix):
         "asset_tickers": list(asset_tickers),
         "condition_number": condition_number,
         "correlation_matrix": corr_matrix_df,
+        "dominant_pc_top_assets": dominant_pc_top_assets,
+        "explained_variance_by_dominant_pct": explained_variance_by_dominant_pct,
     }
