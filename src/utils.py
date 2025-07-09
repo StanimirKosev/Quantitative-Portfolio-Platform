@@ -17,7 +17,8 @@ def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
     data = None
 
     try:
-        data = yf.download(tickers, start=start, end=end)
+        # yfinance now defaults auto_adjust=True (adjusted prices). Set explicitly for clarity and to silence FutureWarning.
+        data = yf.download(tickers, start=start, end=end, auto_adjust=True)
     except Exception as e:
         print(f"Error downloading data: {e}")
 
@@ -42,7 +43,8 @@ def transform_to_daily_returns_percent(close_prices):
     if close_prices is None:
         return None
 
-    daily_returns = close_prices.pct_change().dropna()
+    # Set fill_method=None to avoid FutureWarning and ensure no forward-filling of missing values.
+    daily_returns = close_prices.pct_change(fill_method=None).dropna()
 
     return daily_returns * 100
 

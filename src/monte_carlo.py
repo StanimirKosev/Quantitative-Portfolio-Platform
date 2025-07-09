@@ -184,7 +184,8 @@ def modify_returns_for_regime(mean_returns, tickers, asset_factors):
 
     for i, ticker in enumerate(tickers):
         if ticker in asset_factors:
-            modified_returns[i] *= asset_factors[ticker]
+            # Use iloc for position-based assignment to avoid FutureWarning
+            modified_returns.iloc[i] *= asset_factors[ticker]
 
     return modified_returns
 
