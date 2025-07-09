@@ -146,15 +146,20 @@ def plot_simulation_results(portfolio_paths, regime_name):
     plt.show()
 
 
-def plot_correlation_heatmap(corr_matrix, regime_name):
+def plot_correlation_heatmap(corr_matrix_analysis, regime_name):
     """
     Plot a heatmap of the correlation matrix using seaborn.
 
     Parameters:
-        corr_matrix (pd.DataFrame): Correlation matrix (square, with asset names as index/columns).
+        corr_matrix_analysis (dict): Output of get_cov_matrix_analysis(), containing correlation matrix and related stats.
         regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', 'geopolitical_crisis').
         title (str, optional): Title for the plot.
     """
+    corr_matrix = corr_matrix_analysis["correlation_matrix"]
+    condition_number = corr_matrix_analysis["condition_number"]
+
+    # Determine conditioning status (arbitrary threshold: < 100 is 'Well', else 'Poorly')
+    cond_status = "Well Conditioned" if condition_number < 100 else "Poorly Conditioned"
 
     plt.figure(figsize=(8, 6))
     sns.heatmap(
@@ -178,6 +183,14 @@ def plot_correlation_heatmap(corr_matrix, regime_name):
         fontweight="bold",
         pad=20,
     )
+
+    stats_text = (
+        f"Conditioning Number: {condition_number:.2f}\n" f"Status: {cond_status}\n"
+    )
     plt.tight_layout()
+
+    plt.subplots_adjust(bottom=0.18)  # Make space for text below the plot
+    plt.figtext(0.01, 0.01, stats_text, ha="left", va="bottom", fontsize=10)
+
     save_figure(regime_name, "correlation_matrix", "png")
     plt.show()
