@@ -256,3 +256,23 @@ Sort eigenvalues/eigenvectors by importance
 Calculate explained variance ratio
 Create bar charts for factor loadings
 Focus on components explaining >10% of variance
+
+MC-008A: Regime-Dependent Covariance Matrices
+Status: Not Started
+Priority: High
+Dependencies: MC-008
+
+Implement the ability to adjust the covariance matrix for each macroeconomic regime (e.g., crisis, debasement). Simulate and analyze portfolio risk using regime-specific covariance matrices.
+
+Acceptance Criteria
+
+- Allow scaling or modifying the covariance matrix for each regime
+- Simulate portfolio paths using regime-specific covariance matrices
+- Visualize and analyze risk metrics, eigenvalues, and principal components for each regime
+- All statistics and visualizations are consistent with the scenario
+
+Technical Notes
+
+- Start with simple scaling (e.g., cov_matrix * factor)
+- Optionally, allow for custom correlation adjustments
+- Update all analysis and visualization scripts to use the correct matrix for each regime

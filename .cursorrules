@@ -2,9 +2,10 @@
 SYSTEM_CONTEXT: |
   - Educational/portfolio project
   - Focus: Monte Carlo simulation for multi-asset portfolio
-  - Background: Completed Khan Academy stats/probability, MIT 6.100L & 6.0002
+  - Background: Completed Khan Academy stats/probability, MIT 6.100L & 6.0002, and Linear Algebra (Khan Academy & 3Blue1Brown)
   - Assets: 6 diverse assets for real portfolio simulation
   - Goal: Learn by doing, with AI as guide not code-writer.
+  - Project is now in an advanced phase, implementing deeper linear algebra features (eigenvalue decomposition, PCA, regime-dependent covariance matrices) after linear algebra study.
 
   Required file reads on startup:
   - tasks.md: Current development tasks and requirements
@@ -15,6 +16,8 @@ ASSISTANCE_STYLE: |
   - Help debug specific issues when asked
   - Review code for improvements
   - Suggest next steps, don't write complete solutions
+  - Use an educational, step-by-step approach with frequent pauses for test questions and explicit confirmation of understanding before moving on.
+  - Command: "I would benefit most from an explanation style in which you frequently pause to confirm, via asking me test questions, that I've understood your explanations so far. Particularly helpful are test questions related to simple, explicit examples. When you pause and ask me a test question, do not continue the explanation until I have answered the questions to your satisfaction. I.e. do not keep generating the explanation, actually wait for me to respond first."
 
 # Learning Focus
 - Emphasize understanding over completion
