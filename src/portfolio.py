@@ -13,12 +13,12 @@ def get_portfolio():
 
 
 FIAT_DEBASEMENT_REGIME = {
-    "BTC-EUR": 1.2,  # 20% higher - inflation hedge
-    "4GLD.DE": 1.15,  # 15% higher - safe haven
-    "5MVW.DE": 1.1,  # 10% higher - weak fiat helps
-    "SPYL.DE": 0.9,  # 10% lower - higher rates hurt
-    "WMIN.DE": 1.15,  # 15% higher - commodity boom
-    "IS3N.DE": 1.1,  # 10% higher - weak fiat helps
+    "BTC-EUR": {"mean_factor": 1.3, "vol_factor": 1.1},  # BTC outperforms, stabilizes
+    "4GLD.DE": {"mean_factor": 1.15, "vol_factor": 1.05},  # Gold up, less than BTC
+    "5MVW.DE": {"mean_factor": 1.05, "vol_factor": 1.1},  # Energy mild outperformance
+    "SPYL.DE": {"mean_factor": 1.1, "vol_factor": 1.0},  # S&P up, vol unchanged
+    "WMIN.DE": {"mean_factor": 1.2, "vol_factor": 1.2},  # Miners up, more volatile
+    "IS3N.DE": {"mean_factor": 1.1, "vol_factor": 1.15},  # EM modest outperformance
 }
 
 GEOPOLITICAL_CRISIS_REGIME = {

@@ -2,7 +2,9 @@ import yfinance as yf
 import os
 import matplotlib.pyplot as plt
 
+HISTORICAL = "Historical"
 GEOPOLITICAL_CRISIS_REGIME_NAME = "Geopolitical Crisis"
+FIAT_DEBASEMENT_REGIME_NAME = "Fiat Debasement"
 
 
 def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
