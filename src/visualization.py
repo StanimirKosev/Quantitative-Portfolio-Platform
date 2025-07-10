@@ -159,7 +159,12 @@ def plot_correlation_heatmap(corr_matrix_analysis, regime_name):
     condition_number = corr_matrix_analysis["condition_number"]
 
     # Determine conditioning status (arbitrary threshold: < 100 is 'Well', else 'Poorly')
-    cond_status = "Well Conditioned" if condition_number < 100 else "Poorly Conditioned"
+    if condition_number < 0:
+        cond_status = "Invalid (Negative Eigenvalues)"
+    elif condition_number < 100:
+        cond_status = "Well Conditioned"
+    else:
+        cond_status = "Poorly Conditioned"
 
     plt.figure(figsize=(8, 6))
     sns.heatmap(

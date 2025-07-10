@@ -19,6 +19,7 @@ FIAT_DEBASEMENT_REGIME = {
     "SPYL.DE": {"mean_factor": 1.1, "vol_factor": 1.0},  # S&P up, vol unchanged
     "WMIN.DE": {"mean_factor": 1.2, "vol_factor": 1.2},  # Miners up, more volatile
     "IS3N.DE": {"mean_factor": 1.1, "vol_factor": 1.15},  # EM modest outperformance
+    "correlation_move_pct": -0.15,  # Risk-on: sectors diverge, correlations rise only slightly. Keep low; high values can cause negative eigenvalues and break the matrix.
 }
 
 GEOPOLITICAL_CRISIS_REGIME = {
@@ -28,4 +29,5 @@ GEOPOLITICAL_CRISIS_REGIME = {
     "SPYL.DE": {"mean_factor": 0.8, "vol_factor": 1.3},  # S&P down, choppier
     "WMIN.DE": {"mean_factor": 1.05, "vol_factor": 1.4},  # Miners up, riskier
     "IS3N.DE": {"mean_factor": 0.7, "vol_factor": 1.5},  # EM down, much choppier
+    "correlation_move_pct": 0.2,  # Risk-off: assets move together, correlations rise sharply. Keep low; high values can cause negative eigenvalues and break the matrix.
 }

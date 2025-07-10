@@ -203,15 +203,31 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors
             #   modified_cov[i, j] = original_cov[i, j] * vol_factor_i * vol_factor_j
             modified_cov_matrix.iloc[i, j] *= vi * vj
 
+    modified_cov_matrix_analysis = get_cov_matrix_analysis(modified_cov_matrix, tickers)
+
+    corr_matrix = modified_cov_matrix_analysis["correlation_matrix"]
+    stdev_outer_product = modified_cov_matrix_analysis["stdev_outer_product"]
+
+    # Adjust all off-diagonal correlations by the regime's correlation_move_pct, then rebuild the covariance matrix.
+    for i in range(len(tickers)):
+        for j in range(len(tickers)):
+            if i != j:
+                new_corr = (
+                    corr_matrix.iloc[i, j]
+                    + corr_matrix.iloc[i, j] * asset_factors["correlation_move_pct"]
+                )
+                corr_matrix.iloc[i, j] = np.clip(new_corr, -1, 1)
+    new_cov = corr_matrix.values * stdev_outer_product
+    modified_cov_matrix = pd.DataFrame(new_cov, index=tickers, columns=tickers)
+
     return modified_mean_returns, modified_cov_matrix
 
 
-def get_cov_matrix_analysis(cov_matrix):
+def get_cov_matrix_analysis(cov_matrix, tickers):
     """
     Return the principal components of a covariance matrix for portfolio risk analysis and visualization.
     Returns eigenvalues, explained variance ratios, eigenvectors, asset names (tickers), condition number, correlation matrix, dominant PC asset info, and explained_variance_by_dominant_pct.
     """
-    asset_tickers = cov_matrix.columns
     eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)
 
     # Sort eigenvalues and eigenvectors from largest to smallest
@@ -226,13 +242,11 @@ def get_cov_matrix_analysis(cov_matrix):
 
     # Compute correlation matrix
     std_devs = np.sqrt(np.diag(cov_matrix.values))
-    std_outer = np.outer(std_devs, std_devs)
-    corr_matrix = cov_matrix.values / std_outer
+    stdev_outer_product = np.outer(std_devs, std_devs)
+    corr_matrix = cov_matrix.values / stdev_outer_product
     corr_matrix = np.clip(corr_matrix, -1, 1)  # Numerical safety
 
-    corr_matrix_df = pd.DataFrame(
-        corr_matrix, index=asset_tickers, columns=asset_tickers
-    )
+    corr_matrix_df = pd.DataFrame(corr_matrix, index=tickers, columns=tickers)
 
     # Dominant PC asset info
     dominant_pc_top_assets = []
@@ -240,7 +254,7 @@ def get_cov_matrix_analysis(cov_matrix):
     for i in range(dominant_count):
         vec = eigenvectors[:, i]
         top_idx = np.argsort(np.abs(vec))[::-1][:2]
-        top_assets = ", ".join([asset_tickers[j] for j in top_idx])
+        top_assets = ", ".join([tickers[j] for j in top_idx])
         dominant_pc_top_assets.append(f"PC{i+1}: {top_assets}")
 
     explained_variance_by_dominant_pct = 100 * np.sum(
@@ -255,9 +269,9 @@ def get_cov_matrix_analysis(cov_matrix):
         "eigenvalues": eigenvalues,
         "explained_variance_ratio": explained_variance_ratio,
         "eigenvectors": eigenvectors,
-        "asset_tickers": list(asset_tickers),
         "condition_number": condition_number,
         "correlation_matrix": corr_matrix_df,
         "dominant_pc_top_assets": dominant_pc_top_assets,
         "explained_variance_by_dominant_pct": explained_variance_by_dominant_pct,
+        "stdev_outer_product": stdev_outer_product,
     }
