@@ -22,10 +22,10 @@ FIAT_DEBASEMENT_REGIME = {
 }
 
 GEOPOLITICAL_CRISIS_REGIME = {
-    "BTC-EUR": 0.7,  # 30% lower - risk asset, underperforms
-    "4GLD.DE": 1.3,  # 30% higher - safe haven, outperforms
-    "5MVW.DE": 0.6,  # 40% lower - global stocks hurt
-    "SPYL.DE": 0.5,  # 50% lower - US stocks hit hard
-    "WMIN.DE": 0.8,  # 20% lower - commodity demand falls
-    "IS3N.DE": 0.4,  # 60% lower - emerging markets hit hardest
+    "BTC-EUR": {"mean_factor": 0.85, "vol_factor": 1.7},  # Down, choppy, possible hedge
+    "4GLD.DE": {"mean_factor": 1.10, "vol_factor": 1.2},  # Gold up, a bit choppier
+    "5MVW.DE": {"mean_factor": 1.15, "vol_factor": 1.25},  # Energy up, choppier
+    "SPYL.DE": {"mean_factor": 0.8, "vol_factor": 1.3},  # S&P down, choppier
+    "WMIN.DE": {"mean_factor": 1.05, "vol_factor": 1.4},  # Miners up, riskier
+    "IS3N.DE": {"mean_factor": 0.7, "vol_factor": 1.5},  # EM down, much choppier
 }

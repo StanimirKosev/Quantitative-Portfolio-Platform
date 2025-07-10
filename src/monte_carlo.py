@@ -166,29 +166,44 @@ def calculate_simulation_statistics(portfolio_paths):
     }
 
 
-def modify_returns_for_regime(mean_returns, tickers, asset_factors):
+def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors):
     """
-    Modify mean returns based on macroeconomic regime factors.
+    Modify mean returns and covariance matrix based on macroeconomic regime factors.
 
     Args:
         mean_returns: Historical mean returns for each asset
+        cov_matrix: Historical covariance matrix of asset returns
         tickers: List of asset tickers
-        asset_factors: Dictionary of factors for each asset with "name" key
+        asset_factors: Dictionary of factors for each asset with 'mean_factor' and 'vol_factor' keys
 
     Returns:
-        tuple: (modified_returns, regime_name)
+        tuple:
+            - pd.Series: Modified mean returns for the regime
+            - pd.DataFrame: Modified covariance matrix for the regime
     """
-    if asset_factors is None:
-        return
+    modified_mean_returns = mean_returns.copy()
+    modified_cov_matrix = cov_matrix.copy()
 
-    modified_returns = mean_returns.copy()
+    for i, ticker_i in enumerate(tickers):
+        if ticker_i not in asset_factors:
+            return modified_mean_returns, modified_cov_matrix
+        # Modify mean returns
+        # Use iloc for position-based assignment to avoid FutureWarning
+        modified_mean_returns.iloc[i] *= asset_factors[ticker_i]["mean_factor"]
 
-    for i, ticker in enumerate(tickers):
-        if ticker in asset_factors:
-            # Use iloc for position-based assignment to avoid FutureWarning
-            modified_returns.iloc[i] *= asset_factors[ticker]
+        # --- Covariance Matrix Regime Adjustment ---
+        # - Diagonal elements (i == j): variance is scaled by (vol_factor)^2, so volatility is scaled by vol_factor.
+        # - Off-diagonal elements (i != j): covariance is scaled by both assets' vol_factors, reflecting how joint risk changes.
+        #   This preserves the correlation structure (correlations are unchanged), but increases or decreases the overall risk.
+        for j, ticker_j in enumerate(tickers):
 
-    return modified_returns
+            vi = asset_factors[ticker_i]["vol_factor"]
+            vj = asset_factors[ticker_j]["vol_factor"]
+
+            #   modified_cov[i, j] = original_cov[i, j] * vol_factor_i * vol_factor_j
+            modified_cov_matrix.iloc[i, j] *= vi * vj
+
+    return modified_mean_returns, modified_cov_matrix
 
 
 def get_cov_matrix_analysis(cov_matrix):

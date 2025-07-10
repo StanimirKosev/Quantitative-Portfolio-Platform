@@ -2,6 +2,8 @@ import yfinance as yf
 import os
 import matplotlib.pyplot as plt
 
+GEOPOLITICAL_CRISIS_REGIME_NAME = "Geopolitical Crisis"
+
 
 def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
     """
