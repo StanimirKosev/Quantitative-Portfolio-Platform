@@ -54,7 +54,7 @@ plot_portfolio_pca_analysis(
 
 # Fiat debasement regime: Simulates strong inflation, BTC and gold outperform, risk-on environment.
 fiat_debasement_mean_returns, fiat_debasement_cov_matrix = modify_portfolio_for_regime(
-    historical_mean_returns, historical_cov_matrix, tickers, FIAT_DEBASEMENT_REGIME
+    historical_mean_returns, historical_cov_matrix, FIAT_DEBASEMENT_REGIME
 )
 
 fiat_debasement_paths = simulate_portfolio_paths(
@@ -82,7 +82,6 @@ geopolitical_crisis_mean_returns, geopolitical_crisis_cov_matrix = (
     modify_portfolio_for_regime(
         historical_mean_returns,
         historical_cov_matrix,
-        tickers,
         GEOPOLITICAL_CRISIS_REGIME,
     )
 )

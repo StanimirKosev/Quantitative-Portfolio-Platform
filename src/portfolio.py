@@ -12,6 +12,10 @@ def get_portfolio():
     return (tickers, weights)
 
 
+# NOTE: Regime dictionaries must include every portfolio asset with both 'mean_factor' and 'vol_factor',
+# as well as 'correlation_move_pct'; missing any key or asset will cause errors in regime modification.
+# To leave an asset unchanged, set 'mean_factor' and 'vol_factor' to 1.0; set 'correlation_move_pct' to 0.0 to leave correlations unchanged.
+
 FIAT_DEBASEMENT_REGIME = {
     "BTC-EUR": {"mean_factor": 1.3, "vol_factor": 1.1},  # BTC outperforms, stabilizes
     "4GLD.DE": {"mean_factor": 1.15, "vol_factor": 1.05},  # Gold up, less than BTC

@@ -166,15 +166,14 @@ def calculate_simulation_statistics(portfolio_paths):
     }
 
 
-def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors):
+def modify_portfolio_for_regime(mean_returns, cov_matrix, regime_asset_factors):
     """
     Modify mean returns and covariance matrix based on macroeconomic regime factors.
 
     Args:
         mean_returns: Historical mean returns for each asset
         cov_matrix: Historical covariance matrix of asset returns
-        tickers: List of asset tickers
-        asset_factors: Dictionary of factors for each asset with 'mean_factor' and 'vol_factor' keys
+        regime_asset_factors: Dictionary of factors for each asset with 'mean_factor' and 'vol_factor' keys, and a global key 'correlation_move_pct' (e.g., {"AAPL": {"mean_factor": 1.1, "vol_factor": 1.2}, ..., "correlation_move_pct": -0.15})
 
     Returns:
         tuple:
@@ -184,24 +183,26 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors
     modified_mean_returns = mean_returns.copy()
     modified_cov_matrix = cov_matrix.copy()
 
-    for i, ticker_i in enumerate(tickers):
-        if ticker_i not in asset_factors:
+    for ticker_i in cov_matrix.columns:
+        if ticker_i not in regime_asset_factors:
             return modified_mean_returns, modified_cov_matrix
         # Modify mean returns
-        # Use iloc for position-based assignment to avoid FutureWarning
-        modified_mean_returns.iloc[i] *= asset_factors[ticker_i]["mean_factor"]
+        # Use loc for position-based assignment to avoid FutureWarning
+        modified_mean_returns.loc[ticker_i] *= regime_asset_factors[ticker_i][
+            "mean_factor"
+        ]
 
         # --- Covariance Matrix Regime Adjustment ---
         # - Diagonal elements (i == j): variance is scaled by (vol_factor)^2, so volatility is scaled by vol_factor.
         # - Off-diagonal elements (i != j): covariance is scaled by both assets' vol_factors, reflecting how joint risk changes.
         #   This preserves the correlation structure (correlations are unchanged), but increases or decreases the overall risk.
-        for j, ticker_j in enumerate(tickers):
+        for ticker_j in cov_matrix.columns:
 
-            vi = asset_factors[ticker_i]["vol_factor"]
-            vj = asset_factors[ticker_j]["vol_factor"]
+            vi = regime_asset_factors[ticker_i]["vol_factor"]
+            vj = regime_asset_factors[ticker_j]["vol_factor"]
 
-            #   modified_cov[i, j] = original_cov[i, j] * vol_factor_i * vol_factor_j
-            modified_cov_matrix.iloc[i, j] *= vi * vj
+            #   modified_cov[ticker_i, ticker_j] = original_cov[i, j] * vol_factor_i * vol_factor_j
+            modified_cov_matrix.loc[ticker_i, ticker_j] *= vi * vj
 
     modified_cov_matrix_analysis = get_cov_matrix_analysis(modified_cov_matrix)
 
@@ -209,14 +210,15 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors
     stdev_outer_product = modified_cov_matrix_analysis["stdev_outer_product"]
 
     # Adjust all off-diagonal correlations by the regime's correlation_move_pct, then rebuild the covariance matrix.
-    for i in range(len(tickers)):
-        for j in range(len(tickers)):
-            if i != j:
+    for ticker_i in cov_matrix.columns:
+        for ticker_j in cov_matrix.columns:
+            if ticker_i != ticker_j:
                 new_corr = (
-                    corr_matrix.iloc[i, j]
-                    + corr_matrix.iloc[i, j] * asset_factors["correlation_move_pct"]
+                    corr_matrix.loc[ticker_i, ticker_j]
+                    + corr_matrix.loc[ticker_i, ticker_j]
+                    * regime_asset_factors["correlation_move_pct"]
                 )
-                corr_matrix.iloc[i, j] = np.clip(new_corr, -1, 1)
+                corr_matrix.loc[ticker_i, ticker_j] = np.clip(new_corr, -1, 1)
     new_cov = corr_matrix.values * stdev_outer_product
     modified_cov_matrix = pd.DataFrame(
         new_cov, index=cov_matrix.columns, columns=cov_matrix.columns
