@@ -1,7 +1,12 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import numpy as np
-from monte_carlo import calculate_simulation_statistics, calculate_risk_metrics
+from monte_carlo import (
+    analyze_portfolio_correlation,
+    analyze_portfolio_risk_factors,
+    calculate_simulation_statistics,
+    calculate_risk_metrics,
+)
 import seaborn as sns
 from utils import save_figure
 
@@ -146,17 +151,19 @@ def plot_simulation_results(portfolio_paths, regime_name):
     plt.show()
 
 
-def plot_correlation_heatmap(corr_matrix_analysis, regime_name):
+def plot_correlation_heatmap(cov_matrix, regime_name):
     """
-    Plot a heatmap of the correlation matrix using seaborn.
+    Plot a heatmap of the portfolio's correlation matrix using seaborn, with conditioning diagnostics.
 
     Parameters:
-        corr_matrix_analysis (dict): Output of get_cov_matrix_analysis(), containing correlation matrix and related stats.
-        regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', 'geopolitical_crisis').
-        title (str, optional): Title for the plot.
+        cov_matrix (pd.DataFrame): Covariance matrix of asset returns (assets as both rows and columns).
+        regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', 'geopolitical_crisis') for plot title and file naming.
+
+    The function computes the correlation matrix and its condition number, then visualizes the matrix as a heatmap with annotations. An info panel below the plot summarizes the matrix's conditioning status.
     """
-    corr_matrix = corr_matrix_analysis["correlation_matrix"]
-    condition_number = corr_matrix_analysis["condition_number"]
+    analysis = analyze_portfolio_correlation(cov_matrix)
+    corr_matrix = analysis["correlation_matrix"]
+    condition_number = analysis["condition_number"]
 
     # Determine conditioning status (arbitrary threshold: < 100 is 'Well', else 'Poorly')
     if condition_number < 0:
@@ -201,14 +208,14 @@ def plot_correlation_heatmap(corr_matrix_analysis, regime_name):
     plt.show()
 
 
-def plot_portfolio_pca_analysis(corr_matrix_analysis, regime_name):
+def plot_portfolio_pca_analysis(cov_matrix, regime_name):
     """
     Visualize principal component analysis (PCA) results for a portfolio as a risk factor bar chart.
 
     This function plots the eigenvalues of the portfolio's covariance (or correlation) matrix as a bar chart, highlighting dominant risk factors (principal components with eigenvalue > 1.0) in a distinct color. For each dominant factor, it annotates the bar with the top contributing assets (those with >10% loading or at least the top 2), stacking their names and percentage contributions proportionally within the bar. An information panel summarizes the number of dominant factors, total explained variance, and other key statistics.
 
     Parameters:
-        corr_matrix_analysis (dict): Output of get_cov_matrix_analysis(), containing:
+        corr_matrix_analysis (dict): Output of analyze_portfolio_risk_factors(), containing:
             - 'eigenvalues': array-like, eigenvalues of the matrix
             - 'dominant_factor_loadings' (or 'dominant_factor_loadings'): dict mapping PC index to list of top asset contributors
             - 'explained_variance_dominant' (or 'explained_variance_dominant'): float, total explained variance by dominant PCs
@@ -220,9 +227,10 @@ def plot_portfolio_pca_analysis(corr_matrix_analysis, regime_name):
         - Info panel with summary statistics
         - Saves the figure with a scenario-specific filename
     """
-    eigenvalues = np.array(corr_matrix_analysis["eigenvalues"])
-    dominant_factor_loadings = corr_matrix_analysis["dominant_factor_loadings"]
-    explained_variance_dominant = corr_matrix_analysis["explained_variance_dominant"]
+    analysis = analyze_portfolio_risk_factors(cov_matrix)
+    eigenvalues = np.array(analysis["eigenvalues"])
+    dominant_factor_loadings = analysis["dominant_factor_loadings"]
+    explained_variance_dominant = analysis["explained_variance_dominant"]
 
     DOMINANT_COLOR = "#c41e3a"
     MINOR_COLOR = "#6fa8dc"

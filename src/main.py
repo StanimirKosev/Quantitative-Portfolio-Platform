@@ -14,7 +14,6 @@ from utils import (
 from monte_carlo import (
     simulate_portfolio_paths,
     modify_portfolio_for_regime,
-    get_cov_matrix_analysis,
 )
 from visualization import (
     plot_correlation_heatmap,
@@ -39,15 +38,13 @@ historical_paths = simulate_portfolio_paths(
 
 plot_simulation_results(historical_paths, HISTORICAL)
 
-historical_cov_matrix_analysis = get_cov_matrix_analysis(historical_cov_matrix)
-
 plot_correlation_heatmap(
-    historical_cov_matrix_analysis,
+    historical_cov_matrix,
     HISTORICAL,
 )
 
 plot_portfolio_pca_analysis(
-    historical_cov_matrix_analysis,
+    historical_cov_matrix,
     HISTORICAL,
 )
 
@@ -63,17 +60,13 @@ fiat_debasement_paths = simulate_portfolio_paths(
 
 plot_simulation_results(fiat_debasement_paths, FIAT_DEBASEMENT_REGIME_NAME)
 
-fiat_debasement_cov_matrix_analysis = get_cov_matrix_analysis(
-    fiat_debasement_cov_matrix
-)
-
 plot_correlation_heatmap(
-    fiat_debasement_cov_matrix_analysis,
+    fiat_debasement_cov_matrix,
     FIAT_DEBASEMENT_REGIME_NAME,
 )
 
 plot_portfolio_pca_analysis(
-    fiat_debasement_cov_matrix_analysis,
+    fiat_debasement_cov_matrix,
     FIAT_DEBASEMENT_REGIME_NAME,
 )
 
@@ -92,16 +85,12 @@ geopolitical_crisis_paths = simulate_portfolio_paths(
 
 plot_simulation_results(geopolitical_crisis_paths, GEOPOLITICAL_CRISIS_REGIME_NAME)
 
-geopolitical_crisis_cov_matrix_analysis = get_cov_matrix_analysis(
-    geopolitical_crisis_cov_matrix
-)
-
 plot_correlation_heatmap(
-    geopolitical_crisis_cov_matrix_analysis,
+    geopolitical_crisis_cov_matrix,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
 )
 
 plot_portfolio_pca_analysis(
-    geopolitical_crisis_cov_matrix_analysis,
+    geopolitical_crisis_cov_matrix,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
 )

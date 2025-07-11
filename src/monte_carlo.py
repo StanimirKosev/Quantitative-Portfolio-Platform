@@ -204,7 +204,7 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, regime_asset_factors):
             #   modified_cov[ticker_i, ticker_j] = original_cov[i, j] * vol_factor_i * vol_factor_j
             modified_cov_matrix.loc[ticker_i, ticker_j] *= vi * vj
 
-    modified_cov_matrix_analysis = get_cov_matrix_analysis(modified_cov_matrix)
+    modified_cov_matrix_analysis = analyze_portfolio_correlation(modified_cov_matrix)
 
     corr_matrix = modified_cov_matrix_analysis["correlation_matrix"]
     stdev_outer_product = modified_cov_matrix_analysis["stdev_outer_product"]
@@ -227,10 +227,21 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, regime_asset_factors):
     return modified_mean_returns, modified_cov_matrix
 
 
-def get_cov_matrix_analysis(cov_matrix):
+def analyze_portfolio_risk_factors(cov_matrix):
     """
-    Return the principal components of a covariance matrix for portfolio risk analysis and visualization.
-    Returns eigenvalues, explained variance ratios, eigenvectors, asset names (tickers), condition number, correlation matrix, dominant PC asset info, and explained_variance_dominant.
+    Perform principal component analysis (PCA) on a covariance matrix to identify dominant risk factors in a portfolio.
+
+    This function computes the eigenvalues and eigenvectors of the covariance matrix, sorts them in descending order of variance explained, and identifies the dominant principal components (PCs) with eigenvalues > 1.0. For each dominant PC, it determines the top contributing assets (by absolute loading percentage), selecting either all assets above a 10% threshold or the top 2 contributors.
+
+    Parameters:
+        cov_matrix (pd.DataFrame): Covariance matrix of asset returns (assets as both rows and columns).
+
+    Returns:
+        dict: Dictionary containing:
+            - 'eigenvalues': np.ndarray of sorted eigenvalues (variance explained by each PC)
+            - 'eigenvectors': np.ndarray of sorted eigenvectors (columns are PCs)
+            - 'dominant_factor_loadings': dict mapping PC index (1-based) to list of top asset contributors (dicts with 'asset' and 'pct')
+            - 'explained_variance_dominant': float, total variance explained by dominant PCs (as a percentage)
     """
     eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)
 
@@ -238,6 +249,71 @@ def get_cov_matrix_analysis(cov_matrix):
     idx = np.argsort(eigenvalues)[::-1]
     eigenvalues = eigenvalues[idx]
     eigenvectors = eigenvectors[:, idx]
+
+    dominant_factor_loadings = {}
+    threshold = 10  # percent threshold for asset contribution
+    explained_variance_dominant = 0
+
+    # Loop through PCs, only considering those with eigenvalue > 1.0 (dominant factors)
+    for pc_idx, eigval in enumerate(eigenvalues):
+        if eigval < 1.0:
+            break
+
+        # Accumulate explained variance for dominant PCs
+        explained_variance_dominant += eigenvalues[pc_idx] / sum(eigenvalues) * 100
+
+        pc_vector = eigenvectors[:, pc_idx]
+
+        # Calculate absolute loadings and their percentage contribution
+        abs_loadings = [abs(x) for x in pc_vector]
+        total = sum(abs_loadings)
+        pct_loadings = [(val / total) * 100 for val in abs_loadings]
+
+        # Pair each asset with its loading percentage
+        pc_assets = sorted(
+            [
+                {"asset": cov_matrix.columns[i], "pct": pct_loadings[i]}
+                for i in range(len(pct_loadings))
+            ],
+            key=lambda x: x["pct"],
+            reverse=True,
+        )
+
+        # Smart selection: Top 2 OR all above threshold
+        top_2 = pc_assets[:2]
+        eigval_is_small = eigval < 5.0  # Remove clutter from chart
+        above_threshold = [i for i in pc_assets if i["pct"] >= threshold]
+
+        selected_assets = (
+            above_threshold
+            if len(above_threshold) > 2 and not eigval_is_small
+            else top_2
+        )
+
+        dominant_factor_loadings[pc_idx + 1] = selected_assets
+
+    # Return PCA results and dominant factor analysis
+    # Each principal component (PC) is a 6D vector (for 6 assets), showing how much each asset contributes to that risk factor.
+    # PC1 is the eigenvector with the highest risk (largest variance explained).
+    return {
+        "eigenvalues": eigenvalues,
+        "eigenvectors": eigenvectors,
+        "dominant_factor_loadings": dominant_factor_loadings,
+        "explained_variance_dominant": explained_variance_dominant,
+    }
+
+
+def analyze_portfolio_correlation(cov_matrix):
+    """
+    Compute eigenvalues, condition number, and correlation matrix from a covariance matrix.
+
+    Args:
+        cov_matrix (pd.DataFrame): Covariance matrix of asset returns.
+
+    Returns:
+        dict: Condition number, correlation matrix, and stdev outer product.
+    """
+    eigenvalues, _ = np.linalg.eig(cov_matrix.values)
 
     condition_number = max(eigenvalues) / min(eigenvalues)
 
@@ -251,67 +327,8 @@ def get_cov_matrix_analysis(cov_matrix):
         corr_matrix, index=cov_matrix.columns, columns=cov_matrix.columns
     )
 
-    dominant_factor_loadings = {}
-    pc_assets = []
-    threshold = 10  # percent
-    explained_variance_dominant = 0
-
-    for pc_idx, eigval in enumerate(eigenvalues):
-        # Loop only Dominant Factors: (eigenvalues > 1.0)
-        if eigval < 1.0:
-            break
-
-        explained_variance_dominant += eigenvalues[pc_idx] / sum(eigenvalues) * 100
-
-        # Get the eigenvector (column) for this PC
-        pc_vector = eigenvectors[:, pc_idx]
-
-        abs_loadings = [abs(x) for x in pc_vector]
-        total = sum(abs_loadings)
-        pct_loadings = [(val / total) * 100 for val in abs_loadings]
-
-        pc_assets = sorted(
-            [
-                {"asset": cov_matrix.columns[i], "pct": pct_loadings[i]}
-                for i in range(len(pct_loadings))
-            ],
-            key=lambda x: x["pct"],
-            reverse=True,
-        )
-
-        # # Smart selection: Top 2 OR all above threshold, whichever gives more
-        top_2 = pc_assets[:2]
-        eigval_is_small = eigval < 5.0
-        above_threshold = [i for i in pc_assets if i["pct"] >= threshold]
-
-        # # Use whichever gives more assets (but cap at 4 for readability)
-        selected_assets = (
-            above_threshold
-            if len(above_threshold) > 2 and not eigval_is_small
-            else top_2
-        )
-
-        dominant_factor_loadings[pc_idx + 1] = selected_assets
-
-    # We return the eigenvalues, explained variance, eigenvectors, and asset names.
-    # This lets us understand and visualize the main risk factors in the portfolio.
-    # Each principal component (PC) is a 6D vector (for 6 assets), showing how much each asset contributes to that risk factor.
-    # PC1 is the eigenvector with the highest risk (largest variance explained).
     return {
-        "eigenvalues": eigenvalues,
-        "eigenvectors": eigenvectors,
         "condition_number": condition_number,
         "correlation_matrix": corr_matrix_df,
-        "dominant_factor_loadings": dominant_factor_loadings,
-        "explained_variance_dominant": explained_variance_dominant,
         "stdev_outer_product": stdev_outer_product,
     }
-
-
-def analyze_portfolio_risk_factors(cov_matrix):
-    """ """
-
-
-def analyze_portfolio_correlation(cov_matrix):
-    """ """
-    eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)
