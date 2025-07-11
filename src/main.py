@@ -18,7 +18,7 @@ from monte_carlo import (
 )
 from visualization import (
     plot_correlation_heatmap,
-    plot_eigenvalues,
+    plot_portfolio_pca_analysis,
     plot_simulation_results,
 )
 
@@ -46,7 +46,7 @@ plot_correlation_heatmap(
     HISTORICAL,
 )
 
-plot_eigenvalues(
+plot_portfolio_pca_analysis(
     historical_cov_matrix_analysis,
     HISTORICAL,
 )
@@ -72,7 +72,7 @@ plot_correlation_heatmap(
     FIAT_DEBASEMENT_REGIME_NAME,
 )
 
-plot_eigenvalues(
+plot_portfolio_pca_analysis(
     fiat_debasement_cov_matrix_analysis,
     FIAT_DEBASEMENT_REGIME_NAME,
 )
@@ -102,7 +102,7 @@ plot_correlation_heatmap(
     GEOPOLITICAL_CRISIS_REGIME_NAME,
 )
 
-plot_eigenvalues(
+plot_portfolio_pca_analysis(
     geopolitical_crisis_cov_matrix_analysis,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
 )

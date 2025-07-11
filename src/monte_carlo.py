@@ -218,7 +218,9 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors
                 )
                 corr_matrix.iloc[i, j] = np.clip(new_corr, -1, 1)
     new_cov = corr_matrix.values * stdev_outer_product
-    modified_cov_matrix = pd.DataFrame(new_cov, index=tickers, columns=tickers)
+    modified_cov_matrix = pd.DataFrame(
+        new_cov, index=cov_matrix.columns, columns=cov_matrix.columns
+    )
 
     return modified_mean_returns, modified_cov_matrix
 
@@ -226,7 +228,7 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors
 def get_cov_matrix_analysis(cov_matrix, tickers):
     """
     Return the principal components of a covariance matrix for portfolio risk analysis and visualization.
-    Returns eigenvalues, explained variance ratios, eigenvectors, asset names (tickers), condition number, correlation matrix, dominant PC asset info, and explained_variance_by_dominant_pct.
+    Returns eigenvalues, explained variance ratios, eigenvectors, asset names (tickers), condition number, correlation matrix, dominant PC asset info, and explained_variance_dominant.
     """
     eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)
 
@@ -234,9 +236,6 @@ def get_cov_matrix_analysis(cov_matrix, tickers):
     idx = np.argsort(eigenvalues)[::-1]
     eigenvalues = eigenvalues[idx]
     eigenvectors = eigenvectors[:, idx]
-
-    total_variance = sum(eigenvalues)
-    explained_variance_ratio = [eigval / total_variance for eigval in eigenvalues]
 
     condition_number = max(eigenvalues) / min(eigenvalues)
 
@@ -248,18 +247,42 @@ def get_cov_matrix_analysis(cov_matrix, tickers):
 
     corr_matrix_df = pd.DataFrame(corr_matrix, index=tickers, columns=tickers)
 
-    # Dominant PC asset info
-    dominant_pc_top_assets = []
-    dominant_count = sum(ev > 1.0 for ev in eigenvalues)
-    for i in range(dominant_count):
-        vec = eigenvectors[:, i]
-        top_idx = np.argsort(np.abs(vec))[::-1][:2]
-        top_assets = ", ".join([tickers[j] for j in top_idx])
-        dominant_pc_top_assets.append(f"PC{i+1}: {top_assets}")
+    dominant_factor_loadings = {}
+    pc_assets = []
+    threshold = 10  # percent
+    explained_variance_dominant = 0
 
-    explained_variance_by_dominant_pct = 100 * np.sum(
-        np.array(explained_variance_ratio)[:dominant_count]
-    )
+    for pc_idx, eigval in enumerate(eigenvalues):
+        # Loop only Dominant Factors: (eigenvalues > 1.0)
+        if eigval < 1.0:
+            break
+
+        explained_variance_dominant += eigenvalues[pc_idx] / sum(eigenvalues) * 100
+
+        # Get the eigenvector (column) for this PC
+        pc_vector = eigenvectors[:, pc_idx]
+
+        abs_loadings = [abs(x) for x in pc_vector]
+        total = sum(abs_loadings)
+        pct_loadings = [(val / total) * 100 for val in abs_loadings]
+
+        pc_assets = sorted(
+            [
+                {"asset": cov_matrix.columns[i], "pct": pct_loadings[i]}
+                for i in range(len(pct_loadings))
+            ],
+            key=lambda x: x["pct"],
+            reverse=True,
+        )
+
+        # # Smart selection: Top 2 OR all above threshold, whichever gives more
+        top_2 = pc_assets[:2]
+        above_threshold = [i for i in pc_assets if i["pct"] >= threshold]
+
+        # # Use whichever gives more assets (but cap at 4 for readability)
+        selected_assets = above_threshold if len(above_threshold) > 2 else top_2
+
+        dominant_factor_loadings[pc_idx + 1] = selected_assets
 
     # We return the eigenvalues, explained variance, eigenvectors, and asset names.
     # This lets us understand and visualize the main risk factors in the portfolio.
@@ -267,11 +290,10 @@ def get_cov_matrix_analysis(cov_matrix, tickers):
     # PC1 is the eigenvector with the highest risk (largest variance explained).
     return {
         "eigenvalues": eigenvalues,
-        "explained_variance_ratio": explained_variance_ratio,
         "eigenvectors": eigenvectors,
         "condition_number": condition_number,
         "correlation_matrix": corr_matrix_df,
-        "dominant_pc_top_assets": dominant_pc_top_assets,
-        "explained_variance_by_dominant_pct": explained_variance_by_dominant_pct,
+        "dominant_factor_loadings": dominant_factor_loadings,
+        "explained_variance_dominant": explained_variance_dominant,
         "stdev_outer_product": stdev_outer_product,
     }

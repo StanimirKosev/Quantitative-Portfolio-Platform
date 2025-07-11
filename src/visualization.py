@@ -201,29 +201,75 @@ def plot_correlation_heatmap(corr_matrix_analysis, regime_name):
     plt.show()
 
 
-def plot_eigenvalues(corr_matrix_analysis, regime_name):
+def plot_portfolio_pca_analysis(corr_matrix_analysis, regime_name):
     """
-    Plot a bar chart of eigenvalues (sorted), highlighting dominant factors (>1.0),
-    and display a single interpretation box with:
-    - Number of dominant factors
-    - Total explained variance by dominant factors
-    - Top 2 contributing assets for each dominant principal component
+    Visualize principal component analysis (PCA) results for a portfolio as a risk factor bar chart.
+
+    This function plots the eigenvalues of the portfolio's covariance (or correlation) matrix as a bar chart, highlighting dominant risk factors (principal components with eigenvalue > 1.0) in a distinct color. For each dominant factor, it annotates the bar with the top contributing assets (those with >10% loading or at least the top 2), stacking their names and percentage contributions proportionally within the bar. An information panel summarizes the number of dominant factors, total explained variance, and other key statistics.
 
     Parameters:
-        corr_matrix_analysis (dict): Output of get_cov_matrix_analysis(), containing eigenvalues, explained variance, dominant_pc_top_assets, and explained_variance_by_dominant_pct.
-        regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', 'geopolitical_crisis').
+        corr_matrix_analysis (dict): Output of get_cov_matrix_analysis(), containing:
+            - 'eigenvalues': array-like, eigenvalues of the matrix
+            - 'dominant_factor_loadings' (or 'dominant_factor_loadings'): dict mapping PC index to list of top asset contributors
+            - 'explained_variance_dominant' (or 'explained_variance_dominant'): float, total explained variance by dominant PCs
+        regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', 'geopolitical_crisis') for plot title and file naming.
+
+    Features:
+        - Bars colored by dominance (eigenvalue > 1.0)
+        - Asset labels stacked within each dominant bar, proportional to their contribution
+        - Info panel with summary statistics
+        - Saves the figure with a scenario-specific filename
     """
     eigenvalues = np.array(corr_matrix_analysis["eigenvalues"])
-    dominant_pc_top_assets = corr_matrix_analysis["dominant_pc_top_assets"]
-    explained_variance_by_dominant_pct = corr_matrix_analysis[
-        "explained_variance_by_dominant_pct"
-    ]
+    dominant_factor_loadings = corr_matrix_analysis["dominant_factor_loadings"]
+    explained_variance_dominant = corr_matrix_analysis["explained_variance_dominant"]
 
-    # Color scheme: dominant factors (>1.0) in red, others in light blue
-    colors = ["#b22222" if val > 1.0 else "#87aade" for val in eigenvalues]
+    DOMINANT_COLOR = "#c41e3a"
+    MINOR_COLOR = "#6fa8dc"
+    colors = [DOMINANT_COLOR if val > 1.0 else MINOR_COLOR for val in eigenvalues]
 
     plt.figure(figsize=(8, 6))
-    plt.bar(
+
+    # Draw a horizontal line at y=1.0 to indicate the dominance threshold
+    plt.axhline(y=1.0, color="gray", linestyle="--", alpha=0.7, linewidth=1)
+
+    plt.xlabel("Principal Component", fontsize=12)
+    plt.ylabel("Eigenvalue (λ)", fontsize=12)
+    plt.title(
+        f"Portfolio Risk Factor Analysis - {regime_name.title()}",
+        fontsize=16,
+        fontweight="bold",
+        pad=20,
+    )
+
+    plt.xticks(range(1, len(eigenvalues) + 1))
+    plt.grid(axis="y", alpha=0.3)
+
+    # Set y-axis to start at 0 for better visual proportion
+    plt.ylim(0, max(eigenvalues) * 1.1)
+
+    info_panel_text = (
+        f"Risk Factor Summary:\n"
+        f"• Dominant Factors: {len(dominant_factor_loadings)} (eigenvalue > 1.0)\n"
+        f"• Explained Variance: {explained_variance_dominant:.1f}%\n"
+        f"• Asset Loadings: Major contributors (>10%)\n"
+        f"• Total Components: {len(eigenvalues)}"
+    )
+
+    plt.gca().text(
+        0.5,
+        0.98,
+        info_panel_text,
+        transform=plt.gca().transAxes,
+        verticalalignment="top",
+        horizontalalignment="left",
+        fontsize=10,
+        bbox=dict(
+            boxstyle="round,pad=0.5", facecolor="white", edgecolor="gray", alpha=0.9
+        ),
+    )
+
+    bars = plt.bar(
         range(1, len(eigenvalues) + 1),
         eigenvalues,
         color=colors,
@@ -231,45 +277,31 @@ def plot_eigenvalues(corr_matrix_analysis, regime_name):
         linewidth=0.5,
     )
 
-    # Add horizontal line at y=1.0 to show dominance threshold
-    plt.axhline(y=1.0, color="gray", linestyle="--", alpha=0.7, linewidth=1)
+    # Annotate each dominant PC bar with its top contributing assets
+    for pc_number, pc_assets in dominant_factor_loadings.items():
+        bar = bars[pc_number - 1]
+        y_start = 0
 
-    plt.xlabel("Principal Component", fontsize=12)
-    plt.ylabel("Eigenvalue", fontsize=12)
-    plt.title(
-        f"Portfolio Covariance Eigenvalue Spectrum - {regime_name.title()}",
-        fontsize=16,
-        fontweight="bold",
-        pad=20,
-    )
-
-    # Clean up axes
-    plt.xticks(range(1, len(eigenvalues) + 1))
-    plt.grid(axis="y", alpha=0.3)
-
-    # Set y-axis to start at 0 for better visual proportion
-    plt.ylim(0, max(eigenvalues) * 1.1)
-
-    interp_text = (
-        f"Dominant Factors: {len(dominant_pc_top_assets)}\n"
-        f"Explained Variance: {explained_variance_by_dominant_pct:.1f}%\n"
-        f"(Eigenvalues > 1.0 are dominant factors)\n"
-        f"Top contributing assets:\n" + "\n".join(dominant_pc_top_assets)
-    )
-
-    plt.gca().text(
-        0.98,
-        0.98,
-        interp_text,
-        transform=plt.gca().transAxes,
-        verticalalignment="top",
-        horizontalalignment="right",
-        fontsize=10,
-        bbox=dict(
-            boxstyle="round,pad=0.5", facecolor="white", edgecolor="gray", alpha=0.9
-        ),
-    )
+        for asset in pc_assets:
+            asset_height = eigenvalues[pc_number - 1] * (asset["pct"] / 100)
+            y_pos = y_start + asset_height / 2
+            plt.text(
+                bar.get_x() + bar.get_width() / 2,
+                y_pos,
+                f"{asset['asset']} {asset['pct']:.0f}%",
+                ha="center",
+                va="center",
+                fontsize=8,
+                fontweight="bold",
+                bbox=dict(
+                    boxstyle="round,pad=0.3",
+                    facecolor="white",
+                    alpha=0.9,
+                    edgecolor="gray",
+                ),
+            )
+            y_start += asset_height  # Stack asset labels within the bar
 
     plt.tight_layout()
-    save_figure(regime_name, "eigenvalue_analysis", "png")
+    save_figure(regime_name, "risk_factor_analysis", "png")
     plt.show()
