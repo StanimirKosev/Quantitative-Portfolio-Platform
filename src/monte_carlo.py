@@ -203,7 +203,7 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors
             #   modified_cov[i, j] = original_cov[i, j] * vol_factor_i * vol_factor_j
             modified_cov_matrix.iloc[i, j] *= vi * vj
 
-    modified_cov_matrix_analysis = get_cov_matrix_analysis(modified_cov_matrix, tickers)
+    modified_cov_matrix_analysis = get_cov_matrix_analysis(modified_cov_matrix)
 
     corr_matrix = modified_cov_matrix_analysis["correlation_matrix"]
     stdev_outer_product = modified_cov_matrix_analysis["stdev_outer_product"]
@@ -225,7 +225,7 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, tickers, asset_factors
     return modified_mean_returns, modified_cov_matrix
 
 
-def get_cov_matrix_analysis(cov_matrix, tickers):
+def get_cov_matrix_analysis(cov_matrix):
     """
     Return the principal components of a covariance matrix for portfolio risk analysis and visualization.
     Returns eigenvalues, explained variance ratios, eigenvectors, asset names (tickers), condition number, correlation matrix, dominant PC asset info, and explained_variance_dominant.
@@ -245,7 +245,9 @@ def get_cov_matrix_analysis(cov_matrix, tickers):
     corr_matrix = cov_matrix.values / stdev_outer_product
     corr_matrix = np.clip(corr_matrix, -1, 1)  # Numerical safety
 
-    corr_matrix_df = pd.DataFrame(corr_matrix, index=tickers, columns=tickers)
+    corr_matrix_df = pd.DataFrame(
+        corr_matrix, index=cov_matrix.columns, columns=cov_matrix.columns
+    )
 
     dominant_factor_loadings = {}
     pc_assets = []
@@ -302,3 +304,12 @@ def get_cov_matrix_analysis(cov_matrix, tickers):
         "explained_variance_dominant": explained_variance_dominant,
         "stdev_outer_product": stdev_outer_product,
     }
+
+
+def analyze_portfolio_risk_factors(cov_matrix):
+    """ """
+
+
+def analyze_portfolio_correlation(cov_matrix):
+    """ """
+    eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)

@@ -39,7 +39,7 @@ historical_paths = simulate_portfolio_paths(
 
 plot_simulation_results(historical_paths, HISTORICAL)
 
-historical_cov_matrix_analysis = get_cov_matrix_analysis(historical_cov_matrix, tickers)
+historical_cov_matrix_analysis = get_cov_matrix_analysis(historical_cov_matrix)
 
 plot_correlation_heatmap(
     historical_cov_matrix_analysis,
@@ -64,7 +64,7 @@ fiat_debasement_paths = simulate_portfolio_paths(
 plot_simulation_results(fiat_debasement_paths, FIAT_DEBASEMENT_REGIME_NAME)
 
 fiat_debasement_cov_matrix_analysis = get_cov_matrix_analysis(
-    fiat_debasement_cov_matrix, tickers
+    fiat_debasement_cov_matrix
 )
 
 plot_correlation_heatmap(
@@ -94,7 +94,7 @@ geopolitical_crisis_paths = simulate_portfolio_paths(
 plot_simulation_results(geopolitical_crisis_paths, GEOPOLITICAL_CRISIS_REGIME_NAME)
 
 geopolitical_crisis_cov_matrix_analysis = get_cov_matrix_analysis(
-    geopolitical_crisis_cov_matrix, tickers
+    geopolitical_crisis_cov_matrix
 )
 
 plot_correlation_heatmap(
