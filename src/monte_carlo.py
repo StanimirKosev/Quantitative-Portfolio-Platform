@@ -277,10 +277,15 @@ def get_cov_matrix_analysis(cov_matrix, tickers):
 
         # # Smart selection: Top 2 OR all above threshold, whichever gives more
         top_2 = pc_assets[:2]
+        eigval_is_small = eigval < 5.0
         above_threshold = [i for i in pc_assets if i["pct"] >= threshold]
 
         # # Use whichever gives more assets (but cap at 4 for readability)
-        selected_assets = above_threshold if len(above_threshold) > 2 else top_2
+        selected_assets = (
+            above_threshold
+            if len(above_threshold) > 2 and not eigval_is_small
+            else top_2
+        )
 
         dominant_factor_loadings[pc_idx + 1] = selected_assets
 
