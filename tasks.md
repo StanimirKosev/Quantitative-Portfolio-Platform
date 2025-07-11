@@ -160,7 +160,7 @@ Max drawdown = largest peak-to-trough decline
 Use numpy.percentile() and conditional calculations
 
 MC-008: Add Your Unique Angle
-Status: Not Started
+Status: Completed
 Priority: Medium
 Dependencies: MC-007
 
@@ -212,7 +212,7 @@ Explain key concepts and statistical methodology
 Provide examples of how to interpret results
 
 MC-010: Covariance Matrix Deep Analysis
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: MC-003
 
@@ -235,7 +235,7 @@ Conditioning number = max_eigenvalue / min_eigenvalue
 
 
 MC-011: Principal Component Analysis (PCA)
-Status: Not Started
+Status: Completed
 Priority: Medium
 Dependencies: MC-010
 
@@ -258,7 +258,7 @@ Create bar charts for factor loadings
 Focus on components explaining >10% of variance
 
 MC-008A: Regime-Dependent Covariance Matrices
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: MC-008
 

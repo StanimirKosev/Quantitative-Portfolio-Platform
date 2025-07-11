@@ -1,157 +1,90 @@
 # Monte Carlo Portfolio Simulation
 
-A comprehensive Monte Carlo simulation tool for multi-asset portfolio analysis with macroeconomic scenario modeling. This educational project demonstrates advanced statistical concepts in portfolio risk management and provides forward-looking analysis under different economic regimes.
+Monte Carlo simulation platform for multi-asset portfolios, featuring regime-dependent risk modeling, scenario-based analytics, and advanced visualizations. Built to explore how real-world macroeconomic shifts impact portfolio outcomes, this project integrates real market data, flexible scenario design, and industry-standard risk metrics. Includes principal component analysis (PCA) and eigenvalue decomposition for deep risk factor insights.
 
 ## 🎯 Project Overview
 
-This project implements a sophisticated Monte Carlo simulation framework for portfolio analysis, featuring:
-
-- **Multi-asset portfolio simulation** with 6 diverse assets (cryptocurrency, global stocks, commodities, bonds)
+- **Multi-asset portfolio simulation** with 6 diverse assets (Bitcoin, global stocks, commodities)
 - **Historical data analysis** using real market data from Yahoo Finance
-- **Macroeconomic scenario modeling** including fiat debasement and geopolitical crisis scenarios
-- **Professional risk metrics** including Value at Risk (VaR), Conditional VaR (CVaR), and maximum drawdown
-- **Advanced visualization** with confidence intervals and percentile bands
+- **Macroeconomic regime modeling** (fiat debasement, geopolitical crisis, and more)
+- **Regime-dependent covariance matrices** for realistic scenario stress-testing
+- **Professional risk metrics**: Value at Risk (VaR), Conditional VaR (CVaR)
+- **PCA & eigenvalue analysis**: Identify dominant risk factors and explained variance
+- **Advanced visualization**: Confidence intervals, percentile bands, and clear analytics
 
 ## 📊 Portfolio Composition
-
-The simulation analyzes a diversified portfolio with the following assets:
 
 | Asset | Ticker | Weight | Description |
 |-------|--------|--------|-------------|
 | Bitcoin | BTC-EUR | 60% | Cryptocurrency hedge |
-| MSCI World Energy | 5MVW.DE | 13% | Global developed markets |
-| S&P 500 | SPYL.DE | 10.5% | US large-cap stocks |
-| Commodities | WMIN.DE | 7% | Global commodities |
-| Emerging Markets | IS3N.DE | 6% | Emerging market stocks |
+| iShares MSCI World Energy Sector | 5MVW.DE | 13% | Global developed energy markets |
+| SPDR S&P 500 | SPYL.DE | 10.5% | US large-cap stocks |
+| VanEck S&P Global Mining | WMIN.DE | 7% | Global miners |
+| iShares Core MSCI EM IMI | IS3N.DE | 6% | Emerging market stocks |
 | Gold | 4GLD.DE | 3.5% | Precious metals |
 
-## 🏗️ Architecture
+## 🏗️ Architecture & Features
 
-### Core Components
+- **portfolio.py**: Portfolio definition and regime factors
+- **utils.py**: Data fetching and statistics
+- **monte_carlo.py**: Simulation engine, risk metrics, PCA, eigenvalue analysis
+- **visualization.py**: Professional plotting and analytics
+- **main.py**: Orchestrates all regimes and outputs
 
-- **`portfolio.py`**: Portfolio definition and macroeconomic regime factors
-- **`utils.py`**: Data fetching and statistical calculations
-- **`monte_carlo.py`**: Monte Carlo simulation engine and risk metrics
-- **`visualization.py`**: Professional plotting and result presentation
-- **`main.py`**: Orchestration and execution of all scenarios
-
-### Key Features
-
-1. **Historical Analysis**: Uses 2022-2024 market data to establish baseline parameters
-2. **Scenario Modeling**: Tests portfolio performance under different economic conditions
-3. **Risk Management**: Calculates industry-standard risk metrics
-4. **Visual Analytics**: Professional charts with confidence intervals and statistics
+**Key features:**
+- Historical and regime-based analysis
+- Scenario-driven risk and return simulation
+- PCA/eigenvalue decomposition for risk factor analysis
+- Visual analytics: simulation results, correlation heatmaps, PCA bar charts
 
 ## 🚀 Installation
 
-### Prerequisites
+**Prerequisites:** Python 3.8+, pip
 
-- Python 3.8 or higher
-- pip package manager
-
-### Setup
-
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd monte-carlo
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Create charts directory** (if not exists):
-   ```bash
-   mkdir charts
-   ```
+```bash
+# Clone and install
+git clone <repository-url>
+cd monte-carlo
+pip install -r requirements.txt
+mkdir charts  # if not exists
+```
 
 ## 📈 Usage
 
-### Basic Execution
-
-Run the complete simulation with all scenarios:
-
+Run all scenarios:
 ```bash
 python src/main.py
 ```
 
 This will:
-- Download historical data for all portfolio assets
-- Calculate mean returns and covariance matrix
-- Run Monte Carlo simulations for three scenarios:
-  - Historical (baseline)
-  - Fiat Debasement
-  - Geopolitical Crisis
-- Generate visualization charts saved to `charts/` directory
+- Download historical data
+- Calculate mean returns and covariance
+- Simulate portfolio under historical, fiat debasement, and geopolitical crisis regimes
+- Output charts to `charts/`
 
-### Understanding the Output
+## 📊 Output & Interpretation
 
-The simulation generates three key visualizations:
+Each regime produces:
+- **Simulation results**: Confidence intervals, key paths, risk metrics (VaR, CVaR)
+- **Correlation heatmap**: Asset correlations, matrix conditioning
+- **PCA analysis**: Principal components, explained variance, factor loadings
 
-1. **Historical Scenario**: Baseline performance using historical market data
-2. **Fiat Debasement**: Scenario where fiat weakens, benefiting inflation hedges
-3. **Geopolitical Crisis**: Risk-off scenario favoring safe-haven assets
+**Key metrics:**
+- Median, mean, best/worst case outcomes
+- VaR/CVaR at 95% and 99% levels
+- PCA: top risk factors, asset contributions
 
-Each chart displays:
-- **Confidence intervals**: 50%, 80%, and 90% bands showing uncertainty
-- **Key paths**: Median (most likely), best case, and worst case scenarios
-- **Risk metrics**: VaR, CVaR, and performance statistics
-- **Performance summary**: Final values and percentage returns
+## 🔬 Methodology & Assumptions
 
-## 📊 Interpreting Results
-
-### Key Metrics Explained
-
-#### Performance Metrics
-- **Median Path**: The most likely outcome (50th percentile)
-- **Mean Path**: Average across all simulations
-- **Best/Worst Case**: Extreme outcomes from 1000 simulations
-
-#### Risk Metrics
-- **Value at Risk (VaR)**: Maximum expected loss at given confidence level
-  - 95% VaR: Portfolio value that 95% of outcomes exceed
-  - 99% VaR: Portfolio value that 99% of outcomes exceed
-- **Conditional VaR (CVaR)**: Average loss when VaR threshold is breached
-- **Confidence Intervals**: Range of likely outcomes (e.g., 90% of paths fall within the light blue band)
-
-### Scenario Analysis
-
-#### Historical Scenario
-- Uses actual market data from 2022-2024
-- Represents baseline expectations based on recent market behavior
-
-#### Fiat Debasement Scenario
-- Models USD weakness and inflationary pressures
-- **Winners**: Bitcoin (+20%), Gold (+15%), Commodities (+15%)
-- **Losers**: US stocks (-10%) due to higher rates
-
-#### Geopolitical Crisis Scenario
-- Models risk-off environment with flight to safety
-- **Winners**: Gold (+30%) as safe haven
-- **Losers**: Emerging markets (-60%), US stocks (-50%), Bitcoin (-30%)
-
-## 🔬 Statistical Methodology
-
-### Monte Carlo Simulation
-1. **Data Collection**: Historical daily returns from Yahoo Finance
-2. **Parameter Estimation**: Mean returns and covariance matrix calculation
-3. **Random Sampling**: Multivariate normal distribution for correlated returns
-4. **Path Generation**: 1000 simulations over 252 trading days
-5. **Risk Analysis**: Percentile-based risk metrics and statistics
-
-### Key Assumptions
-- **Normal Distribution**: Asset returns follow multivariate normal distribution
-- **Stationarity**: Historical relationships persist into the future
-- **No Transaction Costs**: Perfect rebalancing at portfolio weights
-- **252 Trading Days**: Standard annual trading period
+- Historical daily returns from Yahoo Finance
+- Mean/covariance estimation, regime-dependent adjustments
+- Multivariate normal sampling for correlated returns
+- 1000 simulations, 252 trading days
+- No transaction costs, perfect rebalancing
 
 ## 🛠️ Customization
 
-### Modifying Portfolio
-Edit `src/portfolio.py` to change assets or weights:
-
+**Change portfolio:** Edit `src/portfolio.py`:
 ```python
 def get_portfolio():
     tickers = ["YOUR_TICKERS"]
@@ -159,64 +92,35 @@ def get_portfolio():
     return (tickers, weights)
 ```
 
-### Adding New Scenarios
-Create new regime factors in `src/portfolio.py`:
-
+**Add new regime:**
 ```python
-NEW_SCENARIO = {
-    "TICKER1": 1.1,  # 10% higher returns
-    "TICKER2": 0.9,  # 10% lower returns
+NEW_REGIME = {
+    "BTC-EUR": {"mean_factor": 1.2, "vol_factor": 1.1},
+    # ... all assets ...
+    "correlation_move_pct": 0.1
 }
 ```
 
-### Adjusting Simulation Parameters
-Modify simulation settings in `src/monte_carlo.py`:
-
+**Adjust simulation parameters:** Edit `src/monte_carlo.py`:
 ```python
-# Change number of simulations
 portfolio_paths = simulate_portfolio_paths(
-    mean_returns, cov_matrix, weights, 
-    num_simulations=2000  # Default: 1000
-)
-
-# Change initial portfolio value
-portfolio_paths = simulate_portfolio_paths(
-    mean_returns, cov_matrix, weights,
-    initial_value=50000  # Default: 10000
+    mean_returns, cov_matrix, weights, num_simulations=2000, initial_value=50000
 )
 ```
 
 ## 📚 Educational Value
 
-This project demonstrates key concepts in:
-- **Portfolio Theory**: Diversification, correlation, and risk-return relationships
-- **Statistical Modeling**: Monte Carlo methods, probability distributions
-- **Risk Management**: VaR, CVaR, and confidence intervals
-- **Macroeconomic Analysis**: Scenario modeling and sensitivity analysis
-- **Data Science**: Financial data processing and visualization
+Demonstrates:
+- Portfolio theory, diversification, correlation
+- Monte Carlo methods, risk metrics (VaR, CVaR)
+- Regime/sensitivity analysis
+- PCA/eigenvalue decomposition for risk factors
+- Data science: financial data processing, visualization
 
-## 🤝 Contributing
+## 📄 License & Dependencies
 
-This is an educational project focused on learning Monte Carlo methods and portfolio analysis. Contributions that improve:
-- Statistical methodology
-- Risk metrics
-- Visualization quality
-- Documentation clarity
-
-are welcome and encouraged.
-
-## 📄 License
-
-This project is for educational purposes. Please ensure compliance with data provider terms of service when using financial data.
-
-## 🔗 Dependencies
-
-- **numpy**: Numerical computations and random sampling
-- **pandas**: Data manipulation and analysis
-- **matplotlib**: Professional visualization
-- **yfinance**: Financial data retrieval
-- **black**: Code formatting (development)
-
----
-
-*Built for educational purposes to explore Monte Carlo simulation in portfolio analysis and risk management.*
+- **numpy**: Numerical computations
+- **pandas**: Data analysis
+- **matplotlib**: Visualization
+- **yfinance**: Data retrieval
+- **black**: Code formatting

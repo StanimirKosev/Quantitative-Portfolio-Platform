@@ -239,7 +239,6 @@ def analyze_portfolio_risk_factors(cov_matrix):
     Returns:
         dict: Dictionary containing:
             - 'eigenvalues': np.ndarray of sorted eigenvalues (variance explained by each PC)
-            - 'eigenvectors': np.ndarray of sorted eigenvectors (columns are PCs)
             - 'dominant_factor_loadings': dict mapping PC index (1-based) to list of top asset contributors (dicts with 'asset' and 'pct')
             - 'explained_variance_dominant': float, total variance explained by dominant PCs (as a percentage)
     """
@@ -297,7 +296,6 @@ def analyze_portfolio_risk_factors(cov_matrix):
     # PC1 is the eigenvector with the highest risk (largest variance explained).
     return {
         "eigenvalues": eigenvalues,
-        "eigenvectors": eigenvectors,
         "dominant_factor_loadings": dominant_factor_loadings,
         "explained_variance_dominant": explained_variance_dominant,
     }
