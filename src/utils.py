@@ -85,9 +85,16 @@ def save_figure(regime_name, prefix, ext):
         regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', ...)
         prefix (str): File prefix (e.g., 'monte_carlo_simulation', 'correlation_matrix')
         ext (str): File extension (e.g., 'png', 'csv')
+
+    Returns:
+        str: URL-style path to the saved figure.
     """
     scenario = str(regime_name).replace(" ", "_").lower()
     folder = f"charts/{scenario}"
     os.makedirs(folder, exist_ok=True)
     filename = f"{prefix}_{scenario}.{ext}"
-    plt.savefig(os.path.join(folder, filename), dpi=300, bbox_inches="tight")
+    full_path = os.path.join(folder, filename)
+    plt.savefig(full_path, dpi=300, bbox_inches="tight")
+    # Normalize to URL format
+    url_path = "/" + full_path.replace("\\", "/")
+    return url_path

@@ -11,7 +11,7 @@ import seaborn as sns
 from utils import save_figure
 
 
-def plot_simulation_results(portfolio_paths, regime_name):
+def plot_simulation_results(portfolio_paths, regime_name, show=True):
     """Visualizes the results of a Monte Carlo portfolio simulation with percentile bands and key paths.
 
     This function generates a professional plot displaying the outcomes of multiple portfolio
@@ -23,6 +23,7 @@ def plot_simulation_results(portfolio_paths, regime_name):
         portfolio_paths (list or np.ndarray): A 2D sequence where each inner sequence
             represents a single simulation path of portfolio values over time.
         regime_name (str, optional): Name of the macroeconomic regime for title and filename.
+        show (bool, optional): Whether to display the plot immediately. Defaults to True.
 
     Features:
         - Three percentile bands showing different confidence intervals
@@ -30,6 +31,9 @@ def plot_simulation_results(portfolio_paths, regime_name):
         - Best-case and worst-case paths in green and red respectively
         - Professional color scheme with blue gradient bands
         - Enhanced statistics box with median, mean, and risk metrics
+
+    Returns:
+        str: Path to the saved simulation results figure.
     """
 
     stats = calculate_simulation_statistics(portfolio_paths)
@@ -147,17 +151,23 @@ def plot_simulation_results(portfolio_paths, regime_name):
 
     plt.tight_layout()
 
-    save_figure(regime_name, "monte_carlo_simulation", "png")
-    plt.show()
+    url_path = save_figure(regime_name, "monte_carlo_simulation", "png")
+    if show:
+        plt.show()
+    return url_path
 
 
-def plot_correlation_heatmap(cov_matrix, regime_name):
+def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
     """
     Plot a heatmap of the portfolio's correlation matrix using seaborn, with conditioning diagnostics.
 
     Parameters:
+        show (bool, optional): Whether to display the plot immediately. Defaults to True.
         cov_matrix (pd.DataFrame): Covariance matrix of asset returns (assets as both rows and columns).
         regime_name (str): Scenario name (e.g., 'historical', 'fiat_debasement', 'geopolitical_crisis') for plot title and file naming.
+
+    Returns:
+        str: URL path to the saved heatmap image.
 
     The function computes the correlation matrix and its condition number, then visualizes the matrix as a heatmap with annotations. An info panel below the plot summarizes the matrix's conditioning status.
     """
@@ -204,17 +214,20 @@ def plot_correlation_heatmap(cov_matrix, regime_name):
     plt.subplots_adjust(bottom=0.18)  # Make space for text below the plot
     plt.figtext(0.01, 0.01, stats_text, ha="left", va="bottom", fontsize=10)
 
-    save_figure(regime_name, "correlation_matrix", "png")
-    plt.show()
+    url_path = save_figure(regime_name, "correlation_matrix", "png")
+    if show:
+        plt.show()
+    return url_path
 
 
-def plot_portfolio_pca_analysis(cov_matrix, regime_name):
+def plot_portfolio_pca_analysis(cov_matrix, regime_name, show=True):
     """
     Visualize principal component analysis (PCA) results for a portfolio as a risk factor bar chart.
 
     This function plots the eigenvalues of the portfolio's covariance (or correlation) matrix as a bar chart, highlighting dominant risk factors (principal components with eigenvalue > 1.0) in a distinct color. For each dominant factor, it annotates the bar with the top contributing assets (those with >10% loading or at least the top 2), stacking their names and percentage contributions proportionally within the bar. An information panel summarizes the number of dominant factors, total explained variance, and other key statistics.
 
     Parameters:
+        show (bool, optional): Whether to display the plot immediately. Defaults to True.
         corr_matrix_analysis (dict): Output of analyze_portfolio_risk_factors(), containing:
             - 'eigenvalues': array-like, eigenvalues of the matrix
             - 'dominant_factor_loadings' (or 'dominant_factor_loadings'): dict mapping PC index to list of top asset contributors
@@ -226,6 +239,9 @@ def plot_portfolio_pca_analysis(cov_matrix, regime_name):
         - Asset labels stacked within each dominant bar, proportional to their contribution
         - Info panel with summary statistics
         - Saves the figure with a scenario-specific filename
+
+    Returns:
+        str: Path to the saved PCA analysis figure.
     """
     analysis = analyze_portfolio_risk_factors(cov_matrix)
     eigenvalues = np.array(analysis["eigenvalues"])
@@ -311,5 +327,7 @@ def plot_portfolio_pca_analysis(cov_matrix, regime_name):
             y_start += asset_height  # Stack asset labels within the bar
 
     plt.tight_layout()
-    save_figure(regime_name, "risk_factor_analysis", "png")
-    plt.show()
+    url_path = save_figure(regime_name, "risk_factor_analysis", "png")
+    if show:
+        plt.show()
+    return url_path

@@ -26,17 +26,53 @@ Dependencies: FE-001
 Implement all 8 endpoints needed for full frontend interactivity with real-time updates.
 Acceptance Criteria
 
-GET /api/portfolio/default - Returns default portfolio composition with metadata
-POST /api/simulate/{regime} - Generates 3 charts for default portfolio under specified regime
-POST /api/simulate/custom - Custom portfolio + any regime (existing or custom)
-Support query parameters: num_simulations, time_steps, initial_value, start_date, end_date
-GET /api/charts/{chart_id} - Serves generated chart images by unique ID
-GET /api/regimes - Lists available regimes
-GET /api/regimes/{regime}/parameters - Returns regime parameter details
-POST /api/portfolio/validate - Real-time portfolio validation
-GET /api/tickers/validate/{ticker} - Ticker validation for custom portfolios
-All responses include data for Recharts (portfolio allocation, risk metrics)
-Debounced real-time updates with loading states
+## Portfolio Endpoints
+
+- **GET /api/portfolio/default**  
+  Returns the default portfolio as a list of assets, each with:
+  - `ticker`
+  - `weight_pct` (percentage, not decimal)
+  - `description`
+  No unnecessary metadata; response is designed for direct frontend use.
+
+- **POST /api/portfolio/validate**  
+  (To be implemented) Validates a custom portfolio in real time.
+
+## Simulation Endpoints
+
+- **POST /api/simulate/{regime}**  
+  Runs a Monte Carlo simulation for the default portfolio under the specified regime (`historical`, `fiat_debasement`, `geopolitical_crisis`).  
+  Returns URLs for three generated charts:
+    - `simulation_chart_path`
+    - `correlation_matrix_chart_path`
+    - `risk_factors_chart_path`
+  Regime name is echoed in the response.  
+  No extra parameters unless needed for UX.
+
+- **POST /api/simulate/custom**  
+  (To be implemented) Runs a simulation for a custom portfolio and regime.  
+  Will reuse core simulation/chart logic from the default endpoint, but accepts tickers, weights, and regime parameters in the request body.
+
+## Chart/Image Endpoints
+
+## Regime Endpoints
+
+- **GET /api/regimes**  
+  (To be implemented) Lists available regimes.
+
+- **GET /api/regimes/{regime}/parameters**  
+  (To be implemented) Returns regime parameter details.
+
+## Ticker Endpoints
+
+- **GET /api/tickers/validate**  
+  (To be implemented) Real-time portfolio validation.
+
+- **GET /api/tickers/validate/{ticker}**  
+  (To be implemented) Ticker validation for custom portfolios.
+
+
+  Debounced real-time updates with loading states
 
 Technical Notes
 
@@ -232,3 +268,10 @@ Update repository README with deployment info
 Create user documentation with screenshots
 Include troubleshooting section
 Document API endpoints and data flows
+
+### General API Design Principle
+
+- All API responses are designed with the frontend vision in mind:
+  - Only include fields that are directly useful for the UI/UX.
+  - All calculations and formatting are done in the backend.
+  - Responses are minimal, clear, and ready for direct use by the frontend.
