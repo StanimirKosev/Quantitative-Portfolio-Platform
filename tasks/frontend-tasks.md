@@ -48,10 +48,16 @@ Acceptance Criteria
     - `risk_factors_chart_path`
   Regime name is echoed in the response.  
   No extra parameters unless needed for UX.
-
+  
 - **POST /api/simulate/custom**  
-  (To be implemented) Runs a simulation for a custom portfolio and regime.  
-  Will reuse core simulation/chart logic from the default endpoint, but accepts tickers, weights, and regime parameters in the request body.
+  Status: Implemented
+  Runs a simulation for a custom portfolio and regime.  
+  Accepts a JSON body with:
+    - `tickers`: list of asset tickers
+    - `weights`: list of asset weights (percentages)
+    - `regime`: scenario name (optional, defaults to 'historical')
+  Returns URLs for three generated charts (same as default endpoint) and the regime name.  
+  Core simulation/chart logic is reused from the default endpoint, but uses user-supplied portfolio data.
 
 ## Chart/Image Endpoints
 

@@ -73,7 +73,7 @@ def calculate_mean_and_covariance(daily_returns):
     return mean_returns, cov_matrix
 
 
-def save_figure(regime_name, prefix, ext):
+def save_figure(regime_name, prefix):
     """
     Save the current matplotlib figure to the scenario-specific charts folder.
 
@@ -92,7 +92,7 @@ def save_figure(regime_name, prefix, ext):
     scenario = str(regime_name).replace(" ", "_").lower()
     folder = f"charts/{scenario}"
     os.makedirs(folder, exist_ok=True)
-    filename = f"{prefix}_{scenario}.{ext}"
+    filename = f"{prefix}_{scenario}.png"
     full_path = os.path.join(folder, filename)
     plt.savefig(full_path, dpi=300, bbox_inches="tight")
     # Normalize to URL format

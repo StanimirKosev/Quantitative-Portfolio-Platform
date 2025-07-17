@@ -151,7 +151,7 @@ def plot_simulation_results(portfolio_paths, regime_name, show=True):
 
     plt.tight_layout()
 
-    url_path = save_figure(regime_name, "monte_carlo_simulation", "png")
+    url_path = save_figure(regime_name, "monte_carlo_simulation")
     if show:
         plt.show()
     return url_path
@@ -214,7 +214,7 @@ def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
     plt.subplots_adjust(bottom=0.18)  # Make space for text below the plot
     plt.figtext(0.01, 0.01, stats_text, ha="left", va="bottom", fontsize=10)
 
-    url_path = save_figure(regime_name, "correlation_matrix", "png")
+    url_path = save_figure(regime_name, "correlation_matrix")
     if show:
         plt.show()
     return url_path
@@ -327,7 +327,7 @@ def plot_portfolio_pca_analysis(cov_matrix, regime_name, show=True):
             y_start += asset_height  # Stack asset labels within the bar
 
     plt.tight_layout()
-    url_path = save_figure(regime_name, "risk_factor_analysis", "png")
+    url_path = save_figure(regime_name, "risk_factor_analysis")
     if show:
         plt.show()
     return url_path
