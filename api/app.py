@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("../src")
+sys.path.append("./src")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,7 +33,25 @@ async def root():
 @app.get("/api/portfolio/default")
 async def get_default_portfolio():
     tickers, weights = get_portfolio()
+
+    descriptions = {
+        "BTC-EUR": "Bitcoin - Main hedge against fiat debasement",
+        "5MVW.DE": "Energy Sector - Global energy infrastructure",
+        "SPYL.DE": "S&P 500 - US large-cap stocks",
+        "WMIN.DE": "Global Miners - Commodity producers",
+        "IS3N.DE": "Emerging Markets - High-growth economies",
+        "4GLD.DE": "Gold - Traditional safe haven",
+    }
+
+    default_portfolio_assets = [
+        {
+            "ticker": ticker,
+            "weight_pct": round(weight * 100, 2),
+            "description": descriptions.get(ticker, ""),
+        }
+        for ticker, weight in zip(tickers, weights)
+    ]
+
     return {
-        "tickers": tickers,
-        "weights": weights,
+        "default_portfolio_assets": default_portfolio_assets,
     }

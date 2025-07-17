@@ -1,286 +1,234 @@
-# Frontend Integration Sprint Tasks
-
-## FE-001: Setup FastAPI Wrapper
-Status: Not Started
+FE-001: Setup FastAPI Wrapper
+Status: Completed
 Priority: High
 Dependencies: None
-
 Create thin API layer that wraps existing Monte Carlo functions without refactoring Python code.
+Acceptance Criteria
 
-**Acceptance Criteria**
-- FastAPI app created in `api/app.py`
-- CORS middleware configured for React frontend
-- Existing Python functions imported and accessible
-- API runs on localhost:8000
+FastAPI app created in api/app.py
+CORS middleware configured for React frontend
+Existing Python functions imported and accessible
+API runs on localhost:8000
 
-**Technical Notes**
-- Add `sys.path.append('../src')` to import existing modules
-- Use `from main import run_simulation` (or similar)
-- Keep existing code 100% untouched
-- Install: `pip install fastapi uvicorn`
+Technical Notes
 
----
+Add sys.path.append('../src') to import existing modules
+Use from main import run_simulation (or similar)
+Keep existing code 100% untouched
+Install: pip install fastapi uvicorn
+Test with browser at localhost:8000/docs
 
-## FE-002: Create Basic API Endpoints
+
+FE-002: Complete API Implementation
 Status: Not Started
 Priority: High
 Dependencies: FE-001
+Implement all 8 endpoints needed for full frontend interactivity with real-time updates.
+Acceptance Criteria
 
-Expose core Monte Carlo functionality through REST endpoints.
+GET /api/portfolio/default - Returns default portfolio composition with metadata
+POST /api/simulate/{regime} - Generates 3 charts for default portfolio under specified regime
+POST /api/simulate/custom - Custom portfolio + any regime (existing or custom)
+Support query parameters: num_simulations, time_steps, initial_value, start_date, end_date
+GET /api/charts/{chart_id} - Serves generated chart images by unique ID
+GET /api/regimes - Lists available regimes
+GET /api/regimes/{regime}/parameters - Returns regime parameter details
+POST /api/portfolio/validate - Real-time portfolio validation
+GET /api/tickers/validate/{ticker} - Ticker validation for custom portfolios
+All responses include data for Recharts (portfolio allocation, risk metrics)
+Debounced real-time updates with loading states
 
-**Acceptance Criteria**
-- `GET /api/portfolio/default` - Returns default portfolio composition
-- `POST /api/simulate` - Runs Monte Carlo simulation
-- `GET /api/health` - Health check endpoint
-- All endpoints return JSON responses
+Technical Notes
 
-**Technical Notes**
-- Wrap existing `get_portfolio()` function
-- Wrap existing simulation logic from `main.py`
-- Use Pydantic models for request/response validation
-- Keep business logic in existing Python files
+Use existing portfolio/regime logic from src/ modules
+Return both chart URLs and JSON data for interactive elements
+Implement proper validation ranges for custom regime parameters
+Save charts with unique timestamp-based IDs
+Include simulation metadata and risk metrics in all responses
+Handle custom regime parameters (mean_factor, vol_factor, correlation_move_pct)
+Support simulation parameters via query params: num_simulations (default: 1000), time_steps (default: 252), initial_value (default: 10000)
+Support date range parameters: start_date, end_date for historical data fetching
+Include parameter defaults and validation ranges in API responses
 
----
 
-## FE-003: Setup React Application
+FE-003: Setup React Application
 Status: Not Started
 Priority: High
 Dependencies: None
+Create modern React app with all necessary dependencies for hybrid approach.
+Acceptance Criteria
 
-Create modern React app with TypeScript and essential dependencies.
+React app created with Vite + TypeScript
+Essential dependencies installed and configured
+Development server runs on localhost:3000
+Basic project structure with proper folder organization
+Tailwind CSS working with basic styling
 
-**Acceptance Criteria**
-- React app created with Vite + TypeScript
-- Essential dependencies installed (React Query, Recharts, Tailwind)
-- Development server runs on localhost:3000
-- Basic project structure established
+Technical Notes
 
-**Technical Notes**
-- Use `npm create vite@latest frontend -- --template react-ts`
-- Install: `@tanstack/react-query`, `recharts`, `tailwindcss`
-- Setup Tailwind CSS configuration
-- Create folder structure: `components/`, `services/`, `types/`
+Use npm create vite@latest frontend -- --template react-ts
+Install: @tanstack/react-query, recharts, tailwindcss, axios
+Setup Tailwind CSS configuration
+Create folders: components/, services/, types/, hooks/
+Test with basic "Hello World" page
 
----
 
-## FE-004: Interactive Portfolio Builder - Your Portfolio First
+FE-004: Display Portfolio + Charts
 Status: Not Started
 Priority: High
-Dependencies: FE-003
+Dependencies: FE-002, FE-003
+Create initial demo showing default portfolio and backend charts with regime switching.
+Acceptance Criteria
 
-Create portfolio interface that starts with YOUR portfolio as default, with option to customize.
+Display default portfolio composition (assets, weights, description)
+Show 3 backend-generated charts for selected regime
+Regime selector (dropdown/tabs) to switch between scenarios
+Loading states during chart generation
+Professional styling and responsive design
+Include simulation metadata (dates, parameters)
 
-**Acceptance Criteria**
-- Loads YOUR portfolio (BTC-EUR 60%, 5MVW.DE 13%, etc.) as default
-- Users can modify weights and see real-time validation
-- Users can swap out assets (change BTC-EUR to TSLA, etc.)
-- Real-time validation: weights must sum to 100%
-- "Reset to Default" button to restore your original portfolio
+Technical Notes
 
-**Technical Notes**
-- Create `PortfolioBuilder.tsx` component
-- Load your portfolio from `/api/portfolio/default`
-- Allow editing of tickers and weights
-- Add/remove asset rows dynamically
-- Include "Why this portfolio?" explanation section
+Create PortfolioDisplay.tsx for composition
+Create ChartDisplay.tsx for backend images
+Create RegimeSelector.tsx for scenario switching
+Use React Query for API state management
+Add error boundaries and loading skeletons
+Style with Tailwind for professional appearance
 
----
 
-## FE-005: Enhanced Portfolio Builder - Smart Customization
+FE-005: Add Complementary Recharts Visualizations
 Status: Not Started
-Priority: High
+Priority: Medium
 Dependencies: FE-004
+Enhance the experience with interactive Recharts elements that complement backend charts.
+Acceptance Criteria
 
-Add intelligent features for portfolio customization while keeping your defaults prominent.
+Portfolio allocation pie chart with your asset breakdown
+Interactive risk metrics dashboard (VaR/CVaR gauges or cards)
+Real-time updates when regime changes
+Hover tooltips and smooth animations
+Responsive design that works with backend charts
 
-**Acceptance Criteria**
-- Asset autocomplete when users want to swap assets
-- Current price and basic info display for all assets
-- Portfolio value calculation in real-time
-- Visual weight allocation (pie chart or bars)
-- "Compare to Original" mode showing differences from your portfolio
+Technical Notes
 
-**Technical Notes**
-- Integrate with Yahoo Finance API for asset search
-- Add debounced search for performance
-- Create visual portfolio composition display
-- Show performance comparison vs your original portfolio
-- Use localStorage for saving user modifications
+Research Recharts examples for best visualizations
+Create PortfolioPieChart.tsx component
+Create RiskMetricsDashboard.tsx component
+Use data from backend simulation results
+Implement smooth transitions between regimes
+Keep complementary to backend charts, don't compete
 
----
 
-## FE-006: Connect Portfolio Builder to Backend
+FE-006: Add Custom Portfolio Input
 Status: Not Started
 Priority: High
-Dependencies: FE-002, FE-005
+Dependencies: FE-005
+Allow users to input their own portfolio and see the same analysis applied to their choices.
+Acceptance Criteria
 
-Establish API communication for custom portfolio simulations.
+Portfolio input form with ticker + weight fields
+Start with default portfolio as template
+Real-time validation (weights sum to 100%, valid tickers)
+"Reset to Default" button to restore default portfolio
+Form submission triggers new simulation
+Error handling for invalid tickers or API failures
 
-**Acceptance Criteria**
-- API service layer created (`services/api.ts`)
-- React Query setup for data fetching
-- Custom portfolio submissions to `/api/simulate` endpoint
-- Loading states during portfolio validation and simulation
-- Error handling for invalid tickers or API failures
+Technical Notes
 
-**Technical Notes**
-- Use `fetch()` or `axios` for HTTP requests
-- Implement `useQuery` for data fetching
-- Add ticker validation endpoint
-- Handle network timeouts gracefully
-- Store portfolio configurations in React state
+Create PortfolioForm.tsx component
+Add ticker validation (basic format checking)
+Implement weight sum validation with visual feedback
+API endpoints implemented in FE-002
+Preserve form state across regime changes
+Add loading states during custom simulations
 
----
 
-## FE-007: Basic Simulation Results Display
+FE-007: Custom Portfolio Results
 Status: Not Started
 Priority: High
 Dependencies: FE-006
+Acceptance Criteria
 
-Show Monte Carlo results for custom portfolios in clean format.
+Generate and display 3 charts for user's custom portfolio
+Update Recharts visualizations for custom portfolio
+Maintain regime switching for custom portfolios
+Clear indication of "Custom Portfolio" vs "Default Portfolio"
 
-**Acceptance Criteria**
-- Display key metrics for user's custom portfolio
-- Show portfolio performance (median, mean, best/worst case)
-- Present results in clean, readable cards/tables
-- Include percentage changes and absolute values
-- Loading spinner during simulation
+Technical Notes
 
-**Technical Notes**
-- Create `SimulationResults.tsx` component
-- Format numbers with proper decimal places
-- Use cards or tables for metric display
-- Add conditional styling for positive/negative returns
-- Focus on core metrics, not all visualizations
+Extend existing chart display for custom data
+Update all Recharts components to use dynamic data
+Cache simulation results to avoid redundant API calls
+Ensure UI scales well with different portfolio compositions
 
----
 
-## FE-008: Dynamic Scenario Analysis - Basic
+FE-008: Advanced Regime Customization
 Status: Not Started
-Priority: High
+Priority: Medium
 Dependencies: FE-007
+Allow power users to create custom regimes with parameter adjustments.
+Acceptance Criteria
 
-Add regime selection and comparison for custom portfolios.
+Parameter sliders for regime customization (volatility, correlation)
+Real-time preview of regime impact on Recharts elements
+Save/load custom regime configurations
+"Custom Regime" mode with clear parameter explanations
+Reset to standard regimes functionality
 
-**Acceptance Criteria**
-- Dropdown for scenario selection (Historical, Fiat Debasement, Geopolitical Crisis)
-- Results update when scenario changes
-- Side-by-side comparison of scenarios
-- Clear labeling of active scenario
-- Show how same portfolio performs under different regimes
+Technical Notes
 
-**Technical Notes**
-- Create `RegimeSelector.tsx` component
-- Update API to accept regime parameter for custom portfolios
-- Implement state management for scenario switching
-- Add loading states during scenario changes
-- Cache results to avoid redundant API calls
+Create CustomRegimeBuilder.tsx component
+Add parameter sliders with validation ranges
+Implement debounced updates for performance
+Store custom regimes in localStorage
+Add tooltips explaining parameter impacts
+Custom regime API implemented in FE-002
 
----
 
-## FE-009: Advanced Scenario Analysis (Optional)
+FE-009: Enhanced UX & Polish
 Status: Not Started
 Priority: Medium
 Dependencies: FE-008
+Add professional polish, animations, and user experience improvements.
+Acceptance Criteria
 
-Add advanced scenario customization and parameter tweaking.
+Smooth transitions between all states (default→custom→regimes)
+Loading animations and skeleton states
+Responsive design across all device sizes
+Professional typography and spacing
+Error states with helpful messaging
+Export functionality for charts (optional)
 
-**Acceptance Criteria**
-- Sliders for regime parameter adjustment (volatility multipliers, correlation shifts)
-- Real-time simulation updates as users adjust parameters
-- Custom scenario creation and saving
-- Parameter sensitivity analysis
-- "What-if" analysis tools
+Technical Notes
 
-**Technical Notes**
-- Create `AdvancedScenarioBuilder.tsx` component
-- Add parameter validation and ranges
-- Implement debounced API calls for real-time updates
-- Add preset scenario templates
-- Include parameter impact explanations
+Add CSS animations with Tailwind
+Implement skeleton loading components
+Test responsive design thoroughly
+Add micro-interactions for better UX
+Include proper error boundaries
+Optimize performance for smooth interactions
 
----
 
-## FE-010: Basic Chart Visualization
+FE-010: Documentation & Deployment
 Status: Not Started
-Priority: Medium
+Priority: Low
 Dependencies: FE-009
+Deploy application and create comprehensive documentation.
+Acceptance Criteria
 
-Add essential charts for portfolio simulation results.
+Frontend deployed to Vercel/Netlify
+Backend deployed to Railway/Render/Heroku
+Environment variables properly configured
+README updated with complete setup instructions
+User guide with screenshots and feature explanations
+Architecture documentation
 
-**Acceptance Criteria**
-- Line chart showing portfolio value over time
-- Confidence intervals (50%, 80%, 90%) displayed
-- Best/worst case scenarios highlighted
-- Basic hover tooltips
-- Clean, professional styling
+Technical Notes
 
-**Technical Notes**
-- Use Recharts `LineChart` component
-- Implement multiple data series for confidence bands
-- Add custom tooltips with formatted values
-- Match color scheme from existing Python charts
-- Keep visualization simple and focused
-
----
-
-## FE-011: Polish & Responsive Design
-Status: Not Started
-Priority: Medium
-Dependencies: FE-010
-
-Ensure application works well on all devices and add professional polish.
-
-**Acceptance Criteria**
-- Responsive design works on mobile, tablet, desktop
-- Professional typography and spacing
-- Loading animations and micro-interactions
-- Error states handled gracefully
-- Focus on portfolio builder and scenario analysis UX
-
-**Technical Notes**
-- Use Tailwind responsive utilities
-- Add CSS animations for smooth transitions
-- Implement skeleton loading states
-- Test portfolio builder on multiple device sizes
-- Optimize for the core workflow (build portfolio → run scenarios)
-
----
-
-## FE-012: Deployment & Documentation
-Status: Not Started
-Priority: Medium
-Dependencies: FE-011
-
-Deploy application and create user documentation.
-
-**Acceptance Criteria**
-- Frontend deployed to Vercel/Netlify
-- Backend deployed to Railway/Render
-- Environment variables configured
-- User guide created with screenshots
-- Technical documentation updated
-
-**Technical Notes**
-- Build production versions of both apps
-- Configure environment variables for production
-- Update README with deployment instructions
-- Add screenshots of key features
-- Include troubleshooting section
-
----
-
-## Estimated Timeline: 8-10 days
-- **Week 1**: Tasks FE-001 through FE-007 (Core portfolio builder + basic results)
-- **Week 2**: Tasks FE-008 through FE-012 (Dynamic scenario analysis + polish)
-
-## Focus Areas Based on Your Preferences:
-1. **Interactive Portfolio Builder** (FE-004, FE-005) - 60% of development time
-2. **Dynamic Scenario Analysis** (FE-008, FE-009) - 30% of development time  
-3. **Basic visualizations** (FE-010) - 10% of development time
-
-## Key Dependencies
-- Existing Monte Carlo Python code (completed)
-- FastAPI and React development environment
-- Yahoo Finance API for asset data
-- No database required - all data computed on-demand
+Build production versions with environment configs
+Set up CI/CD pipelines (optional)
+Update repository README with deployment info
+Create user documentation with screenshots
+Include troubleshooting section
+Document API endpoints and data flows
