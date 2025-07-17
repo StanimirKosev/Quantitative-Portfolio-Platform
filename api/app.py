@@ -2,7 +2,7 @@ import sys
 
 sys.path.append("./src")
 
-from api.api_utils import run_portfolio_simulation_api
+from api.api_utils import run_portfolio_simulation_api, get_available_regimes
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -76,7 +76,7 @@ async def simulate_custom_portfolio_regime(request: CustomPortfolioRequest):
 
     Expects a JSON body with:
         - tickers: List of asset ticker symbols (List[str])
-        - weights: List of asset weights as percentages (List[float], will be converted to fractions)
+        - weights: List of asset weights in fractions
         - regime: Scenario name (str, e.g., "historical", "fiat_debasement", "geopolitical_crisis")
 
     Returns:
@@ -85,7 +85,6 @@ async def simulate_custom_portfolio_regime(request: CustomPortfolioRequest):
     Raises:
         HTTPException: If the regime name is invalid or required data is missing/invalid.
     """
-    request.weights = [w / 100 for w in request.weights]
     return run_portfolio_simulation_api(
         request.tickers, request.weights, request.regime
     )
@@ -107,3 +106,12 @@ async def simulate_default_portfolio_regime(regime: str):
     """
     tickers, weights = get_portfolio()
     return run_portfolio_simulation_api(tickers, weights, regime)
+
+
+@app.get("/api/regimes")
+async def get_regimes():
+    """
+    Returns a list of available regimes, each with key, name, and description.
+    Useful for populating regime selectors in the frontend.
+    """
+    return {"regimes": get_available_regimes()}

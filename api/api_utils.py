@@ -16,6 +16,30 @@ from visualization import (
 from fastapi import HTTPException
 
 
+def get_available_regimes():
+    """
+    Returns a list of available regimes, each with key, name, and description.
+    """
+    regimes = [
+        {
+            "key": "historical",
+            "name": HISTORICAL,
+            "description": "Baseline: actual past returns and risk.",
+        },
+        {
+            "key": "fiat_debasement",
+            "name": FIAT_DEBASEMENT_REGIME_NAME,
+            "description": "Inflation: BTC & gold outperform, higher volatility.",
+        },
+        {
+            "key": "geopolitical_crisis",
+            "name": GEOPOLITICAL_CRISIS_REGIME_NAME,
+            "description": "Crisis: Equities/EM down, gold & energy up, risk-off.",
+        },
+    ]
+    return regimes
+
+
 def run_portfolio_simulation_api(tickers, weights, regime):
     """
     Orchestrates the full Monte Carlo simulation and chart generation for a given portfolio and regime.
