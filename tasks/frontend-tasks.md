@@ -36,7 +36,15 @@ Acceptance Criteria
   No unnecessary metadata; response is designed for direct frontend use.
 
 - **POST /api/portfolio/validate**  
-  (To be implemented) Validates a custom portfolio in real time.
+  Status: Implemented
+  Validates a custom portfolio in real time.  
+  Expects a JSON body with:
+    - `tickers`: list of asset tickers
+    - `weights`: list of asset weights (fractions, must sum to 1.0)
+  Returns:
+    - `{success: true, message: ...}` if valid
+    - `{success: false, errors: [...]}` if invalid
+  Covers both portfolio and single ticker validation (no need for separate ticker validation endpoints).
 
 ## Simulation Endpoints
 
@@ -54,28 +62,19 @@ Acceptance Criteria
   Runs a simulation for a custom portfolio and regime.  
   Accepts a JSON body with:
     - `tickers`: list of asset tickers
-    - `weights`: list of asset weights (percentages)
+    - `weights`: list of asset weights (fractions, must sum to 1.0)
     - `regime`: scenario name (optional, defaults to 'historical')
   Returns URLs for three generated charts (same as default endpoint) and the regime name.  
   Core simulation/chart logic is reused from the default endpoint, but uses user-supplied portfolio data.
 
-## Chart/Image Endpoints
-
 ## Regime Endpoints
 
 - **GET /api/regimes**  
-  (To be implemented) Lists available regimes.
+  Status: Implemented
+  Lists available regimes, each with key, name, and description.
 
 - **GET /api/regimes/{regime}/parameters**  
   (To be implemented) Returns regime parameter details.
-
-## Ticker Endpoints
-
-- **GET /api/tickers/validate**  
-  (To be implemented) Real-time portfolio validation.
-
-- **GET /api/tickers/validate/{ticker}**  
-  (To be implemented) Ticker validation for custom portfolios.
 
 
   Debounced real-time updates with loading states

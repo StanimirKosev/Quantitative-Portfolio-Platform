@@ -7,6 +7,12 @@ GEOPOLITICAL_CRISIS_REGIME_NAME = "Geopolitical Crisis"
 FIAT_DEBASEMENT_REGIME_NAME = "Fiat Debasement"
 
 
+class InvalidTickersException(Exception):
+    def __init__(self, message, invalid_tickers=None):
+        super().__init__(message)
+        self.invalid_tickers = invalid_tickers
+
+
 def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
     """
     Fetches daily closing prices for specified tickers within a date range using yfinance.
@@ -20,18 +26,27 @@ def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
         pd.DataFrame or None: DataFrame of closing prices (dates as index, tickers as columns),
                               or None if data is unavailable.
     """
-    data = None
 
-    try:
-        # yfinance now defaults auto_adjust=True (adjusted prices). Set explicitly for clarity and to silence FutureWarning.
-        data = yf.download(tickers, start=start, end=end, auto_adjust=True)
-    except Exception as e:
-        print(f"Error downloading data: {e}")
+    # yfinance now defaults auto_adjust=True (adjusted prices). Set explicitly for clarity and to silence FutureWarning.
+    data = yf.download(tickers, start=start, end=end, auto_adjust=True)
 
     if data is None or data.empty or "Close" not in data:
-        return None
+        raise InvalidTickersException(
+            f"Could not fetch price data for tickers: {tickers}.",
+            invalid_tickers=tickers,
+        )
 
-    return data["Close"]
+    close = data["Close"]
+
+    # Check for missing tickers
+    missing = [t for t in tickers if t not in close.columns]
+    if missing:
+        raise InvalidTickersException(
+            f"Could not fetch price data for tickers: {', '.join(missing)}.",
+            invalid_tickers=missing,
+        )
+
+    return close
 
 
 def transform_to_daily_returns_percent(close_prices):

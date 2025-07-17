@@ -6,6 +6,7 @@ from utils import (
     calculate_mean_and_covariance,
     fetch_close_prices,
     transform_to_daily_returns_percent,
+    InvalidTickersException,
 )
 from monte_carlo import simulate_portfolio_paths, modify_portfolio_for_regime
 from visualization import (
@@ -75,12 +76,11 @@ def run_portfolio_simulation_api(tickers, weights, regime):
 
     regime_name, regime_dict = regime_map[regime_key]
 
-    close_values = fetch_close_prices(tickers)
-    if close_values is None:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Could not fetch price data for tickers: {tickers}. Please check that all tickers are valid and available.",
-        )
+    try:
+        close_values = fetch_close_prices(tickers)
+    except InvalidTickersException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     daily_returns = transform_to_daily_returns_percent(close_values)
     historical_mean_returns, historical_cov_matrix = calculate_mean_and_covariance(
         daily_returns
@@ -108,3 +108,41 @@ def run_portfolio_simulation_api(tickers, weights, regime):
             "risk_factors_chart_path": risk_chart_path,
         },
     }
+
+
+def validate_portfolio_api(tickers, weights):
+    """
+    Internal utility for validating a custom portfolio's tickers and weights.
+    Used by the /api/portfolio/validate endpoint.
+
+    Returns:
+      - dict: {"success": True, "message": ...} if valid
+      - dict: {"success": False, "errors": [...]} if invalid
+    """
+    errors = []
+
+    # 1. Length match
+    if len(tickers) != len(weights):
+        errors.append("Tickers and weights must have the same length.")
+
+    # 2. Weights: numbers, non-negative, sum to 1.0
+    if not all(isinstance(w, (int, float)) for w in weights):
+        errors.append("All weights must be numbers.")
+    if not all(w >= 0 for w in weights):
+        errors.append("All weights must be non-negative.")
+    if abs(sum(weights) - 1.0) > 0.0001:
+        errors.append("Weights must sum to 100.")
+
+    # 3. No duplicate tickers
+    if len(set(tickers)) != len(tickers):
+        errors.append("Duplicate tickers are not allowed.")
+
+    # 4. All tickers fetchable
+    try:
+        fetch_close_prices(tickers)
+    except InvalidTickersException as e:
+        errors.append(str(e))
+
+    if errors:
+        return {"success": False, "errors": errors}
+    return {"success": True, "message": "Portfolio is valid."}

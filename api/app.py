@@ -2,18 +2,23 @@ import sys
 
 sys.path.append("./src")
 
-from api.api_utils import run_portfolio_simulation_api, get_available_regimes
+from api.api_utils import (
+    run_portfolio_simulation_api,
+    get_available_regimes,
+    validate_portfolio_api,
+)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 from portfolio import (
     get_portfolio,
 )
+from utils import fetch_close_prices, InvalidTickersException
 
 
 app = FastAPI(title="Monte Carlo Portfolio Simulator API")
@@ -66,7 +71,7 @@ async def get_default_portfolio():
 class CustomPortfolioRequest(BaseModel):
     tickers: List[str]
     weights: List[float]
-    regime: str
+    regime: Optional[str] = "historical"
 
 
 @app.post("/api/simulate/custom")
@@ -106,6 +111,25 @@ async def simulate_default_portfolio_regime(regime: str):
     """
     tickers, weights = get_portfolio()
     return run_portfolio_simulation_api(tickers, weights, regime)
+
+
+@app.post("/api/portfolio/validate")
+async def validate_custom_portfolio(request: CustomPortfolioRequest):
+    """
+    Validates a custom portfolio's tickers and weights.
+    Expects:
+      - tickers: List of asset ticker symbols (List[str])
+      - weights: List of asset weights as fractions (List[float], must sum to 1.0)
+    Checks:
+      - Tickers and weights are same length
+      - Weights are numbers, non-negative, and sum to 1.0 (within tolerance)
+      - No duplicate tickers
+      - All tickers are fetchable (exist in yfinance)
+    Returns:
+      - dict: {"success": True, "message": ...} if valid
+      - dict: {"success": False, "errors": [...]} if invalid
+    """
+    return validate_portfolio_api(request.tickers, request.weights)
 
 
 @app.get("/api/regimes")
