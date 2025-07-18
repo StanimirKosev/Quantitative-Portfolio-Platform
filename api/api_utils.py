@@ -38,7 +38,7 @@ def get_available_regimes():
             "description": "Crisis: Equities/EM down, gold & energy up, risk-off.",
         },
     ]
-    return regimes
+    return {"regimes": regimes}
 
 
 def run_portfolio_simulation_api(tickers, weights, regime):
@@ -110,7 +110,7 @@ def run_portfolio_simulation_api(tickers, weights, regime):
     }
 
 
-def validate_portfolio_api(tickers, weights):
+def validate_portfolio(tickers, weights):
     """
     Internal utility for validating a custom portfolio's tickers and weights.
     Used by the /api/portfolio/validate endpoint.

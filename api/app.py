@@ -5,7 +5,7 @@ sys.path.append("./src")
 from api.api_utils import (
     run_portfolio_simulation_api,
     get_available_regimes,
-    validate_portfolio_api,
+    validate_portfolio,
 )
 
 from fastapi import FastAPI
@@ -18,7 +18,6 @@ from typing import List, Optional
 from portfolio import (
     get_portfolio,
 )
-from utils import fetch_close_prices, InvalidTickersException
 
 
 app = FastAPI(title="Monte Carlo Portfolio Simulator API")
@@ -129,7 +128,7 @@ async def validate_custom_portfolio(request: CustomPortfolioRequest):
       - dict: {"success": True, "message": ...} if valid
       - dict: {"success": False, "errors": [...]} if invalid
     """
-    return validate_portfolio_api(request.tickers, request.weights)
+    return validate_portfolio(request.tickers, request.weights)
 
 
 @app.get("/api/regimes")
@@ -138,4 +137,4 @@ async def get_regimes():
     Returns a list of available regimes, each with key, name, and description.
     Useful for populating regime selectors in the frontend.
     """
-    return {"regimes": get_available_regimes()}
+    return get_available_regimes()
