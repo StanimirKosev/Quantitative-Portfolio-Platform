@@ -74,7 +74,8 @@ Acceptance Criteria
   Lists available regimes, each with key, name, and description.
 
 - **GET /api/regimes/{regime}/parameters**  
-  (To be implemented) Returns regime parameter details.
+  Status: Implemented
+  Returns regime parameter details for the given regime, including mean_factor, vol_factor, correlation_move_pct for each asset, and a description. The structure matches the backend regime definitions.
 
 
   Debounced real-time updates with loading states

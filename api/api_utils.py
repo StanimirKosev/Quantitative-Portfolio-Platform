@@ -1,4 +1,4 @@
-from portfolio import GEOPOLITICAL_CRISIS_REGIME, FIAT_DEBASEMENT_REGIME
+from portfolio import GEOPOLITICAL_CRISIS_REGIME, FIAT_DEBASEMENT_REGIME, get_portfolio
 from utils import (
     HISTORICAL,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
@@ -146,3 +146,43 @@ def validate_portfolio(tickers, weights):
     if errors:
         return {"success": False, "errors": errors}
     return {"success": True, "message": "Portfolio is valid."}
+
+
+def get_regime_parameters(regime_key):
+    """
+    Returns the regime modification parameters for a given regime.
+    The returned object matches the structure of the regime dicts defined in portfolio.py (a dict of tickers mapping to {mean_factor, vol_factor}, plus 'correlation_move_pct'), with an added 'description' field.
+    For 'historical', all mean/vol factors are 1.0 and correlation_move_pct is 0.0.
+    """
+    tickers, _ = get_portfolio()
+
+    regime_map = {
+        "historical": {
+            "regime": HISTORICAL,
+            "parameters": {
+                **{
+                    ticker: {"mean_factor": 1.0, "vol_factor": 1.0}
+                    for ticker in tickers
+                },
+                "correlation_move_pct": 0.0,
+            },
+            "description": "Baseline: actual past returns and risk. No regime modification is applied. All mean and volatility factors are 1.0, and correlation move is 0.0.",
+        },
+        "fiat_debasement": {
+            "regime": FIAT_DEBASEMENT_REGIME_NAME,
+            "description": "Inflation: BTC & gold outperform, higher volatility. Regime modifies mean and volatility factors for each asset, and correlation move is negative (risk-on).",
+            "parameters": FIAT_DEBASEMENT_REGIME,
+        },
+        "geopolitical_crisis": {
+            "regime": GEOPOLITICAL_CRISIS_REGIME_NAME,
+            "description": "Crisis: Equities/EM down, gold & energy up, risk-off. Regime modifies mean and volatility factors for each asset, and correlation move is positive (risk-off).",
+            "parameters": GEOPOLITICAL_CRISIS_REGIME,
+        },
+    }
+
+    regime_key = regime_key.strip().lower().replace(" ", "_")
+
+    if regime_key not in regime_map:
+        raise HTTPException(status_code=404, detail=f"Regime '{regime_key}' not found.")
+
+    return regime_map[regime_key]

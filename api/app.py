@@ -6,6 +6,7 @@ from api.api_utils import (
     run_portfolio_simulation_api,
     get_available_regimes,
     validate_portfolio,
+    get_regime_parameters,
 )
 
 from fastapi import FastAPI
@@ -41,6 +42,20 @@ async def root():
 
 @app.get("/api/portfolio/default")
 async def get_default_portfolio():
+    """
+    Returns the default portfolio as a list of assets, each with ticker, weight_pct (percentage), and description.
+
+    Response example:
+    ```json
+    {
+      "success": true,
+      "default_portfolio_assets": [
+        {"ticker": "BTC-EUR", "weight_pct": 25.0, "description": "Bitcoin - Main hedge against fiat debasement"},
+        ...
+      ]
+    }
+    ```
+    """
     tickers, weights = get_portfolio()
 
     descriptions = {
@@ -79,15 +94,22 @@ async def simulate_custom_portfolio_regime(request: CustomPortfolioRequest):
     Run a Monte Carlo simulation for a custom portfolio under a specified regime.
 
     Expects a JSON body with:
-        - tickers: List of asset ticker symbols (List[str])
-        - weights: List of asset weights in fractions
-        - regime: Scenario name (str, e.g., "historical", "fiat_debasement", "geopolitical_crisis")
+      - tickers: List of asset ticker symbols (List[str])
+      - weights: List of asset weights in fractions
+      - regime: Scenario name (str, e.g., "historical", "fiat_debasement", "geopolitical_crisis")
 
-    Returns:
-        dict: Contains success flag, regime name, and paths to generated chart images.
-
-    Raises:
-        HTTPException: If the regime name is invalid or required data is missing/invalid.
+    Response example:
+    ```json
+    {
+      "success": true,
+      "regime": "Fiat Debasement",
+      "charts": {
+        "simulation_chart_path": "/charts/fiat_debasement/monte_carlo_simulation_fiat_debasement.png",
+        "correlation_matrix_chart_path": "/charts/fiat_debasement/correlation_matrix_fiat_debasement.png",
+        "risk_factors_chart_path": "/charts/fiat_debasement/risk_factor_analysis_fiat_debasement.png"
+      }
+    }
+    ```
     """
     return run_portfolio_simulation_api(
         request.tickers, request.weights, request.regime
@@ -100,13 +122,20 @@ async def simulate_default_portfolio_regime(regime: str):
     Run a Monte Carlo simulation for the default portfolio under a specified regime.
 
     Args:
-        regime (str): The scenario to simulate ("historical", "fiat_debasement", or "geopolitical_crisis").
+      regime (str): The scenario to simulate ("historical", "fiat_debasement", or "geopolitical_crisis").
 
-    Returns:
-        dict: Contains success flag, regime name, and paths to generated chart images.
-
-    Raises:
-        HTTPException: If the regime name is invalid or required data is missing/invalid.
+    Response example:
+    ```json
+    {
+      "success": true,
+      "regime": "Historical",
+      "charts": {
+        "simulation_chart_path": "/charts/historical/monte_carlo_simulation_historical.png",
+        "correlation_matrix_chart_path": "/charts/historical/correlation_matrix_historical.png",
+        "risk_factors_chart_path": "/charts/historical/risk_factor_analysis_historical.png"
+      }
+    }
+    ```
     """
     tickers, weights = get_portfolio()
     return run_portfolio_simulation_api(tickers, weights, regime)
@@ -124,9 +153,15 @@ async def validate_custom_portfolio(request: CustomPortfolioRequest):
       - Weights are numbers, non-negative, and sum to 1.0 (within tolerance)
       - No duplicate tickers
       - All tickers are fetchable (exist in yfinance)
-    Returns:
-      - dict: {"success": True, "message": ...} if valid
-      - dict: {"success": False, "errors": [...]} if invalid
+
+    Response example (valid):
+    ```json
+    { "success": true, "message": "Portfolio is valid." }
+    ```
+    Response example (invalid):
+    ```json
+    { "success": false, "errors": ["Weights must sum to 1.0.", "Ticker 'XYZ' is invalid."] }
+    ```
     """
     return validate_portfolio(request.tickers, request.weights)
 
@@ -135,6 +170,36 @@ async def validate_custom_portfolio(request: CustomPortfolioRequest):
 async def get_regimes():
     """
     Returns a list of available regimes, each with key, name, and description.
-    Useful for populating regime selectors in the frontend.
+
+    Response example:
+    ```json
+    {
+      "regimes": [
+        {"key": "historical", "name": "Historical", "description": "Baseline: actual past returns and risk."},
+        ...
+      ]
+    }
+    ```
     """
     return get_available_regimes()
+
+
+@app.get("/api/regimes/{regime}/parameters")
+async def get_regime_parameters_endpoint(regime: str):
+    """
+    Returns the regime modification parameters for the given regime.
+
+    Response example:
+    ```json
+    {
+      "regime": "fiat_debasement",
+      "parameters": {
+        "BTC-EUR": {"mean_factor": 1.3, "vol_factor": 1.1},
+        ...
+        "correlation_move_pct": -0.15
+      },
+      "description": "Inflation: BTC & gold outperform, higher volatility. ..."
+    }
+    ```
+    """
+    return get_regime_parameters(regime)
