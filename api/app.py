@@ -19,6 +19,7 @@ from typing import List, Optional
 from portfolio import (
     get_portfolio,
 )
+from utils import DEFAULT_PORTFOLIO_DATES
 
 
 app = FastAPI(title="Monte Carlo Portfolio Simulator API")
@@ -43,7 +44,7 @@ async def root():
 @app.get("/api/portfolio/default")
 async def get_default_portfolio():
     """
-    Returns the default portfolio as a list of assets, each with ticker, weight_pct (percentage), and description.
+    Returns the default portfolio as a list of assets, each with ticker, weight_pct (percentage), and description, and the default date range for visualization.
 
     Response example:
     ```json
@@ -52,7 +53,9 @@ async def get_default_portfolio():
       "default_portfolio_assets": [
         {"ticker": "BTC-EUR", "weight_pct": 25.0, "description": "Bitcoin - Main hedge against fiat debasement"},
         ...
-      ]
+      ],
+      "start_date": "2022-01-01",
+      "end_date": "2024-12-31"
     }
     ```
     """
@@ -79,6 +82,8 @@ async def get_default_portfolio():
     return {
         "success": True,
         "default_portfolio_assets": default_portfolio_assets,
+        "start_date": DEFAULT_PORTFOLIO_DATES["start"],
+        "end_date": DEFAULT_PORTFOLIO_DATES["end"],
     }
 
 
@@ -86,6 +91,8 @@ class CustomPortfolioRequest(BaseModel):
     tickers: List[str]
     weights: List[float]
     regime: Optional[str] = "historical"
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
 
 
 @app.post("/api/simulate/custom")
@@ -97,6 +104,8 @@ async def simulate_custom_portfolio_regime(request: CustomPortfolioRequest):
       - tickers: List of asset ticker symbols (List[str])
       - weights: List of asset weights in fractions
       - regime: Scenario name (str, e.g., "historical", "fiat_debasement", "geopolitical_crisis")
+      - start_date: (optional) Start date for historical data fetching (YYYY-MM-DD)
+      - end_date: (optional) End date for historical data fetching (YYYY-MM-DD)
 
     Response example:
     ```json
@@ -112,7 +121,11 @@ async def simulate_custom_portfolio_regime(request: CustomPortfolioRequest):
     ```
     """
     return run_portfolio_simulation_api(
-        request.tickers, request.weights, request.regime
+        request.tickers,
+        request.weights,
+        request.regime,
+        start_date=request.start_date,
+        end_date=request.end_date,
     )
 
 
@@ -144,15 +157,17 @@ async def simulate_default_portfolio_regime(regime: str):
 @app.post("/api/portfolio/validate")
 async def validate_custom_portfolio(request: CustomPortfolioRequest):
     """
-    Validates a custom portfolio's tickers and weights.
+    Validates a custom portfolio's tickers and weights for a given date range.
     Expects:
       - tickers: List of asset ticker symbols (List[str])
       - weights: List of asset weights as fractions (List[float], must sum to 1.0)
+      - start_date: Start date for historical data fetching (YYYY-MM-DD)
+      - end_date: End date for historical data fetching (YYYY-MM-DD)
     Checks:
       - Tickers and weights are same length
       - Weights are numbers, non-negative, and sum to 1.0 (within tolerance)
       - No duplicate tickers
-      - All tickers are fetchable (exist in yfinance)
+      - All tickers are fetchable (exist in yfinance) for the given date range
 
     Response example (valid):
     ```json
@@ -163,7 +178,9 @@ async def validate_custom_portfolio(request: CustomPortfolioRequest):
     { "success": false, "errors": ["Weights must sum to 1.0.", "Ticker 'XYZ' is invalid."] }
     ```
     """
-    return validate_portfolio(request.tickers, request.weights)
+    return validate_portfolio(
+        request.tickers, request.weights, request.start_date, request.end_date
+    )
 
 
 @app.get("/api/regimes")

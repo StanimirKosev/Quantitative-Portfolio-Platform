@@ -15,6 +15,7 @@ from visualization import (
     plot_simulation_results,
 )
 from fastapi import HTTPException
+from datetime import datetime
 
 
 def get_available_regimes():
@@ -41,7 +42,9 @@ def get_available_regimes():
     return {"regimes": regimes}
 
 
-def run_portfolio_simulation_api(tickers, weights, regime):
+def run_portfolio_simulation_api(
+    tickers, weights, regime, start_date=None, end_date=None
+):
     """
     Orchestrates the full Monte Carlo simulation and chart generation for a given portfolio and regime.
 
@@ -53,6 +56,8 @@ def run_portfolio_simulation_api(tickers, weights, regime):
         tickers (List[str]): List of asset ticker symbols.
         weights (List[float]): List of asset weights (fractions, should sum to 1.0).
         regime (str): The scenario to simulate (e.g., "historical", "fiat_debasement", "geopolitical_crisis").
+        start_date (str, optional): Start date for historical data fetching (YYYY-MM-DD).
+        end_date (str, optional): End date for historical data fetching (YYYY-MM-DD).
 
     Returns:
         dict: Contains success flag, regime name, and paths to generated chart images.
@@ -77,7 +82,7 @@ def run_portfolio_simulation_api(tickers, weights, regime):
     regime_name, regime_dict = regime_map[regime_key]
 
     try:
-        close_values = fetch_close_prices(tickers)
+        close_values = fetch_close_prices(tickers, start=start_date, end=end_date)
     except InvalidTickersException as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -110,17 +115,17 @@ def run_portfolio_simulation_api(tickers, weights, regime):
     }
 
 
-def validate_portfolio(tickers, weights):
+def validate_portfolio(tickers, weights, start_date, end_date):
     """
-    Internal utility for validating a custom portfolio's tickers and weights.
+    Internal utility for validating a custom portfolio's tickers and weights for a given date range.
     Used by the /api/portfolio/validate endpoint.
 
     Returns:
       - dict: {"success": True, "message": ...} if valid
       - dict: {"success": False, "errors": [...]} if invalid
     """
-    errors = []
 
+    errors = []
     # 1. Length match
     if len(tickers) != len(weights):
         errors.append("Tickers and weights must have the same length.")
@@ -137,11 +142,23 @@ def validate_portfolio(tickers, weights):
     if len(set(tickers)) != len(tickers):
         errors.append("Duplicate tickers are not allowed.")
 
-    # 4. All tickers fetchable
-    try:
-        fetch_close_prices(tickers)
-    except InvalidTickersException as e:
-        errors.append(str(e))
+    # 4. Date validation (only if previous checks passed)
+    if not errors:
+
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d")
+            end = datetime.strptime(end_date, "%Y-%m-%d")
+            if start > end:
+                errors.append("Start date must be before or equal to end date.")
+        except Exception:
+            errors.append("Dates must be in YYYY-MM-DD format.")
+
+    # 5. All tickers fetchable for the given date range
+    if not errors:
+        try:
+            fetch_close_prices(tickers, start=start_date, end=end_date)
+        except InvalidTickersException as e:
+            errors.append(str(e))
 
     if errors:
         return {"success": False, "errors": errors}

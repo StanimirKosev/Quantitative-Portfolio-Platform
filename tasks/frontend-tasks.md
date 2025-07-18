@@ -20,10 +20,10 @@ Test with browser at localhost:8000/docs
 
 
 FE-002: Complete API Implementation
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: FE-001
-Implement all 8 endpoints needed for full frontend interactivity with real-time updates.
+Implement all 6 endpoints needed for full frontend interactivity with real-time updates.
 Acceptance Criteria
 
 ## Portfolio Endpoints
@@ -33,6 +33,7 @@ Acceptance Criteria
   - `ticker`
   - `weight_pct` (percentage, not decimal)
   - `description`
+  - `start_date`, `end_date`: default date range for historical data visualization
   No unnecessary metadata; response is designed for direct frontend use.
 
 - **POST /api/portfolio/validate**  
@@ -41,6 +42,8 @@ Acceptance Criteria
   Expects a JSON body with:
     - `tickers`: list of asset tickers
     - `weights`: list of asset weights (fractions, must sum to 1.0)
+    - `start_date`: start date for historical data fetching (required)
+    - `end_date`: end date for historical data fetching (required)
   Returns:
     - `{success: true, message: ...}` if valid
     - `{success: false, errors: [...]}` if invalid
@@ -50,6 +53,7 @@ Acceptance Criteria
 
 - **POST /api/simulate/{regime}**  
   Runs a Monte Carlo simulation for the default portfolio under the specified regime (`historical`, `fiat_debasement`, `geopolitical_crisis`).  
+  Uses the default date range for historical data fetching (see GET /api/portfolio/default).  
   Returns URLs for three generated charts:
     - `simulation_chart_path`
     - `correlation_matrix_chart_path`
@@ -64,8 +68,10 @@ Acceptance Criteria
     - `tickers`: list of asset tickers
     - `weights`: list of asset weights (fractions, must sum to 1.0)
     - `regime`: scenario name (optional, defaults to 'historical')
+    - `start_date`: (optional) start date for historical data fetching
+    - `end_date`: (optional) end date for historical data fetching
   Returns URLs for three generated charts (same as default endpoint) and the regime name.  
-  Core simulation/chart logic is reused from the default endpoint, but uses user-supplied portfolio data.
+  Core simulation/chart logic is reused from the default endpoint, but uses user-supplied portfolio data and date range.
 
 ## Regime Endpoints
 
@@ -85,10 +91,7 @@ Technical Notes
 Use existing portfolio/regime logic from src/ modules
 Return both chart URLs and JSON data for interactive elements
 Implement proper validation ranges for custom regime parameters
-Save charts with unique timestamp-based IDs
-Include simulation metadata and risk metrics in all responses
 Handle custom regime parameters (mean_factor, vol_factor, correlation_move_pct)
-Support simulation parameters via query params: num_simulations (default: 1000), time_steps (default: 252), initial_value (default: 10000)
 Support date range parameters: start_date, end_date for historical data fetching
 Include parameter defaults and validation ranges in API responses
 

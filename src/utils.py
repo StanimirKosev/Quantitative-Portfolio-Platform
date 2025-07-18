@@ -6,6 +6,8 @@ HISTORICAL = "Historical"
 GEOPOLITICAL_CRISIS_REGIME_NAME = "Geopolitical Crisis"
 FIAT_DEBASEMENT_REGIME_NAME = "Fiat Debasement"
 
+DEFAULT_PORTFOLIO_DATES = {"start": "2022-01-01", "end": "2024-12-31"}
+
 
 class InvalidTickersException(Exception):
     def __init__(self, message, invalid_tickers=None):
@@ -13,7 +15,7 @@ class InvalidTickersException(Exception):
         self.invalid_tickers = invalid_tickers
 
 
-def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
+def fetch_close_prices(tickers, start=None, end=None):
     """
     Fetches daily closing prices for specified tickers within a date range using yfinance.
 
@@ -26,6 +28,10 @@ def fetch_close_prices(tickers, start="2022-01-01", end="2024-12-31"):
         pd.DataFrame or None: DataFrame of closing prices (dates as index, tickers as columns),
                               or None if data is unavailable.
     """
+
+    if start is None or end is None:
+        start = DEFAULT_PORTFOLIO_DATES["start"]
+        end = DEFAULT_PORTFOLIO_DATES["end"]
 
     # yfinance now defaults auto_adjust=True (adjusted prices). Set explicitly for clarity and to silence FutureWarning.
     data = yf.download(tickers, start=start, end=end, auto_adjust=True)
