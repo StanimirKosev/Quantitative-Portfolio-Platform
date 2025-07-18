@@ -1,33 +1,35 @@
-FE-001: Setup FastAPI Wrapper
+# Frontend Integration Sprint Tasks - Final 2025 Stack
+
+## FE-001: Setup FastAPI Wrapper
 Status: Completed
 Priority: High
 Dependencies: None
 Create thin API layer that wraps existing Monte Carlo functions without refactoring Python code.
-Acceptance Criteria
 
-FastAPI app created in api/app.py
-CORS middleware configured for React frontend
-Existing Python functions imported and accessible
-API runs on localhost:8000
+**Acceptance Criteria**
+- FastAPI app created in api/app.py
+- CORS middleware configured for React frontend
+- Existing Python functions imported and accessible
+- API runs on localhost:8000
 
-Technical Notes
+**Technical Notes**
+- Add sys.path.append('../src') to import existing modules
+- Use from main import run_simulation (or similar)
+- Keep existing code 100% untouched
+- Install: pip install fastapi uvicorn
+- Test with browser at localhost:8000/docs
 
-Add sys.path.append('../src') to import existing modules
-Use from main import run_simulation (or similar)
-Keep existing code 100% untouched
-Install: pip install fastapi uvicorn
-Test with browser at localhost:8000/docs
+---
 
-
-FE-002: Complete API Implementation
+## FE-002: Complete API Implementation
 Status: Completed
 Priority: High
 Dependencies: FE-001
 Implement all 6 endpoints needed for full frontend interactivity with real-time updates.
-Acceptance Criteria
 
-## Portfolio Endpoints
+**Acceptance Criteria**
 
+### Portfolio Endpoints
 - **GET /api/portfolio/default**  
   Returns the default portfolio as a list of assets, each with:
   - `ticker`
@@ -83,204 +85,352 @@ Acceptance Criteria
   Status: Implemented
   Returns regime parameter details for the given regime, including mean_factor, vol_factor, correlation_move_pct for each asset, and a description. The structure matches the backend regime definitions.
 
+**Technical Notes**
+- Use existing portfolio/regime logic from src/ modules
+- Return both chart URLs and JSON data for interactive elements
+- Handle custom regime parameters (mean_factor, vol_factor, correlation_move_pct)
+- Support date range parameters: start_date, end_date for historical data fetching
+- Include parameter defaults and validation ranges in API responses
 
-  Debounced real-time updates with loading states
+---
 
-Technical Notes
-
-Use existing portfolio/regime logic from src/ modules
-Return both chart URLs and JSON data for interactive elements
-Implement proper validation ranges for custom regime parameters
-Handle custom regime parameters (mean_factor, vol_factor, correlation_move_pct)
-Support date range parameters: start_date, end_date for historical data fetching
-Include parameter defaults and validation ranges in API responses
-
-
-FE-003: Setup React Application
+## FE-003: Setup React Application with 2025 Stack
 Status: Not Started
 Priority: High
 Dependencies: None
-Create modern React app with all necessary dependencies for hybrid approach.
-Acceptance Criteria
+Create modern React app with finalized library stack and project structure.
 
-React app created with Vite + TypeScript
-Essential dependencies installed and configured
-Development server runs on localhost:3000
-Basic project structure with proper folder organization
-Tailwind CSS working with basic styling
+**Acceptance Criteria**
+- React app created with Vite + TypeScript
+- All chosen libraries installed and configured
+- Development server runs on localhost:3000
+- Clean project structure with proper folder organization
+- shadcn/ui initialized with chart components
 
-Technical Notes
+**Technical Notes**
+- Use `npm create vite@latest frontend -- --template react-ts`
+- Install core stack:
+  ```bash
+  npm install @tanstack/react-query zustand react-router-dom lodash
+  ```
+- Setup shadcn/ui with charts:
+  ```bash
+  npx shadcn-ui@latest init
+  npx shadcn-ui@latest add chart
+  ```
+- Create folder structure:
+  ```
+  src/
+  ├── components/     # Reusable UI components
+  ├── stores/         # Zustand stores
+  ├── types/          # TypeScript interfaces
+  ├── hooks/          # Custom React hooks
+  ```
+- Configure TanStack Query client and React Router
 
-Use npm create vite@latest frontend -- --template react-ts
-Install: @tanstack/react-query, recharts, tailwindcss, axios
-Setup Tailwind CSS configuration
-Create folders: components/, services/, types/, hooks/
-Test with basic "Hello World" page
+---
 
-
-FE-004: Display Portfolio + Charts
+## FE-004: Display Default Portfolio + Charts
 Status: Not Started
 Priority: High
 Dependencies: FE-002, FE-003
 Create initial demo showing default portfolio and backend charts with regime switching.
-Acceptance Criteria
 
-Display default portfolio composition (assets, weights, description)
-Show 3 backend-generated charts for selected regime
-Regime selector (dropdown/tabs) to switch between scenarios
-Loading states during chart generation
-Professional styling and responsive design
-Include simulation metadata (dates, parameters)
+**Acceptance Criteria**
+- Display default portfolio composition
+- Show 3 backend-generated chart images for selected regime
+- Regime selector using shadcn/ui Select component
+- Loading states with shadcn/ui skeleton components
+- Error boundaries for graceful error handling
 
-Technical Notes
+**Technical Notes**
+- Create `PortfolioDisplay.tsx` using shadcn/ui Card components
+- Create `ChartDisplay.tsx` with React.lazy and Suspense:
+  ```typescript
+  const ChartDisplay = lazy(() => import('./ChartDisplay'))
+  
+  <Suspense fallback={<ChartSkeleton />}>
+    <ChartDisplay />
+  </Suspense>
+  ```
+- Create `RegimeSelector.tsx` using shadcn/ui Select
+- Setup TanStack Query for intelligent caching:
+  ```typescript
+  const { data: portfolio } = useQuery({
+    queryKey: ['portfolio', 'default'],
+    queryFn: api.getDefaultPortfolio,
+    staleTime: 10 * 60 * 1000 // Cache for 10 minutes
+  })
+  ```
+- Use Zustand for regime state management
 
-Create PortfolioDisplay.tsx for composition
-Create ChartDisplay.tsx for backend images
-Create RegimeSelector.tsx for scenario switching
-Use React Query for API state management
-Add error boundaries and loading skeletons
-Style with Tailwind for professional appearance
+---
 
-
-FE-005: Add Complementary Recharts Visualizations
+## FE-005: Add shadcn/ui Chart Visualizations
 Status: Not Started
 Priority: Medium
 Dependencies: FE-004
-Enhance the experience with interactive Recharts elements that complement backend charts.
-Acceptance Criteria
+Enhance experience with interactive shadcn/ui charts that complement your backend analysis.
 
-Portfolio allocation pie chart with your asset breakdown
-Interactive risk metrics dashboard (VaR/CVaR gauges or cards)
-Real-time updates when regime changes
-Hover tooltips and smooth animations
-Responsive design that works with backend charts
+**Acceptance Criteria**
+- Portfolio allocation pie chart using shadcn/ui PieChart
+- Risk metrics dashboard using shadcn/ui Cards and charts
+- Real-time updates when regime changes via TanStack Query
+- Professional tooltips and smooth animations
+- Responsive design that complements backend charts
 
-Technical Notes
+**Technical Notes**
+- Create `PortfolioPieChart.tsx` using shadcn/ui chart components:
+  ```typescript
+  import { PieChart, Pie } from "recharts"
+  import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
+  
+  const portfolioData = useMemo(() => 
+    portfolio?.assets.map(asset => ({
+      asset: asset.ticker,
+      value: asset.weight_pct,
+      description: asset.description,
+      fill: getAssetColor(asset.ticker)
+    })), [portfolio]
+  )
+  
+  <ChartContainer config={chartConfig} className="min-h-[300px]">
+    <PieChart>
+      <Pie data={portfolioData} dataKey="value" nameKey="asset" />
+      <ChartTooltip />
+    </PieChart>
+  </ChartContainer>
+  ```
+- Use TanStack Query's background updates for smooth regime switching
+- Use lodash for data transformations (groupBy, sortBy)
+- Store chart preferences in Zustand
+- Keep visualizations complementary to your backend charts
 
-Research Recharts examples for best visualizations
-Create PortfolioPieChart.tsx component
-Create RiskMetricsDashboard.tsx component
-Use data from backend simulation results
-Implement smooth transitions between regimes
-Keep complementary to backend charts, don't compete
+---
 
-
-FE-006: Add Custom Portfolio Input
+## FE-006: Add Custom Portfolio Input  
 Status: Not Started
 Priority: High
 Dependencies: FE-005
-Allow users to input their own portfolio and see the same analysis applied to their choices.
-Acceptance Criteria
+Allow users to input their own portfolio using simple React forms.
 
-Portfolio input form with ticker + weight fields
-Start with default portfolio as template
-Real-time validation (weights sum to 100%, valid tickers)
-"Reset to Default" button to restore default portfolio
-Form submission triggers new simulation
-Error handling for invalid tickers or API failures
+**Acceptance Criteria**
+- Portfolio input form using shadcn/ui form components
+- Start with your default portfolio as template
+- Real-time validation (weights sum to 100%, basic ticker format)
+- "Reset to Default" button using shadcn/ui Button
+- Form submission triggers new simulation via TanStack Query mutation
+- Backend validation as single source of truth
 
-Technical Notes
+**Technical Notes**
+- Create `PortfolioForm.tsx` using normal React form (no React Hook Form):
+  ```typescript
+  const [customPortfolio, setCustomPortfolio] = useState({
+    tickers: ['BTC-EUR', 'SPYL.DE', '5MVW.DE', 'WMIN.DE', 'IS3N.DE', '4GLD.DE'],
+    weights: [0.6, 0.105, 0.13, 0.07, 0.06, 0.035]
+  })
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Basic client-side validation for UX
+    const weightSum = customPortfolio.weights.reduce((a, b) => a + b, 0)
+    if (Math.abs(weightSum - 1.0) > 0.001) {
+      setError('Weights must sum to 100%')
+      return
+    }
+    
+    // Backend handles real validation
+    simulateCustomPortfolio.mutate(customPortfolio)
+  }
+  ```
+- Use shadcn/ui Input and Button components
+- Use TanStack Query mutations for form submission
+- Store form state in Zustand for persistence across regime changes
+- Let backend handle all real validation via `/api/portfolio/validate`
 
-Create PortfolioForm.tsx component
-Add ticker validation (basic format checking)
-Implement weight sum validation with visual feedback
-API endpoints implemented in FE-002
-Preserve form state across regime changes
-Add loading states during custom simulations
+---
 
-
-FE-007: Custom Portfolio Results
-Status: Not Started
+## FE-007: Custom Portfolio Results & Basic Routing
+Status: Not Started  
 Priority: High
 Dependencies: FE-006
-Acceptance Criteria
+Display results for custom portfolios and add minimal routing structure.
 
-Generate and display 3 charts for user's custom portfolio
-Update Recharts visualizations for custom portfolio
-Maintain regime switching for custom portfolios
-Clear indication of "Custom Portfolio" vs "Default Portfolio"
+**Acceptance Criteria**
+- Generate and display 3 backend charts for user's custom portfolio
+- Update shadcn/ui chart visualizations for custom portfolio data
+- Maintain regime switching for custom portfolios
+- Clear indication of "Custom Portfolio" vs "Default Portfolio"
+- Basic routing between main view and custom portfolio builder
 
-Technical Notes
+**Technical Notes**
+- Setup React Router with minimal routes:
+  ```typescript
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<PortfolioAnalysis />} />
+      <Route path="/custom" element={<CustomPortfolioBuilder />} />
+    </Routes>
+  </BrowserRouter>
+  ```
+- Extend existing chart display for custom data
+- Update all shadcn/ui chart components to use dynamic data from Zustand:
+  ```typescript
+  const { customPortfolio, isCustomMode } = usePortfolioStore()
+  const portfolioData = isCustomMode ? customPortfolio : defaultPortfolio
+  ```
+- Use TanStack Query's intelligent caching to avoid redundant API calls
+- Use lodash for data manipulation and transformations
+- Ensure UI scales well with different portfolio compositions
 
-Extend existing chart display for custom data
-Update all Recharts components to use dynamic data
-Cache simulation results to avoid redundant API calls
-Ensure UI scales well with different portfolio compositions
+---
 
-
-FE-008: Advanced Regime Customization
+## FE-008: Advanced Regime Customization
 Status: Not Started
-Priority: Medium
+Priority: Medium  
 Dependencies: FE-007
 Allow power users to create custom regimes with parameter adjustments.
-Acceptance Criteria
 
-Parameter sliders for regime customization (volatility, correlation)
-Real-time preview of regime impact on Recharts elements
-Save/load custom regime configurations
-"Custom Regime" mode with clear parameter explanations
-Reset to standard regimes functionality
+**Acceptance Criteria**
+- Parameter sliders using shadcn/ui Slider components
+- Real-time preview of regime impact on shadcn/ui charts
+- Save/load custom regime configurations using localStorage
+- "Custom Regime" mode with clear parameter explanations
+- Reset to standard regimes functionality
 
-Technical Notes
+**Technical Notes**
+- Create `CustomRegimeBuilder.tsx` using shadcn/ui components
+- Add parameter sliders with validation ranges from `/api/regimes/{regime}/parameters`
+- Implement debounced updates using lodash.debounce:
+  ```typescript
+  const debouncedUpdateRegime = useMemo(
+    () => debounce((params: RegimeParams) => {
+      updateRegimeParams(params)
+    }, 300),
+    []
+  )
+  ```
+- Store custom regimes in Zustand with localStorage persistence:
+  ```typescript
+  const useRegimeStore = create<RegimeStore>((set) => ({
+    customRegimes: JSON.parse(localStorage.getItem('customRegimes') || '[]'),
+    saveCustomRegime: (regime) => {
+      set((state) => {
+        const updated = [...state.customRegimes, regime]
+        localStorage.setItem('customRegimes', JSON.stringify(updated))
+        return { customRegimes: updated }
+      })
+    }
+  }))
+  ```
+- Add shadcn/ui Tooltips explaining parameter impacts
+- Use TanStack Query mutations for custom regime simulations
 
-Create CustomRegimeBuilder.tsx component
-Add parameter sliders with validation ranges
-Implement debounced updates for performance
-Store custom regimes in localStorage
-Add tooltips explaining parameter impacts
-Custom regime API implemented in FE-002
+---
 
-
-FE-009: Enhanced UX & Polish
+## FE-009: Enhanced UX & Modern React Features
 Status: Not Started
 Priority: Medium
 Dependencies: FE-008
-Add professional polish, animations, and user experience improvements.
-Acceptance Criteria
+Add professional polish using modern React features and optimal performance.
 
-Smooth transitions between all states (default→custom→regimes)
-Loading animations and skeleton states
-Responsive design across all device sizes
-Professional typography and spacing
-Error states with helpful messaging
-Export functionality for charts (optional)
+**Acceptance Criteria**
+- Smooth transitions using React 18 concurrent features
+- Loading animations with shadcn/ui skeletons and React Suspense
+- Responsive design across all device sizes
+- Error states with helpful messaging using Error Boundaries
+- Optimized performance with React.memo and useMemo
 
-Technical Notes
+**Technical Notes**
+- Implement React 18 concurrent features:
+  ```typescript
+  // Lazy loading with Suspense
+  const ChartDisplay = lazy(() => import('./ChartDisplay'))
+  
+  <Suspense fallback={<ChartSkeleton />}>
+    <ChartDisplay />
+  </Suspense>
+  
+  // Error boundaries for graceful error handling
+  <ErrorBoundary fallback={<ChartError />}>
+    <SimulationResults />
+  </ErrorBoundary>
+  ```
+- Use React.memo for expensive chart components:
+  ```typescript
+  const PortfolioPieChart = memo(({ data }: { data: PortfolioData }) => {
+    const chartData = useMemo(() => 
+      data.assets.map(asset => ({
+        ...asset,
+        formattedWeight: `${asset.weight_pct.toFixed(1)}%`
+      })), [data]
+    )
+    return <PieChart data={chartData} />
+  })
+  ```
+- Add CSS modules for professional mathematical styling
+- Implement shadcn/ui skeleton components for loading states
+- Optimize TanStack Query with proper stale times and background updates
+- Use lodash for performance-critical data transformations
 
-Add CSS animations with Tailwind
-Implement skeleton loading components
-Test responsive design thoroughly
-Add micro-interactions for better UX
-Include proper error boundaries
-Optimize performance for smooth interactions
+---
 
-
-FE-010: Documentation & Deployment
+## FE-010: Deployment & Documentation
 Status: Not Started
 Priority: Low
 Dependencies: FE-009
 Deploy application and create comprehensive documentation.
-Acceptance Criteria
 
-Frontend deployed to Vercel/Netlify
-Backend deployed to Railway/Render/Heroku
-Environment variables properly configured
-README updated with complete setup instructions
-User guide with screenshots and feature explanations
-Architecture documentation
+**Acceptance Criteria**
+- Frontend deployed to Vercel (optimal for Vite + React)
+- Backend deployed to Railway/Render
+- Environment variables properly configured
+- Updated README with complete tech stack explanation
+- User guide with screenshots and feature explanations
+- Architecture documentation showing library integrations
 
-Technical Notes
+**Technical Notes**
+- Build production versions with TypeScript compilation
+- Configure environment variables for production API endpoints
+- Setup Vercel deployment with proper build settings for Vite
+- Update repository README with:
+  - **Tech Stack**: Vite, TypeScript, TanStack Query, Zustand, React Router, shadcn/ui, Lodash
+  - **Architecture**: Component relationships, state management flow
+  - **API Integration**: How frontend connects to FastAPI backend
+  - **Chart Strategy**: Backend-generated charts + shadcn/ui interactive elements
+- Create user documentation with screenshots of:
+  - Your default portfolio analysis
+  - Custom portfolio creation
+  - Regime switching functionality  
+  - Interactive shadcn/ui chart features
+- Include troubleshooting section and performance optimization notes
 
-Build production versions with environment configs
-Set up CI/CD pipelines (optional)
-Update repository README with deployment info
-Create user documentation with screenshots
-Include troubleshooting section
-Document API endpoints and data flows
+---
 
-### General API Design Principle
+## Final Tech Stack Summary
 
-- All API responses are designed with the frontend vision in mind:
-  - Only include fields that are directly useful for the UI/UX.
-  - All calculations and formatting are done in the backend.
-  - Responses are minimal, clear, and ready for direct use by the frontend.
+### **Core Libraries:**
+- ✅ **Vite** - Lightning-fast build tool and dev server
+- ✅ **TypeScript** - Type safety and better development experience
+- ✅ **TanStack Query** - Server state management with intelligent caching
+- ✅ **Zustand** - Lightweight client state management
+- ✅ **React Router** - Simple routing (2 routes maximum)
+- ✅ **shadcn/ui** - Professional components with built-in chart library
+- ✅ **Lodash** - Utility functions for data manipulation
+
+### **Architecture Decisions:**
+- ✅ **No authentication** - Stateless demo application
+- ✅ **No form libraries** - Simple native React forms
+- ✅ **CSS Modules** - Scoped styling for mathematical aesthetics
+- ✅ **Backend validation** - Single source of truth for data validation
+- ✅ **Hybrid visualization** - Backend charts + shadcn/ui interactive elements
+- ✅ **Modern React** - Concurrent features, Suspense, Error Boundaries
+
+### **Key Features:**
+- ✅ **Your portfolio showcase** - Default portfolio demonstrates your investment thesis
+- ✅ **Custom portfolio analysis** - Users can input their own allocations
+- ✅ **Regime switching** - Compare scenarios (historical, fiat debasement, geopolitical)
+- ✅ **Interactive charts** - shadcn/ui pie charts and risk dashboards
+- ✅ **Professional styling** - Clean, mathematical interface design
+- ✅ **Performance optimized** - Intelligent caching and React optimizations
