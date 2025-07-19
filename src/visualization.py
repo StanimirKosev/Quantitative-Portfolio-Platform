@@ -170,14 +170,18 @@ def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
     analysis = analyze_portfolio_correlation(cov_matrix)
     corr_matrix = analysis["correlation_matrix"]
     condition_number = analysis["condition_number"]
+    cond_color = ""
 
     # Determine conditioning status (arbitrary threshold: < 100 is 'Well', else 'Poorly')
     if condition_number < 0:
         cond_status = "Invalid (Negative Eigenvalues)"
+        cond_color = "red"
     elif condition_number < 100:
         cond_status = "Well Conditioned"
+        cond_color = "steelblue"
     else:
         cond_status = "Poorly Conditioned"
+        cond_color = "red"
 
     plt.figure(figsize=(8, 6))
     sns.heatmap(
@@ -202,13 +206,17 @@ def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
         pad=20,
     )
 
-    stats_text = (
-        f"Conditioning Number: {condition_number:.2f}\n" f"Status: {cond_status}\n"
+    plt.text(
+        0.5,
+        1.005,
+        f"Condition Number: {condition_number:.1f} - {cond_status}",
+        fontsize=12,
+        color=cond_color,
+        ha="center",
+        va="bottom",
+        transform=plt.gca().transAxes,
+        fontweight="bold",
     )
-    plt.tight_layout()
-
-    plt.subplots_adjust(bottom=0.18)  # Make space for text below the plot
-    plt.figtext(0.01, 0.01, stats_text, ha="left", va="bottom", fontsize=10)
 
     url_path = save_figure(regime_name, "correlation_matrix")
     if show:

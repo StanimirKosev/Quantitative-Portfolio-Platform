@@ -17,24 +17,26 @@ const RegimeSelector = () => {
   const { data } = useQuery<Regime[]>({
     queryKey: ["regimes"],
     queryFn: () =>
-      fetch(`${apiUrl}/regimes`)
+      fetch(`${apiUrl}/api/regimes`)
         .then((res) => res.json())
         .then((data) => data.regimes),
   });
 
   return (
-    <Select value={selectedRegime} onValueChange={setSelectedRegime}>
-      <SelectTrigger className="w-[210px]">
-        <SelectValue placeholder="Select regime" />
-      </SelectTrigger>
-      <SelectContent>
-        {data?.map((regime) => (
-          <SelectItem key={regime.key} value={regime.key}>
-            {regime.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="w-full flex flex-col items-center py-4">
+      <Select value={selectedRegime} onValueChange={setSelectedRegime}>
+        <SelectTrigger className="w-[240px] px-4 py-3 rounded-lg bg-muted text-base font-medium shadow">
+          <SelectValue placeholder="Select regime" />
+        </SelectTrigger>
+        <SelectContent>
+          {data?.map((regime) => (
+            <SelectItem key={regime.key} value={regime.key}>
+              {regime.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 };
 
