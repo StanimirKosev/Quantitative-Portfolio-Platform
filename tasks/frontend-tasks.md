@@ -86,7 +86,21 @@ Implement all 6 endpoints needed for full frontend interactivity with real-time 
 
 - **GET /api/regimes/{regime}/parameters**  
   Status: Implemented
-  Returns regime parameter details for the given regime, including mean_factor, vol_factor, correlation_move_pct for each asset, and a description. The structure matches the backend regime definitions.
+  Returns regime parameter details for the given regime. The response structure is:
+
+  ```
+  {
+    "regime": "<regime_name>",
+    "parameters": [
+      {"ticker": "BTC-EUR", "mean_factor": 1.3, "vol_factor": 1.1, "correlation_move_pct": -0.15},
+      {"ticker": "4GLD.DE", "mean_factor": 1.15, "vol_factor": 1.05, "correlation_move_pct": -0.15},
+      ...
+    ],
+    "description": "..."
+  }
+  ```
+
+  Each object in `parameters` contains the asset ticker, mean_factor, vol_factor, and correlation_move_pct for that regime.
 
 **Technical Notes**
 

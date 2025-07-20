@@ -209,11 +209,11 @@ async def get_regime_parameters_endpoint(regime: str):
     ```json
     {
       "regime": "fiat_debasement",
-      "parameters": {
-        "BTC-EUR": {"mean_factor": 1.3, "vol_factor": 1.1},
+      "parameters": [
+        {"ticker": "BTC-EUR", "mean_factor": 1.3, "vol_factor": 1.1, "correlation_move_pct": -0.15},
+        {"ticker": "4GLD.DE", "mean_factor": 1.15, "vol_factor": 1.05, "correlation_move_pct": -0.15},
         ...
-        "correlation_move_pct": -0.15
-      },
+      ],
       "description": "Inflation: BTC & gold outperform, higher volatility. ..."
     }
     ```

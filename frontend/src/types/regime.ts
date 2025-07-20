@@ -8,3 +8,16 @@ export interface Regime {
   name: string;
   description: string;
 }
+
+export interface RegimeParameter {
+  ticker: string;
+  mean_factor: number;
+  vol_factor: number;
+  correlation_move_pct: number;
+}
+
+export interface RegimeParametersResponse {
+  regime: string;
+  parameters: RegimeParameter[];
+  description: string;
+}

@@ -161,32 +161,54 @@ def validate_portfolio(tickers, weights, start_date, end_date):
 def get_regime_parameters(regime_key):
     """
     Returns the regime modification parameters for a given regime.
-    The returned object matches the structure of the regime dicts defined in portfolio.py (a dict of tickers mapping to {mean_factor, vol_factor}, plus 'correlation_move_pct'), with an added 'description' field.
-    For 'historical', all mean/vol factors are 1.0 and correlation_move_pct is 0.0.
+    The returned object has the following structure:
+    {
+        "regime": <regime_name>,
+        "parameters": [
+            {"ticker": <str>, "mean_factor": <float>, "vol_factor": <float>, "correlation_move_pct": <float>},
+            ...
+        ],
+        "description": <str>
+    }
+    For 'historical', all mean/vol factors are 1.0 and correlation_move_pct is 0.0 for each asset.
     """
     tickers, _ = get_portfolio()
+
+    def parameters_dict_to_array(params):
+        params = dict(params)
+        corr = params.pop("correlation_move_pct", None)
+        return [
+            {
+                "ticker": ticker,
+                **factors,
+                "correlation_move_pct": corr,
+            }
+            for ticker, factors in params.items()
+        ]
 
     regime_map = {
         "historical": {
             "regime": HISTORICAL,
-            "parameters": {
-                **{
-                    ticker: {"mean_factor": 1.0, "vol_factor": 1.0}
-                    for ticker in tickers
-                },
-                "correlation_move_pct": 0.0,
-            },
-            "description": "Baseline: actual past returns and risk. No regime modification is applied. All mean and volatility factors are 1.0, and correlation move is 0.0.",
+            "parameters": [
+                {
+                    "ticker": ticker,
+                    "mean_factor": 1.0,
+                    "vol_factor": 1.0,
+                    "correlation_move_pct": 0.0,
+                }
+                for ticker in tickers
+            ],
+            "description": "Baseline: actual past returns, volatility, and correlations. No regime modification is applied. All mean and volatility factors are 1.0, and correlation move is 0.0.",
         },
         "fiat_debasement": {
             "regime": FIAT_DEBASEMENT_REGIME_NAME,
-            "description": "Inflation: BTC & gold outperform, higher volatility. Regime modifies mean and volatility factors for each asset, and correlation move is negative (risk-on).",
-            "parameters": FIAT_DEBASEMENT_REGIME,
+            "description": "Fiat debasement: BTC & gold outperform, higher volatility. Mean/volatility factors rise for hard assets; equities/EM up moderately. Correlation move is negative (-0.15), reflecting risk-on dispersion.",
+            "parameters": parameters_dict_to_array(FIAT_DEBASEMENT_REGIME),
         },
         "geopolitical_crisis": {
             "regime": GEOPOLITICAL_CRISIS_REGIME_NAME,
-            "description": "Crisis: Equities/EM down, gold & energy up, risk-off. Regime modifies mean and volatility factors for each asset, and correlation move is positive (risk-off).",
-            "parameters": GEOPOLITICAL_CRISIS_REGIME,
+            "description": "Geopolitical crisis: Equities/EM down, gold & energy up, all more volatile. Mean factors drop for risk assets, rise for havens. Correlation move is positive (+0.1), showing risk-off co-movement.",
+            "parameters": parameters_dict_to_array(GEOPOLITICAL_CRISIS_REGIME),
         },
     }
 
