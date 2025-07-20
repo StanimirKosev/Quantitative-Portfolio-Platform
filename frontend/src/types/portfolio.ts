@@ -1,0 +1,17 @@
+export interface PortfolioAsset {
+  ticker: string;
+  weight_pct: number;
+  description: string;
+}
+
+export interface DefaultPortfolioResponse {
+  default_portfolio_assets: PortfolioAsset[];
+  start_date: string;
+  end_date: string;
+}
+
+export interface SimulateChartsResponse {
+  simulation_chart_path: string;
+  correlation_matrix_chart_path: string;
+  risk_factors_chart_path: string;
+}

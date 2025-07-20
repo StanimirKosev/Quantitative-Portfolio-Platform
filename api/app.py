@@ -80,7 +80,6 @@ async def get_default_portfolio():
     ]
 
     return {
-        "success": True,
         "default_portfolio_assets": default_portfolio_assets,
         "start_date": DEFAULT_PORTFOLIO_DATES["start"],
         "end_date": DEFAULT_PORTFOLIO_DATES["end"],
