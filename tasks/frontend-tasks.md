@@ -66,8 +66,6 @@ Implement all 6 endpoints needed for full frontend interactivity with real-time 
   - `simulation_chart_path`
   - `correlation_matrix_chart_path`
   - `risk_factors_chart_path`
-    Regime name is echoed in the response.  
-    No extra parameters unless needed for UX.
 - **POST /api/simulate/custom**  
   Status: Implemented
   Runs a simulation for a custom portfolio and regime.  
@@ -77,14 +75,14 @@ Implement all 6 endpoints needed for full frontend interactivity with real-time 
   - `regime`: scenario name (optional, defaults to 'historical')
   - `start_date`: (optional) start date for historical data fetching
   - `end_date`: (optional) end date for historical data fetching
-    Returns URLs for three generated charts (same as default endpoint) and the regime name.  
+    Returns URLs for three generated charts (same as default endpoint).  
     Core simulation/chart logic is reused from the default endpoint, but uses user-supplied portfolio data and date range.
 
 ## Regime Endpoints
 
 - **GET /api/regimes**  
   Status: Implemented
-  Lists available regimes, each with key, name, and description.
+  Lists available regimes, each with key, and name.
 
 - **GET /api/regimes/{regime}/parameters**  
   Status: Implemented

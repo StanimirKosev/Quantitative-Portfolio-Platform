@@ -20,23 +20,20 @@ from datetime import datetime
 
 def get_available_regimes():
     """
-    Returns a list of available regimes, each with key, name, and description.
+    Returns a list of available regimes, each with key and name.
     """
     regimes = [
         {
             "key": "historical",
             "name": HISTORICAL,
-            "description": "Baseline: actual past returns and risk.",
         },
         {
             "key": "fiat_debasement",
             "name": FIAT_DEBASEMENT_REGIME_NAME,
-            "description": "Inflation: BTC & gold outperform, higher volatility.",
         },
         {
             "key": "geopolitical_crisis",
             "name": GEOPOLITICAL_CRISIS_REGIME_NAME,
-            "description": "Crisis: Equities/EM down, gold & energy up, risk-off.",
         },
     ]
     return {"regimes": regimes}
@@ -60,7 +57,7 @@ def run_portfolio_simulation_api(
         end_date (str, optional): End date for historical data fetching (YYYY-MM-DD).
 
     Returns:
-        dict: Contains success flag, regime name, and paths to generated chart images.
+        dict: paths to generated chart images.
 
     Raises:
         HTTPException: If the regime name is invalid or if any required data is missing or invalid.
@@ -105,13 +102,9 @@ def run_portfolio_simulation_api(
     risk_chart_path = plot_portfolio_pca_analysis(cov_matrix, regime_name, show=False)
 
     return {
-        "success": True,
-        "regime": regime_name,
-        "charts": {
-            "simulation_chart_path": sim_chart_path,
-            "correlation_matrix_chart_path": corr_chart_path,
-            "risk_factors_chart_path": risk_chart_path,
-        },
+        "simulation_chart_path": sim_chart_path,
+        "correlation_matrix_chart_path": corr_chart_path,
+        "risk_factors_chart_path": risk_chart_path,
     }
 
 

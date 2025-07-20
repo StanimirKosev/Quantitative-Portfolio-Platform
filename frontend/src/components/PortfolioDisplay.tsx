@@ -20,10 +20,16 @@ const PortfolioDisplay = () => {
 
   const { data } = useQuery({
     queryKey: ["simulate", selectedRegime],
-    queryFn: () =>
-      fetch(`${apiUrl}/api/simulate/${selectedRegime}`, {
+    queryFn: async () => {
+      const res = await fetch(`${apiUrl}/api/simulate/${selectedRegime}`, {
         method: "POST",
-      }).then((res) => res.json()),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`HTTP ${res.status}: ${errorData.detail}`);
+      }
+      return res.json();
+    },
     enabled: !!selectedRegime,
   });
 
@@ -42,15 +48,15 @@ const PortfolioDisplay = () => {
 
   const chartData = [
     {
-      src: `${apiUrl}${data?.charts.simulation_chart_path}`,
+      src: `${apiUrl}${data?.simulation_chart_path}`,
       alt: "Monte Carlo Simulation",
     },
     {
-      src: `${apiUrl}${data?.charts.correlation_matrix_chart_path}`,
+      src: `${apiUrl}${data?.correlation_matrix_chart_path}`,
       alt: "Correlation Matrix",
     },
     {
-      src: `${apiUrl}${data?.charts.risk_factors_chart_path}`,
+      src: `${apiUrl}${data?.risk_factors_chart_path}`,
       alt: "Risk Factor Analysis",
     },
   ];
