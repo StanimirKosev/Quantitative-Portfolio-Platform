@@ -1,7 +1,7 @@
 import { useIsFetching } from "@tanstack/react-query";
-import RegimeSelector from "./components/RegimeSelector";
 import LoadingBar from "./components/LoadingBar";
 import PortfolioCarousel from "./components/PortfolioCarousel";
+import Header from "./components/Header";
 
 const App = () => {
   const isFetching = useIsFetching();
@@ -10,8 +10,8 @@ const App = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-background">
-      <RegimeSelector />
+    <div className="flex flex-col min-h-screen w-full bg-background">
+      <Header />
       <PortfolioCarousel />
     </div>
   );

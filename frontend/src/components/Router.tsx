@@ -22,6 +22,14 @@ const Router = () => {
       ),
     },
     {
+      path: "/custom-portfolio-form",
+      element: (
+        <ErrorBoundary>
+          <></>
+        </ErrorBoundary>
+      ),
+    },
+    {
       path: "*",
       element: <ErrorPage />,
     },
