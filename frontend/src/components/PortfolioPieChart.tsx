@@ -23,9 +23,7 @@ const PortfolioPieChart = () => {
   const { data } = useQuery<DefaultPortfolioResponse>({
     queryKey: ["portfolio", "default"],
     queryFn: () =>
-      fetch(`${apiUrl}/api/portfolio/default`)
-        .then((res) => res.json())
-        .then((data) => data),
+      fetch(`${apiUrl}/api/portfolio/default`).then((res) => res.json()),
   });
 
   const assets = data?.default_portfolio_assets?.map((asset, idx) => ({
