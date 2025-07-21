@@ -123,7 +123,11 @@ def validate_portfolio(tickers, weights, start_date, end_date):
     if len(tickers) != len(weights):
         errors.append("Tickers and weights must have the same length.")
 
-    # 2. Weights: numbers, non-negative, sum to 1.0
+    # 2. No empty tickers
+    if any(not t or not isinstance(t, str) or not t.strip() for t in tickers):
+        errors.append("All tickers must be non-empty strings.")
+
+    # 3. Weights: numbers, non-negative, sum to 1.0
     if not all(isinstance(w, (int, float)) for w in weights):
         errors.append("All weights must be numbers.")
     if not all(w >= 0 for w in weights):
@@ -131,11 +135,11 @@ def validate_portfolio(tickers, weights, start_date, end_date):
     if abs(sum(weights) - 1.0) > 0.0001:
         errors.append("Weights must sum to 100.")
 
-    # 3. No duplicate tickers
+    # 4. No duplicate tickers
     if len(set(tickers)) != len(tickers):
         errors.append("Duplicate tickers are not allowed.")
 
-    # 4. Date validation (only if previous checks passed)
+    # 5. Date validation (only if previous checks passed)
     if not errors:
 
         try:
@@ -146,7 +150,7 @@ def validate_portfolio(tickers, weights, start_date, end_date):
         except Exception:
             errors.append("Dates must be in YYYY-MM-DD format.")
 
-    # 5. All tickers fetchable for the given date range
+    # 6. All tickers fetchable for the given date range
     if not errors:
         try:
             fetch_close_prices(tickers, start=start_date, end=end_date)

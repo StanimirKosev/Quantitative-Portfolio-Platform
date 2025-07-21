@@ -15,3 +15,9 @@ export interface SimulateChartsResponse {
   correlation_matrix_chart_path: string;
   risk_factors_chart_path: string;
 }
+
+export interface ValidationResponse {
+  success: boolean;
+  message?: string;
+  errors?: string[];
+}

@@ -10,6 +10,9 @@ const queryClient = new QueryClient({
       throwOnError: true, // All queries throw to Error Boundary
       staleTime: 10 * 60 * 1000, // 10 minutes for all queries
     },
+    mutations: {
+      throwOnError: true,
+    },
   },
 });
 

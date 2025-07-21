@@ -7,23 +7,117 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type {
   PortfolioAsset,
   DefaultPortfolioResponse,
+  ValidationResponse,
 } from "../types/portfolio";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useReducer } from "react";
 import { Input } from "../components/ui/input";
 import { Skeleton } from "../components/ui/skeleton";
+import { set } from "lodash";
+import { Progress } from "../components/ui/progress";
+import { Badge } from "../components/ui/badge";
+
+interface FormState {
+  assets: Partial<PortfolioAsset>[];
+  startDate: string;
+  endDate: string;
+}
+
+type FormAction =
+  | {
+      type: "INITIALIZE_FORM";
+      payload: DefaultPortfolioResponse;
+    }
+  | {
+      type: "UPDATE_FIELD";
+      payload: {
+        field: keyof FormState | `assets.${number}.${keyof PortfolioAsset}`;
+        value:
+          | FormState[keyof FormState]
+          | PortfolioAsset[keyof PortfolioAsset];
+      };
+    }
+  | { type: "ADD_ASSET" }
+  | { type: "REMOVE_ASSET"; payload: { index: number } };
+
+const initialState: FormState = {
+  assets: [],
+  startDate: "",
+  endDate: "",
+};
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case "INITIALIZE_FORM":
+      return {
+        ...state,
+        assets: action.payload.default_portfolio_assets,
+        startDate: action.payload.start_date,
+        endDate: action.payload.end_date,
+      };
+    case "UPDATE_FIELD":
+      return set({ ...state }, action.payload.field, action.payload.value);
+    case "ADD_ASSET":
+      return {
+        ...state,
+        assets: [...state.assets, { ticker: "", weight_pct: 0 }],
+      };
+    case "REMOVE_ASSET":
+      return {
+        ...state,
+        assets: state.assets.filter(
+          (_, index) => index !== action.payload.index
+        ),
+      };
+    default:
+      return state;
+  }
+}
+
+const validatePortfolio = async (formState: FormState) => {
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  const payload = {
+    tickers: formState.assets.map((a) => a.ticker),
+    weights: formState.assets.map((a) => Number(a.weight_pct) / 100 || 0),
+    start_date: formState.startDate,
+    end_date: formState.endDate,
+  };
+
+  const res = await fetch(`${apiUrl}/api/portfolio/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(`HTTP ${res.status}: ${errorData.detail}`);
+  }
+  return res.json();
+};
 
 const CustomPortfolioForm = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
-  const [assets, setAssets] = useState<Partial<PortfolioAsset>[]>([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [state, dispatch] = useReducer(formReducer, initialState);
+  const {
+    mutate,
+    data: validationData,
+    isPending,
+  } = useMutation<ValidationResponse, Error, FormState>({
+    mutationFn: validatePortfolio,
+    onSuccess: (mutationData) => {
+      if (mutationData?.success) {
+        navigate("/custom-portfolio");
+      }
+    },
+  });
 
   const { data, isLoading } = useQuery<DefaultPortfolioResponse>({
     queryKey: ["portfolio", "default"],
@@ -32,12 +126,14 @@ const CustomPortfolioForm = () => {
   });
 
   useEffect(() => {
-    if (data) {
-      setAssets(data.default_portfolio_assets);
-      setStartDate(data.start_date);
-      setEndDate(data.end_date);
-    }
+    if (!data) return;
+    dispatch({ type: "INITIALIZE_FORM", payload: data });
   }, [data]);
+
+  const totalWeight = state.assets.reduce(
+    (sum, asset) => sum + (asset.weight_pct || 0),
+    0
+  );
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -66,7 +162,19 @@ const CustomPortfolioForm = () => {
 
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Portfolio Assets</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Portfolio Assets</CardTitle>
+            <div className="flex items-center gap-2 w-1/3">
+              <Progress value={totalWeight} />
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                <Badge
+                  variant={totalWeight === 100 ? "secondary" : "destructive"}
+                >
+                  {totalWeight.toFixed(1)}%
+                </Badge>
+              </span>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -77,7 +185,7 @@ const CustomPortfolioForm = () => {
                 <Skeleton className="h-10 w-full" />
               </>
             ) : (
-              assets.map((asset, index) => (
+              state.assets.map((asset, index) => (
                 <div
                   key={index}
                   className="grid grid-cols-[1fr_120px_40px] gap-4 items-center"
@@ -85,14 +193,34 @@ const CustomPortfolioForm = () => {
                   <Input
                     placeholder="Enter ticker (e.g., BTC-EUR)"
                     value={asset.ticker}
-                    onChange={() => {}} // Functionality disabled for now
+                    onChange={(e) =>
+                      dispatch({
+                        type: "UPDATE_FIELD",
+                        payload: {
+                          field: `assets.${index}.ticker`,
+                          value: e.target.value,
+                        },
+                      })
+                    }
                   />
                   <div className="relative">
                     <Input
                       type="number"
-                      value={asset.weight_pct}
-                      onChange={() => {}} // Functionality disabled for now
-                      className="pr-8"
+                      value={
+                        Number.isFinite(asset.weight_pct)
+                          ? asset.weight_pct
+                          : ""
+                      }
+                      onChange={(e) =>
+                        dispatch({
+                          type: "UPDATE_FIELD",
+                          payload: {
+                            field: `assets.${index}.weight_pct`,
+                            value: parseFloat(e.target.value),
+                          },
+                        })
+                      }
+                      className="pr-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                       %
@@ -101,7 +229,9 @@ const CustomPortfolioForm = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => {}} // Functionality disabled for now
+                    onClick={() =>
+                      dispatch({ type: "REMOVE_ASSET", payload: { index } })
+                    }
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -109,7 +239,7 @@ const CustomPortfolioForm = () => {
               ))
             )}
             <Button
-              onClick={() => {}} // Functionality disabled for now
+              onClick={() => dispatch({ type: "ADD_ASSET" })}
               variant="outline"
               className="w-full mt-4"
             >
@@ -124,21 +254,54 @@ const CustomPortfolioForm = () => {
             </CardDescription>
             <Input
               type="text"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              value={state.startDate}
+              onChange={(e) =>
+                dispatch({
+                  type: "UPDATE_FIELD",
+                  payload: { field: "startDate", value: e.target.value },
+                })
+              }
               className="w-32"
             />
             <span className="text-muted-foreground text-sm">to</span>
             <Input
               type="text"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              value={state.endDate}
+              onChange={(e) =>
+                dispatch({
+                  type: "UPDATE_FIELD",
+                  payload: { field: "endDate", value: e.target.value },
+                })
+              }
               className="w-32"
             />
           </div>
-          <Button variant="secondary">Save Portfolio</Button>
+          <Button
+            variant="secondary"
+            onClick={() => mutate(state)}
+            disabled={isPending}
+            className="min-w-[9rem] px-4 py-2 flex items-center justify-center"
+          >
+            {isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              "Analyze Portfolio"
+            )}
+          </Button>
         </CardFooter>
       </Card>
+
+      {validationData?.errors && (
+        <div className="mt-4 p-4 max-w-2xl mx-auto rounded-lg bg-destructive/15 border border-destructive/30">
+          <ul className="list-disc list-inside space-y-1">
+            {validationData.errors.map((error: string, index: number) => (
+              <li key={index} className="text-base text-red-500 font-medium">
+                {error}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

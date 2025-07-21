@@ -20,7 +20,7 @@ def fetch_close_prices(tickers, start=None, end=None):
     Fetches daily closing prices for specified tickers within a date range using yfinance.
 
     Parameters:
-        tickers (list or str): List of ticker symbols or a single ticker symbol.
+        tickers (list): List of ticker symbols or a single ticker symbol.
         start (str): Start date in 'YYYY-MM-DD' format. Default is '2022-01-01'.
         end (str): End date in 'YYYY-MM-DD' format. Default is '2024-12-31'.
 
@@ -44,12 +44,16 @@ def fetch_close_prices(tickers, start=None, end=None):
 
     close = data["Close"]
 
-    # Check for missing tickers
-    missing = [t for t in tickers if t not in close.columns]
-    if missing:
+    invalid_tickers = []
+    for t in tickers:
+        # Ticker column is missing OR the entire column is NaN
+        if t not in close.columns or close[t].isnull().all():
+            invalid_tickers.append(t)
+
+    if invalid_tickers:
         raise InvalidTickersException(
-            f"Could not fetch price data for tickers: {', '.join(missing)}.",
-            invalid_tickers=missing,
+            f"Could not fetch valid price data for tickers: {', '.join(invalid_tickers)}.",
+            invalid_tickers=invalid_tickers,
         )
 
     return close
