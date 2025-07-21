@@ -1,13 +1,7 @@
 import { useRegimeStore } from "../store/regimeStore";
 import { useQuery } from "@tanstack/react-query";
 import type { Regime } from "../types/regime";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 
 const RegimeSelector = () => {
   const { selectedRegime, setSelectedRegime } = useRegimeStore();
@@ -24,18 +18,23 @@ const RegimeSelector = () => {
 
   return (
     <div className="w-full flex flex-col items-center py-4">
-      <Select value={selectedRegime} onValueChange={setSelectedRegime}>
-        <SelectTrigger className="w-[240px] px-4 py-3 rounded-lg bg-muted text-base font-medium shadow">
-          <SelectValue placeholder="Select regime" />
-        </SelectTrigger>
-        <SelectContent>
-          {data?.map((regime) => (
-            <SelectItem key={regime.key} value={regime.key}>
-              {regime.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <ToggleGroup
+        type="single"
+        value={selectedRegime}
+        onValueChange={setSelectedRegime}
+        className="flex gap-1.5"
+      >
+        {data?.map((regime) => (
+          <ToggleGroupItem
+            key={regime.key}
+            value={regime.key}
+            aria-label={regime.name}
+            className="px-1 py-0.5 min-w-[120px] text-base font-medium whitespace-nowrap"
+          >
+            {regime.name}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
     </div>
   );
 };

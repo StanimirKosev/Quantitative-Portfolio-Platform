@@ -109,13 +109,9 @@ async def simulate_custom_portfolio_regime(request: CustomPortfolioRequest):
     Response example:
     ```json
     {
-      "success": true,
-      "regime": "Fiat Debasement",
-      "charts": {
-        "simulation_chart_path": "/charts/fiat_debasement/monte_carlo_simulation_fiat_debasement.png",
-        "correlation_matrix_chart_path": "/charts/fiat_debasement/correlation_matrix_fiat_debasement.png",
-        "risk_factors_chart_path": "/charts/fiat_debasement/risk_factor_analysis_fiat_debasement.png"
-      }
+      "simulation_chart_path": "/charts/fiat_debasement/monte_carlo_simulation_fiat_debasement.png",
+      "correlation_matrix_chart_path": "/charts/fiat_debasement/correlation_matrix_fiat_debasement.png",
+      "risk_factors_chart_path": "/charts/fiat_debasement/risk_factor_analysis_fiat_debasement.png"
     }
     ```
     """

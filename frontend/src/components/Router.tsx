@@ -1,10 +1,18 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 import App from "../App";
 import ErrorPage from "./ErrorPage";
 import ErrorBoundary from "./ErrorBoundary";
 
 const Router = () => {
   const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Navigate to="/default-portfolio" replace />,
+    },
     {
       path: "/default-portfolio",
       element: (
