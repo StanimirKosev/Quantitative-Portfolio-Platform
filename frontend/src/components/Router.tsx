@@ -31,6 +31,14 @@ const Router = () => {
       ),
     },
     {
+      path: "/custom-portfolio",
+      element: (
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      ),
+    },
+    {
       path: "*",
       element: <ErrorPage />,
     },

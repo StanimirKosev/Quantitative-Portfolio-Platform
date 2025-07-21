@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { DefaultPortfolioResponse } from "../types/portfolio";
+import type { PortfolioResponse } from "../types/portfolio";
 import { CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
 import { Legend, Pie, PieChart } from "recharts";
 import { useRegimeStore } from "../store/regimeStore";
+import { useCustomPortfolioStore } from "../store/customPortfolioStore";
 
 const COLORS = [
   "#C8511F",
@@ -19,14 +20,18 @@ const COLORS = [
 const PortfolioPieChart = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const { selectedRegime } = useRegimeStore();
+  const { customPortfolio } = useCustomPortfolioStore();
 
-  const { data } = useQuery<DefaultPortfolioResponse>({
+  const { data: defaultPortfolio } = useQuery<PortfolioResponse>({
     queryKey: ["portfolio", "default"],
     queryFn: () =>
       fetch(`${apiUrl}/api/portfolio/default`).then((res) => res.json()),
+    enabled: !customPortfolio,
   });
 
-  const assets = data?.default_portfolio_assets?.map((asset, idx) => ({
+  const dataSources = customPortfolio || defaultPortfolio;
+
+  const assets = dataSources?.portfolio_assets.map((asset, idx) => ({
     ...asset,
     ticker_pct: `${asset.ticker}: ${asset.weight_pct}%`,
     fill: COLORS[idx % COLORS.length],
@@ -76,7 +81,7 @@ const PortfolioPieChart = () => {
           transform: "translateX(-50%)",
         }}
       >
-        Analysis period: {data?.start_date} - {data?.end_date}
+        Analysis period: {dataSources?.start_date} - {dataSources?.end_date}
       </CardDescription>
     </div>
   );

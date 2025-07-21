@@ -50,7 +50,7 @@ async def get_default_portfolio():
     ```json
     {
       "success": true,
-      "default_portfolio_assets": [
+      "portfolio_assets": [
         {"ticker": "BTC-EUR", "weight_pct": 25.0, "description": "Bitcoin - Main hedge against fiat debasement"},
         ...
       ],
@@ -80,7 +80,7 @@ async def get_default_portfolio():
     ]
 
     return {
-        "default_portfolio_assets": default_portfolio_assets,
+        "portfolio_assets": default_portfolio_assets,
         "start_date": DEFAULT_PORTFOLIO_DATES["start"],
         "end_date": DEFAULT_PORTFOLIO_DATES["end"],
     }
@@ -135,13 +135,9 @@ async def simulate_default_portfolio_regime(regime: str):
     Response example:
     ```json
     {
-      "success": true,
-      "regime": "Historical",
-      "charts": {
-        "simulation_chart_path": "/charts/historical/monte_carlo_simulation_historical.png",
-        "correlation_matrix_chart_path": "/charts/historical/correlation_matrix_historical.png",
-        "risk_factors_chart_path": "/charts/historical/risk_factor_analysis_historical.png"
-      }
+      "simulation_chart_path": "/charts/historical/monte_carlo_simulation_historical.png",
+      "correlation_matrix_chart_path": "/charts/historical/correlation_matrix_historical.png",
+      "risk_factors_chart_path": "/charts/historical/risk_factor_analysis_historical.png"
     }
     ```
     """

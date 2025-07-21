@@ -132,6 +132,8 @@ def validate_portfolio(tickers, weights, start_date, end_date):
         errors.append("All weights must be numbers.")
     if not all(w >= 0 for w in weights):
         errors.append("All weights must be non-negative.")
+    if not all(w > 0 for w in weights):
+        errors.append("All weights must be greater than zero.")
     if abs(sum(weights) - 1.0) > 0.0001:
         errors.append("Weights must sum to 100.")
 

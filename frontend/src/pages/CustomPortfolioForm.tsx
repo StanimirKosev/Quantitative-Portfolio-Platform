@@ -11,7 +11,7 @@ import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type {
   PortfolioAsset,
-  DefaultPortfolioResponse,
+  PortfolioResponse,
   ValidationResponse,
 } from "../types/portfolio";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -21,8 +21,9 @@ import { Skeleton } from "../components/ui/skeleton";
 import { set } from "lodash";
 import { Progress } from "../components/ui/progress";
 import { Badge } from "../components/ui/badge";
+import { useCustomPortfolioStore } from "../store/customPortfolioStore";
 
-interface FormState {
+export interface FormState {
   assets: Partial<PortfolioAsset>[];
   startDate: string;
   endDate: string;
@@ -31,7 +32,7 @@ interface FormState {
 type FormAction =
   | {
       type: "INITIALIZE_FORM";
-      payload: DefaultPortfolioResponse;
+      payload: PortfolioResponse;
     }
   | {
       type: "UPDATE_FIELD";
@@ -56,7 +57,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
     case "INITIALIZE_FORM":
       return {
         ...state,
-        assets: action.payload.default_portfolio_assets,
+        assets: JSON.parse(JSON.stringify(action.payload.portfolio_assets)),
         startDate: action.payload.start_date,
         endDate: action.payload.end_date,
       };
@@ -106,6 +107,7 @@ const CustomPortfolioForm = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(formReducer, initialState);
+  const { customPortfolio, setCustomPortfolio } = useCustomPortfolioStore();
   const {
     mutate,
     data: validationData,
@@ -114,21 +116,25 @@ const CustomPortfolioForm = () => {
     mutationFn: validatePortfolio,
     onSuccess: (mutationData) => {
       if (mutationData?.success) {
+        setCustomPortfolio(state);
         navigate("/custom-portfolio");
       }
     },
   });
 
-  const { data, isLoading } = useQuery<DefaultPortfolioResponse>({
+  const { data, isLoading } = useQuery<PortfolioResponse>({
     queryKey: ["portfolio", "default"],
     queryFn: () =>
       fetch(`${apiUrl}/api/portfolio/default`).then((res) => res.json()),
+    enabled: !customPortfolio,
   });
 
   useEffect(() => {
-    if (!data) return;
-    dispatch({ type: "INITIALIZE_FORM", payload: data });
-  }, [data]);
+    dispatch({
+      type: "INITIALIZE_FORM",
+      payload: (customPortfolio || data) as PortfolioResponse,
+    });
+  }, [data, customPortfolio]);
 
   const totalWeight = state.assets.reduce(
     (sum, asset) => sum + (asset.weight_pct || 0),
@@ -140,10 +146,7 @@ const CustomPortfolioForm = () => {
       <div className="w-full mb-8">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center">
           <div className="justify-self-start">
-            <Button
-              variant="secondary"
-              onClick={() => navigate("/default-portfolio")}
-            >
+            <Button variant="secondary" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-6 w-6 mr-2" />
               Back
             </Button>

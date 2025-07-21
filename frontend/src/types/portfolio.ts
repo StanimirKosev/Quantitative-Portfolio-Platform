@@ -4,8 +4,8 @@ export interface PortfolioAsset {
   description: string;
 }
 
-export interface DefaultPortfolioResponse {
-  default_portfolio_assets: PortfolioAsset[];
+export interface PortfolioResponse {
+  portfolio_assets: PortfolioAsset[];
   start_date: string;
   end_date: string;
 }
