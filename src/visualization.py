@@ -148,7 +148,9 @@ def plot_simulation_results(portfolio_paths, regime_name, show=True):
     plt.tight_layout()
 
     url_path = save_figure(regime_name, "monte_carlo_simulation")
-    if show:
+    if not show:
+        plt.close()  # Prevent memory leaks by closing the figure
+    else:
         plt.show()
     return url_path
 

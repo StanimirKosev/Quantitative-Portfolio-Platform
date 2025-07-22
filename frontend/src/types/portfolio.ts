@@ -1,7 +1,7 @@
 export interface PortfolioAsset {
   ticker: string;
   weight_pct: number;
-  description: string;
+  description?: string;
 }
 
 export interface PortfolioResponse {
@@ -20,4 +20,11 @@ export interface ValidationResponse {
   success: boolean;
   message?: string;
   errors?: string[];
+}
+
+export interface PortfolioRequestPayload {
+  tickers: string[];
+  weights: number[];
+  start_date: string;
+  end_date: string;
 }

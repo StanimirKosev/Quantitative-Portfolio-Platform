@@ -5,6 +5,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
 import { Legend, Pie, PieChart } from "recharts";
 import { useRegimeStore } from "../store/regimeStore";
 import { useCustomPortfolioStore } from "../store/customPortfolioStore";
+import { API_BASE_URL } from "../lib/api";
 
 const COLORS = [
   "#C8511F",
@@ -18,15 +19,14 @@ const COLORS = [
 ];
 
 const PortfolioPieChart = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
   const { selectedRegime } = useRegimeStore();
-  const { customPortfolio } = useCustomPortfolioStore();
+  const { customPortfolio, isCustomStateActive } = useCustomPortfolioStore();
 
   const { data: defaultPortfolio } = useQuery<PortfolioResponse>({
     queryKey: ["portfolio", "default"],
     queryFn: () =>
-      fetch(`${apiUrl}/api/portfolio/default`).then((res) => res.json()),
-    enabled: !customPortfolio,
+      fetch(`${API_BASE_URL}/api/portfolio/default`).then((res) => res.json()),
+    enabled: !isCustomStateActive(),
   });
 
   const dataSources = customPortfolio || defaultPortfolio;

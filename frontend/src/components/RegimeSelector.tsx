@@ -2,16 +2,15 @@ import { useRegimeStore } from "../store/regimeStore";
 import { useQuery } from "@tanstack/react-query";
 import type { Regime } from "../types/regime";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
+import { API_BASE_URL } from "../lib/api";
 
 const RegimeSelector = () => {
   const { selectedRegime, setSelectedRegime } = useRegimeStore();
 
-  const apiUrl = import.meta.env.VITE_API_URL;
-
   const { data } = useQuery<Regime[]>({
     queryKey: ["regimes"],
     queryFn: () =>
-      fetch(`${apiUrl}/api/regimes`)
+      fetch(`${API_BASE_URL}/api/regimes`)
         .then((res) => res.json())
         .then((data) => data.regimes),
   });

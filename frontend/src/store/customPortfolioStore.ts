@@ -1,31 +1,46 @@
 import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
-import type { PortfolioResponse, PortfolioAsset } from "../types/portfolio";
-import type { FormState } from "../pages/CustomPortfolioForm";
+import { persist } from "zustand/middleware";
+import type {
+  PortfolioResponse,
+  SimulateChartsResponse,
+} from "../types/portfolio";
 
 interface CustomPortfolioState {
+  // State
   customPortfolio: PortfolioResponse | undefined;
-  setCustomPortfolio: (formState: FormState) => void;
-  clearCustomPortfolio: () => void;
+  customPortfolioCharts: SimulateChartsResponse | undefined;
+
+  // Actions
+  setCustomPortfolio: (payload: PortfolioResponse) => void;
+  setCustomPortfolioCharts: (payload: SimulateChartsResponse) => void;
+  clearCustomState: () => void;
+
+  // Getters
+  isCustomStateActive: () => boolean;
 }
 
-export const useCustomPortfolioStore = create(
-  immer<CustomPortfolioState>((set) => ({
-    customPortfolio: undefined,
-    setCustomPortfolio: (formState) =>
-      set((state) => {
-        state.customPortfolio = {
-          portfolio_assets: formState.assets.map(
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            ({ description, ...rest }) => rest
-          ) as PortfolioAsset[],
-          start_date: formState.startDate,
-          end_date: formState.endDate,
-        };
-      }),
-    clearCustomPortfolio: () =>
-      set((state) => {
-        state.customPortfolio = undefined;
-      }),
-  }))
+export const useCustomPortfolioStore = create<CustomPortfolioState>()(
+  persist(
+    (set, get) => ({
+      // State
+      customPortfolio: undefined,
+      customPortfolioCharts: undefined,
+
+      // Actions
+      setCustomPortfolio: (payload) => set({ customPortfolio: payload }),
+      setCustomPortfolioCharts: (payload) =>
+        set({ customPortfolioCharts: payload }),
+      clearCustomState: () =>
+        set({ customPortfolio: undefined, customPortfolioCharts: undefined }),
+
+      // Getters
+      isCustomStateActive: () => {
+        const state = get();
+        return !!(state.customPortfolio && state.customPortfolioCharts);
+      },
+    }),
+    {
+      name: "custom-portfolio-storage",
+    }
+  )
 );

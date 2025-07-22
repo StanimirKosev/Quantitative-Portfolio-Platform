@@ -62,7 +62,6 @@ def run_portfolio_simulation_api(
     Raises:
         HTTPException: If the regime name is invalid or if any required data is missing or invalid.
     """
-
     regime_key = regime.strip().lower().replace(" ", "_")
 
     regime_map = {
@@ -72,6 +71,7 @@ def run_portfolio_simulation_api(
             GEOPOLITICAL_CRISIS_REGIME_NAME,
             GEOPOLITICAL_CRISIS_REGIME,
         ),
+        "custom": ("Custom", {}),
     }
     if regime_key not in regime_map:
         raise HTTPException(status_code=400, detail=f"Invalid regime name: {regime}")
@@ -143,12 +143,20 @@ def validate_portfolio(tickers, weights, start_date, end_date):
 
     # 5. Date validation (only if previous checks passed)
     if not errors:
-
         try:
             start = datetime.strptime(start_date, "%Y-%m-%d")
             end = datetime.strptime(end_date, "%Y-%m-%d")
+            today = datetime.now().date()
+
             if start > end:
                 errors.append("Start date must be before or equal to end date.")
+            # Add future date validation
+            if start.date() > today:
+                errors.append("Start date cannot be in the future.")
+
+            if end.date() > today:
+                errors.append("End date cannot be in the future.")
+
         except Exception:
             errors.append("Dates must be in YYYY-MM-DD format.")
 

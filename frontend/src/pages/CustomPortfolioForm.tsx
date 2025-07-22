@@ -13,21 +13,18 @@ import type {
   PortfolioAsset,
   PortfolioResponse,
   ValidationResponse,
+  PortfolioRequestPayload,
+  SimulateChartsResponse,
 } from "../types/portfolio";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useReducer } from "react";
 import { Input } from "../components/ui/input";
 import { Skeleton } from "../components/ui/skeleton";
-import { set } from "lodash";
+import { set, isEqual, omit, cloneDeep } from "lodash";
 import { Progress } from "../components/ui/progress";
 import { Badge } from "../components/ui/badge";
 import { useCustomPortfolioStore } from "../store/customPortfolioStore";
-
-export interface FormState {
-  assets: Partial<PortfolioAsset>[];
-  startDate: string;
-  endDate: string;
-}
+import { API_BASE_URL } from "../lib/api";
 
 type FormAction =
   | {
@@ -37,60 +34,71 @@ type FormAction =
   | {
       type: "UPDATE_FIELD";
       payload: {
-        field: keyof FormState | `assets.${number}.${keyof PortfolioAsset}`;
+        field:
+          | keyof PortfolioResponse
+          | `portfolio_assets.${number}.${keyof PortfolioAsset}`;
         value:
-          | FormState[keyof FormState]
+          | PortfolioResponse[keyof PortfolioResponse]
           | PortfolioAsset[keyof PortfolioAsset];
       };
     }
   | { type: "ADD_ASSET" }
   | { type: "REMOVE_ASSET"; payload: { index: number } };
 
-const initialState: FormState = {
-  assets: [],
-  startDate: "",
-  endDate: "",
+const initialState: PortfolioResponse = {
+  portfolio_assets: [],
+  start_date: "",
+  end_date: "",
 };
 
-function formReducer(state: FormState, action: FormAction): FormState {
+function formReducer(
+  formState: PortfolioResponse,
+  action: FormAction
+): PortfolioResponse {
   switch (action.type) {
     case "INITIALIZE_FORM":
       return {
-        ...state,
-        assets: JSON.parse(JSON.stringify(action.payload.portfolio_assets)),
-        startDate: action.payload.start_date,
-        endDate: action.payload.end_date,
+        ...formState,
+        portfolio_assets: cloneDeep(action.payload.portfolio_assets),
+        start_date: action.payload.start_date,
+        end_date: action.payload.end_date,
       };
     case "UPDATE_FIELD":
-      return set({ ...state }, action.payload.field, action.payload.value);
+      return set({ ...formState }, action.payload.field, action.payload.value);
     case "ADD_ASSET":
       return {
-        ...state,
-        assets: [...state.assets, { ticker: "", weight_pct: 0 }],
+        ...formState,
+        portfolio_assets: [
+          ...formState.portfolio_assets,
+          { ticker: "", weight_pct: 0 },
+        ],
       };
     case "REMOVE_ASSET":
       return {
-        ...state,
-        assets: state.assets.filter(
+        ...formState,
+        portfolio_assets: formState.portfolio_assets.filter(
           (_, index) => index !== action.payload.index
         ),
       };
     default:
-      return state;
+      return formState;
   }
 }
 
-const validatePortfolio = async (formState: FormState) => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-
-  const payload = {
-    tickers: formState.assets.map((a) => a.ticker),
-    weights: formState.assets.map((a) => Number(a.weight_pct) / 100 || 0),
-    start_date: formState.startDate,
-    end_date: formState.endDate,
+const doCustomPortfolioRequest = async (
+  formState: PortfolioResponse,
+  url: string
+) => {
+  const payload: PortfolioRequestPayload = {
+    tickers: formState.portfolio_assets.map((a) => a.ticker || ""),
+    weights: formState.portfolio_assets.map(
+      (a) => Number(a.weight_pct) / 100 || 0
+    ),
+    start_date: formState.start_date,
+    end_date: formState.end_date,
   };
 
-  const res = await fetch(`${apiUrl}/api/portfolio/validate`, {
+  const res = await fetch(`${API_BASE_URL}/api/${url}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -103,40 +111,82 @@ const validatePortfolio = async (formState: FormState) => {
   return res.json();
 };
 
+const validatePortfolio = async (formState: PortfolioResponse) => {
+  return doCustomPortfolioRequest(formState, "portfolio/validate");
+};
+
+const simulatePortfolio = async (formState: PortfolioResponse) => {
+  return doCustomPortfolioRequest(formState, "simulate/custom");
+};
+
 const CustomPortfolioForm = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
-  const [state, dispatch] = useReducer(formReducer, initialState);
-  const { customPortfolio, setCustomPortfolio } = useCustomPortfolioStore();
+  const [formState, dispatch] = useReducer(formReducer, initialState);
   const {
-    mutate,
-    data: validationData,
-    isPending,
-  } = useMutation<ValidationResponse, Error, FormState>({
-    mutationFn: validatePortfolio,
-    onSuccess: (mutationData) => {
-      if (mutationData?.success) {
-        setCustomPortfolio(state);
-        navigate("/custom-portfolio");
-      }
+    customPortfolio,
+    setCustomPortfolio,
+    setCustomPortfolioCharts,
+    isCustomStateActive,
+  } = useCustomPortfolioStore();
+
+  const { mutate: simulate, isPending: isSimulating } = useMutation<
+    SimulateChartsResponse,
+    Error,
+    PortfolioResponse
+  >({
+    mutationFn: simulatePortfolio,
+    onSuccess: (chartData) => {
+      setCustomPortfolioCharts(chartData);
+      setCustomPortfolio(formState);
+      navigate("/custom-portfolio");
     },
   });
 
-  const { data, isLoading } = useQuery<PortfolioResponse>({
+  const {
+    mutate: validate,
+    data: validationData,
+    isPending: isValidating,
+  } = useMutation<ValidationResponse, Error, PortfolioResponse>({
+    mutationFn: validatePortfolio,
+    onSuccess: (validationData) => {
+      if (!validationData.success) return;
+      simulate(formState);
+    },
+  });
+
+  const handleSubmit = () => {
+    if (isEqual(customPortfolio, formState)) {
+      navigate("/custom-portfolio");
+      return;
+    }
+
+    validate(formState);
+  };
+
+  const { data: defaultPortfolio, isLoading } = useQuery<PortfolioResponse>({
     queryKey: ["portfolio", "default"],
     queryFn: () =>
-      fetch(`${apiUrl}/api/portfolio/default`).then((res) => res.json()),
-    enabled: !customPortfolio,
+      fetch(`${API_BASE_URL}/api/portfolio/default`).then((res) => res.json()),
+    select: (data) => ({
+      ...data,
+      portfolio_assets: data.portfolio_assets.map((asset) =>
+        omit(asset, "description")
+      ),
+    }),
+    enabled: !isCustomStateActive(),
   });
 
   useEffect(() => {
+    const portfolioData = customPortfolio || defaultPortfolio;
+    if (!portfolioData) return;
+
     dispatch({
       type: "INITIALIZE_FORM",
-      payload: (customPortfolio || data) as PortfolioResponse,
+      payload: portfolioData,
     });
-  }, [data, customPortfolio]);
+  }, [defaultPortfolio, customPortfolio]);
 
-  const totalWeight = state.assets.reduce(
+  const totalWeight = formState.portfolio_assets.reduce(
     (sum, asset) => sum + (asset.weight_pct || 0),
     0
   );
@@ -188,7 +238,7 @@ const CustomPortfolioForm = () => {
                 <Skeleton className="h-10 w-full" />
               </>
             ) : (
-              state.assets.map((asset, index) => (
+              formState.portfolio_assets.map((asset, index) => (
                 <div
                   key={index}
                   className="grid grid-cols-[1fr_120px_40px] gap-4 items-center"
@@ -200,7 +250,7 @@ const CustomPortfolioForm = () => {
                       dispatch({
                         type: "UPDATE_FIELD",
                         payload: {
-                          field: `assets.${index}.ticker`,
+                          field: `portfolio_assets.${index}.ticker`,
                           value: e.target.value,
                         },
                       })
@@ -214,15 +264,18 @@ const CustomPortfolioForm = () => {
                           ? asset.weight_pct
                           : ""
                       }
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        const rounded = Math.round(value * 10) / 10;
+
                         dispatch({
                           type: "UPDATE_FIELD",
                           payload: {
-                            field: `assets.${index}.weight_pct`,
-                            value: parseFloat(e.target.value),
+                            field: `portfolio_assets.${index}.weight_pct`,
+                            value: rounded,
                           },
-                        })
-                      }
+                        });
+                      }}
                       className="pr-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
@@ -257,11 +310,11 @@ const CustomPortfolioForm = () => {
             </CardDescription>
             <Input
               type="text"
-              value={state.startDate}
+              value={formState.start_date}
               onChange={(e) =>
                 dispatch({
                   type: "UPDATE_FIELD",
-                  payload: { field: "startDate", value: e.target.value },
+                  payload: { field: "start_date", value: e.target.value },
                 })
               }
               className="w-32"
@@ -269,11 +322,11 @@ const CustomPortfolioForm = () => {
             <span className="text-muted-foreground text-sm">to</span>
             <Input
               type="text"
-              value={state.endDate}
+              value={formState.end_date}
               onChange={(e) =>
                 dispatch({
                   type: "UPDATE_FIELD",
-                  payload: { field: "endDate", value: e.target.value },
+                  payload: { field: "end_date", value: e.target.value },
                 })
               }
               className="w-32"
@@ -281,11 +334,11 @@ const CustomPortfolioForm = () => {
           </div>
           <Button
             variant="secondary"
-            onClick={() => mutate(state)}
-            disabled={isPending}
+            onClick={handleSubmit}
+            disabled={isValidating || isSimulating}
             className="min-w-[9rem] px-4 py-2 flex items-center justify-center"
           >
-            {isPending ? (
+            {isValidating || isSimulating ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               "Analyze Portfolio"

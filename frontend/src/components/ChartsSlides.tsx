@@ -2,45 +2,52 @@ import { useQuery } from "@tanstack/react-query";
 import { CarouselItem } from "./ui/carousel";
 import { useRegimeStore } from "../store/regimeStore";
 import type { SimulateChartsResponse } from "../types/portfolio";
+import { useCustomPortfolioStore } from "../store/customPortfolioStore";
+import { API_BASE_URL } from "../lib/api";
 
 const ChartsSlides = () => {
   const { selectedRegime } = useRegimeStore();
+  const { customPortfolioCharts, isCustomStateActive } =
+    useCustomPortfolioStore();
 
-  const apiUrl = import.meta.env.VITE_API_URL;
-
-  const { data } = useQuery<SimulateChartsResponse>({
-    queryKey: ["simulate", selectedRegime],
+  const { data: defaultPortfolioCharts } = useQuery<SimulateChartsResponse>({
+    queryKey: ["simulate", "default", selectedRegime],
     queryFn: async () => {
-      const res = await fetch(`${apiUrl}/api/simulate/${selectedRegime}`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/api/simulate/${selectedRegime}`,
+        {
+          method: "POST",
+        }
+      );
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(`HTTP ${res.status}: ${errorData.detail}`);
       }
       return res.json();
     },
-    enabled: !!selectedRegime,
+    enabled: !!selectedRegime && !isCustomStateActive(),
   });
 
-  const chartData = [
+  const dataSources = customPortfolioCharts || defaultPortfolioCharts;
+
+  const chartsData = [
     {
-      src: `${apiUrl}${data?.simulation_chart_path}`,
+      src: `${API_BASE_URL}${dataSources?.simulation_chart_path}`,
       alt: "Monte Carlo Simulation",
     },
     {
-      src: `${apiUrl}${data?.correlation_matrix_chart_path}`,
+      src: `${API_BASE_URL}${dataSources?.correlation_matrix_chart_path}`,
       alt: "Correlation Matrix",
     },
     {
-      src: `${apiUrl}${data?.risk_factors_chart_path}`,
+      src: `${API_BASE_URL}${dataSources?.risk_factors_chart_path}`,
       alt: "Risk Factor Analysis",
     },
   ];
 
   return (
     <>
-      {chartData.map((chart, idx) => (
+      {chartsData.map((chart, idx) => (
         <CarouselItem key={idx} className="flex flex-col items-center">
           <img
             src={chart.src}

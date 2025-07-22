@@ -9,6 +9,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "./ui/chart";
+import { API_BASE_URL } from "../lib/api";
 
 const chartConfig = {
   mean_factor: {
@@ -26,13 +27,12 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const PortfolioRadarChart = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
   const { selectedRegime } = useRegimeStore();
 
   const { data } = useQuery<RegimeParametersResponse>({
     queryKey: [selectedRegime, "parameters"],
     queryFn: () =>
-      fetch(`${apiUrl}/api/regimes/${selectedRegime}/parameters`)
+      fetch(`${API_BASE_URL}/api/regimes/${selectedRegime}/parameters`)
         .then((res) => res.json())
         .then((data) => data),
     enabled: !!selectedRegime,

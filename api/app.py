@@ -86,7 +86,7 @@ async def get_default_portfolio():
     }
 
 
-class CustomPortfolioRequest(BaseModel):
+class PortfolioRequestPayload(BaseModel):
     tickers: List[str]
     weights: List[float]
     regime: Optional[str] = "historical"
@@ -95,7 +95,7 @@ class CustomPortfolioRequest(BaseModel):
 
 
 @app.post("/api/simulate/custom")
-async def simulate_custom_portfolio_regime(request: CustomPortfolioRequest):
+async def simulate_custom_portfolio_regime(request: PortfolioRequestPayload):
     """
     Run a Monte Carlo simulation for a custom portfolio under a specified regime.
 
@@ -115,10 +115,11 @@ async def simulate_custom_portfolio_regime(request: CustomPortfolioRequest):
     }
     ```
     """
+    regime = "custom"
     return run_portfolio_simulation_api(
         request.tickers,
         request.weights,
-        request.regime,
+        regime,
         start_date=request.start_date,
         end_date=request.end_date,
     )
@@ -146,7 +147,7 @@ async def simulate_default_portfolio_regime(regime: str):
 
 
 @app.post("/api/portfolio/validate")
-async def validate_custom_portfolio(request: CustomPortfolioRequest):
+async def validate_custom_portfolio(request: PortfolioRequestPayload):
     """
     Validates a custom portfolio's tickers and weights for a given date range.
     Expects:
