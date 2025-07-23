@@ -25,6 +25,10 @@ export interface ValidationResponse {
 export interface PortfolioRequestPayload {
   tickers: string[];
   weights: number[];
+  regime_factors: Record<
+    string,
+    { mean_factor: number; vol_factor: number } | number
+  >;
   start_date: string;
   end_date: string;
 }

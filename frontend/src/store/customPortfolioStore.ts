@@ -1,17 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type {
-  PortfolioResponse,
-  SimulateChartsResponse,
-} from "../types/portfolio";
+import type { SimulateChartsResponse } from "../types/portfolio";
+import type { CustomPortfolioFormData } from "../pages/CustomPortfolioForm";
 
 interface CustomPortfolioState {
   // State
-  customPortfolio: PortfolioResponse | undefined;
+  customPortfolio: CustomPortfolioFormData | undefined;
   customPortfolioCharts: SimulateChartsResponse | undefined;
 
   // Actions
-  setCustomPortfolio: (payload: PortfolioResponse) => void;
+  setCustomPortfolio: (payload: CustomPortfolioFormData) => void;
   setCustomPortfolioCharts: (payload: SimulateChartsResponse) => void;
   clearCustomState: () => void;
 

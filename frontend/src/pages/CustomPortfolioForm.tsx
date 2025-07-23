@@ -27,36 +27,51 @@ import { useCustomPortfolioStore } from "../store/customPortfolioStore";
 import { API_BASE_URL } from "../lib/api";
 import { Switch } from "../components/ui/switch";
 import { Collapsible, CollapsibleContent } from "../components/ui/collapsible";
+import type {
+  RegimeParametersResponse,
+  RegimeParameter,
+} from "../types/regime";
+
+export type CustomPortfolioFormData = PortfolioResponse & {
+  portfolio_factors: RegimeParametersResponse["parameters"];
+};
+
+type FormFieldPath =
+  | keyof CustomPortfolioFormData
+  | `portfolio_assets.${number}.${keyof PortfolioAsset}`
+  | `portfolio_factors.${number}.${keyof RegimeParameter}`;
+
+type FormFieldValue =
+  | CustomPortfolioFormData[keyof CustomPortfolioFormData]
+  | PortfolioAsset[keyof PortfolioAsset]
+  | RegimeParameter[keyof RegimeParameter];
 
 type FormAction =
   | {
       type: "INITIALIZE_FORM";
-      payload: PortfolioResponse;
+      payload: CustomPortfolioFormData;
     }
   | {
       type: "UPDATE_FIELD";
       payload: {
-        field:
-          | keyof PortfolioResponse
-          | `portfolio_assets.${number}.${keyof PortfolioAsset}`;
-        value:
-          | PortfolioResponse[keyof PortfolioResponse]
-          | PortfolioAsset[keyof PortfolioAsset];
+        field: FormFieldPath;
+        value: FormFieldValue;
       };
     }
   | { type: "ADD_ASSET" }
   | { type: "REMOVE_ASSET"; payload: { index: number } };
 
-const initialState: PortfolioResponse = {
+const initialState: CustomPortfolioFormData = {
   portfolio_assets: [],
   start_date: "",
   end_date: "",
+  portfolio_factors: [],
 };
 
 function formReducer(
-  formState: PortfolioResponse,
+  formState: CustomPortfolioFormData,
   action: FormAction
-): PortfolioResponse {
+): CustomPortfolioFormData {
   switch (action.type) {
     case "INITIALIZE_FORM":
       return {
@@ -64,6 +79,7 @@ function formReducer(
         portfolio_assets: cloneDeep(action.payload.portfolio_assets),
         start_date: action.payload.start_date,
         end_date: action.payload.end_date,
+        portfolio_factors: cloneDeep(action.payload.portfolio_factors),
       };
     case "UPDATE_FIELD":
       return set({ ...formState }, action.payload.field, action.payload.value);
@@ -74,11 +90,23 @@ function formReducer(
           ...formState.portfolio_assets,
           { ticker: "", weight_pct: 0 },
         ],
+        portfolio_factors: [
+          ...formState.portfolio_factors,
+          {
+            ticker: "",
+            mean_factor: 1,
+            vol_factor: 1,
+            correlation_move_pct: 0,
+          },
+        ],
       };
     case "REMOVE_ASSET":
       return {
         ...formState,
         portfolio_assets: formState.portfolio_assets.filter(
+          (_, index) => index !== action.payload.index
+        ),
+        portfolio_factors: formState.portfolio_factors.filter(
           (_, index) => index !== action.payload.index
         ),
       };
@@ -88,7 +116,7 @@ function formReducer(
 }
 
 const doCustomPortfolioRequest = async (
-  formState: PortfolioResponse,
+  formState: CustomPortfolioFormData,
   url: string
 ) => {
   const payload: PortfolioRequestPayload = {
@@ -96,6 +124,21 @@ const doCustomPortfolioRequest = async (
     weights: formState.portfolio_assets.map(
       (a) => Number(a.weight_pct) / 100 || 0
     ),
+    regime_factors: {
+      ...Object.fromEntries(
+        formState.portfolio_factors.map(
+          ({ ticker, mean_factor, vol_factor }) => [
+            ticker,
+            {
+              mean_factor: Number(mean_factor) / 100 || 0,
+              vol_factor: Number(vol_factor) / 100 || 0,
+            },
+          ]
+        )
+      ),
+      correlation_move_pct:
+        Number(formState.portfolio_factors[0].correlation_move_pct) / 100 || 0,
+    },
     start_date: formState.start_date,
     end_date: formState.end_date,
   };
@@ -113,11 +156,11 @@ const doCustomPortfolioRequest = async (
   return res.json();
 };
 
-const validatePortfolio = async (formState: PortfolioResponse) => {
+const validatePortfolio = async (formState: CustomPortfolioFormData) => {
   return doCustomPortfolioRequest(formState, "portfolio/validate");
 };
 
-const simulatePortfolio = async (formState: PortfolioResponse) => {
+const simulatePortfolio = async (formState: CustomPortfolioFormData) => {
   return doCustomPortfolioRequest(formState, "simulate/custom");
 };
 
@@ -135,7 +178,7 @@ const CustomPortfolioForm = () => {
   const { mutate: simulate, isPending: isSimulating } = useMutation<
     SimulateChartsResponse,
     Error,
-    PortfolioResponse
+    CustomPortfolioFormData
   >({
     mutationFn: simulatePortfolio,
     onSuccess: (chartData) => {
@@ -149,7 +192,7 @@ const CustomPortfolioForm = () => {
     mutate: validate,
     data: validationData,
     isPending: isValidating,
-  } = useMutation<ValidationResponse, Error, PortfolioResponse>({
+  } = useMutation<ValidationResponse, Error, CustomPortfolioFormData>({
     mutationFn: validatePortfolio,
     onSuccess: (validationData) => {
       if (!validationData.success) return;
@@ -179,20 +222,53 @@ const CustomPortfolioForm = () => {
     enabled: !isCustomStateActive(),
   });
 
+  const { data: defaultPortfolioFactors } = useQuery<RegimeParametersResponse>({
+    queryKey: ["historical", "parameters"],
+    queryFn: () =>
+      fetch(`${API_BASE_URL}/api/regimes/historical/parameters`).then((res) =>
+        res.json()
+      ),
+    enabled: !isCustomStateActive(),
+  });
+
   useEffect(() => {
-    const portfolioData = customPortfolio || defaultPortfolio;
+    const portfolioData =
+      customPortfolio ||
+      (defaultPortfolio &&
+        defaultPortfolioFactors && {
+          ...defaultPortfolio,
+          portfolio_factors: defaultPortfolioFactors.parameters,
+        });
     if (!portfolioData) return;
 
     dispatch({
       type: "INITIALIZE_FORM",
       payload: portfolioData,
     });
-  }, [defaultPortfolio, customPortfolio]);
+  }, [defaultPortfolio, customPortfolio, defaultPortfolioFactors]);
 
   const totalWeight = formState.portfolio_assets.reduce(
     (sum, asset) => sum + (asset.weight_pct || 0),
     0
   );
+
+  const onNumberFieldChange = (val: string, path: FormFieldPath) => {
+    const value = parseFloat(val);
+    const rounded = Math.round(value * 10) / 10;
+
+    dispatch({
+      type: "UPDATE_FIELD",
+      payload: {
+        field: path,
+        value: rounded,
+      },
+    });
+  };
+
+  const getFactorValue = (index: number, field: keyof RegimeParameter) => {
+    const value = formState.portfolio_factors?.[index]?.[field];
+    return Number.isFinite(value) ? value : "";
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -259,15 +335,23 @@ const CustomPortfolioForm = () => {
                   <Input
                     placeholder="Enter ticker (e.g., BTC-EUR)"
                     value={asset.ticker}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       dispatch({
                         type: "UPDATE_FIELD",
                         payload: {
                           field: `portfolio_assets.${index}.ticker`,
                           value: e.target.value,
                         },
-                      })
-                    }
+                      });
+
+                      dispatch({
+                        type: "UPDATE_FIELD",
+                        payload: {
+                          field: `portfolio_factors.${index}.ticker`,
+                          value: e.target.value,
+                        },
+                      });
+                    }}
                   />
                   <div className="relative">
                     <Input
@@ -277,18 +361,12 @@ const CustomPortfolioForm = () => {
                           ? asset.weight_pct
                           : ""
                       }
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        const rounded = Math.round(value * 10) / 10;
-
-                        dispatch({
-                          type: "UPDATE_FIELD",
-                          payload: {
-                            field: `portfolio_assets.${index}.weight_pct`,
-                            value: rounded,
-                          },
-                        });
-                      }}
+                      onChange={(e) =>
+                        onNumberFieldChange(
+                          e.target.value,
+                          `portfolio_assets.${index}.weight_pct`
+                        )
+                      }
                       className="pr-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
@@ -320,6 +398,13 @@ const CustomPortfolioForm = () => {
                               id={`mean-factor-${index}`}
                               type="number"
                               className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              value={getFactorValue(index, "mean_factor")}
+                              onChange={(e) =>
+                                onNumberFieldChange(
+                                  e.target.value,
+                                  `portfolio_factors.${index}.mean_factor`
+                                )
+                              }
                             />
                           </div>
 
@@ -334,6 +419,13 @@ const CustomPortfolioForm = () => {
                               id={`vol-factor-${index}`}
                               type="number"
                               className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              value={getFactorValue(index, "vol_factor")}
+                              onChange={(e) =>
+                                onNumberFieldChange(
+                                  e.target.value,
+                                  `portfolio_factors.${index}.vol_factor`
+                                )
+                              }
                             />
                           </div>
                         </div>
@@ -368,6 +460,13 @@ const CustomPortfolioForm = () => {
                   type="number"
                   step="0.1"
                   className="w-32 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  value={getFactorValue(0, "correlation_move_pct")}
+                  onChange={(e) =>
+                    onNumberFieldChange(
+                      e.target.value,
+                      `portfolio_factors.0.correlation_move_pct`
+                    )
+                  }
                 />
               </div>
             </CollapsibleContent>
