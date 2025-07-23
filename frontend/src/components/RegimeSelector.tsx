@@ -16,19 +16,19 @@ const RegimeSelector = () => {
   });
 
   return (
-    <div className="w-full flex flex-col items-center py-4">
+    <div className="w-full flex flex-col items-center">
       <ToggleGroup
         type="single"
         value={selectedRegime}
         onValueChange={setSelectedRegime}
-        className="flex gap-1.5"
+        className="flex-wrap justify-center gap-2"
       >
         {data?.map((regime) => (
           <ToggleGroupItem
             key={regime.key}
             value={regime.key}
             aria-label={regime.name}
-            className="px-1 py-0.5 min-w-[120px] text-base font-medium whitespace-nowrap"
+            className="px-2 py-1 sm:px-3 sm:py-1.5 min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm lg:text-base font-medium whitespace-nowrap"
           >
             {regime.name}
           </ToggleGroupItem>

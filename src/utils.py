@@ -123,3 +123,8 @@ def save_figure(regime_name, prefix):
     # Normalize to URL format
     url_path = "/" + full_path.replace("\\", "/")
     return url_path
+
+
+def get_regime_display_suffix(regime_name):
+    """Returns a formatted suffix for regime name display, excluding 'Custom'."""
+    return f" - {regime_name}" if (regime_name and regime_name != "Custom") else ""

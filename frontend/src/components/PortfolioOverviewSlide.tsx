@@ -5,9 +5,9 @@ import PortfolioRadarChart from "./PortfolioRadarChart";
 
 const PortfolioOverviewSlide = () => {
   return (
-    <CarouselItem>
+    <CarouselItem className="px-2 sm:px-4">
       <Card className="flex flex-col h-full bg-black">
-        <CardContent className="flex flex-row flex-1 pb-0 p-2 gap-2 justify-center items-center">
+        <CardContent className="flex flex-col lg:flex-row flex-1 pb-0 p-2 sm:p-4 gap-4 lg:gap-2 justify-center items-center">
           <PortfolioPieChart />
           <PortfolioRadarChart />
         </CardContent>

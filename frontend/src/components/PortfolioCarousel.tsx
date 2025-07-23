@@ -28,19 +28,21 @@ const PortfolioCarousel = () => {
   }, [api]);
 
   return (
-    <Carousel className="w-full max-w-7xl mx-auto" setApi={setApi}>
-      <CarouselContent>
-        <PortfolioOverviewSlide />
-        <ChartsSlides />
-      </CarouselContent>
-      <CarouselPrevious />
-      <CarouselNext />
-      <div className="w-full flex justify-center mt-4">
-        <span className="px-2 py-1 text-base font-medium">
-          Slide {current} of {count}
-        </span>
-      </div>
-    </Carousel>
+    <div className="w-full px-2 sm:px-4">
+      <Carousel className="w-full max-w-7xl mx-auto" setApi={setApi}>
+        <CarouselContent>
+          <PortfolioOverviewSlide />
+          <ChartsSlides />
+        </CarouselContent>
+        <CarouselPrevious className="left-2 sm:left-4" />
+        <CarouselNext className="right-2 sm:right-4" />
+        <div className="w-full flex justify-center mt-1">
+          <span className="px-2 py-1 text-sm font-medium">
+            Slide {current} of {count}
+          </span>
+        </div>
+      </Carousel>
+    </div>
   );
 };
 

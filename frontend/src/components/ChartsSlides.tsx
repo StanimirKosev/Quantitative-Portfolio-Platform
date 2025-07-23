@@ -5,6 +5,11 @@ import type { SimulateChartsResponse } from "../types/portfolio";
 import { useCustomPortfolioStore } from "../store/customPortfolioStore";
 import { API_BASE_URL } from "../lib/api";
 
+const chartStyles = {
+  carouselItem: "flex flex-col items-center px-2 sm:px-4",
+  chartImage: "w-full h-[55vh] sm:h-[60vh] lg:h-[79vh] object-contain rounded-lg shadow-md",
+};
+
 const ChartsSlides = () => {
   const { selectedRegime } = useRegimeStore();
   const { customPortfolioCharts, isCustomStateActive } =
@@ -48,11 +53,11 @@ const ChartsSlides = () => {
   return (
     <>
       {chartsData.map((chart, idx) => (
-        <CarouselItem key={idx} className="flex flex-col items-center">
+        <CarouselItem key={idx} className={chartStyles.carouselItem}>
           <img
             src={chart.src}
             alt={chart.alt}
-            className="w-full h-[85vh] object-contain rounded-lg shadow-md"
+            className={chartStyles.chartImage}
           />
         </CarouselItem>
       ))}

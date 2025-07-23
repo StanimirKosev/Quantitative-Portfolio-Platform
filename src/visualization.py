@@ -1,3 +1,6 @@
+import matplotlib
+
+matplotlib.use("Agg")  # Use non-GUI backend before importing pyplot
 import matplotlib.pyplot as plt
 import numpy as np
 from monte_carlo import (
@@ -7,7 +10,7 @@ from monte_carlo import (
     calculate_risk_metrics,
 )
 import seaborn as sns
-from utils import save_figure
+from utils import get_regime_display_suffix, save_figure
 
 
 def plot_simulation_results(portfolio_paths, regime_name, show=True):
@@ -134,7 +137,7 @@ def plot_simulation_results(portfolio_paths, regime_name, show=True):
 
     plt.title(
         f"Monte Carlo Portfolio Simulation: \n{len(portfolio_paths)} Scenarios Over {x_values[-1]} Trading Days"
-        + (f" - {regime_name}" if regime_name else ""),
+        + get_regime_display_suffix(regime_name),
         fontsize=16,
         fontweight="bold",
         pad=20,
@@ -202,7 +205,7 @@ def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
     plt.yticks(rotation=0)
 
     plt.title(
-        f"Portfolio Correlation Matrix - {regime_name.title()}",
+        f"Portfolio Correlation Matrix" + get_regime_display_suffix(regime_name),
         fontsize=16,
         fontweight="bold",
         pad=20,
@@ -266,7 +269,7 @@ def plot_portfolio_pca_analysis(cov_matrix, regime_name, show=True):
     plt.xlabel("Principal Component", fontsize=12)
     plt.ylabel("Eigenvalue (λ)", fontsize=12)
     plt.title(
-        f"Portfolio Risk Factor Analysis - {regime_name.title()}",
+        f"Portfolio Risk Factor Analysis" + get_regime_display_suffix(regime_name),
         fontsize=16,
         fontweight="bold",
         pad=20,

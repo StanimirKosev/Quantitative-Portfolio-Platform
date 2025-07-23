@@ -153,7 +153,7 @@ Create modern React app with finalized library stack and project structure.
 
 ## FE-004: Display Default Portfolio + Charts
 
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: FE-002, FE-003
 Create initial demo showing default portfolio and backend charts with regime switching.
@@ -169,68 +169,31 @@ Create initial demo showing default portfolio and backend charts with regime swi
 **Technical Notes**
 
 - Create `PortfolioDisplay.tsx` using shadcn/ui Card components
-- Create `ChartDisplay.tsx` with React.lazy and Suspense:
-
-  ```typescript
-  const ChartDisplay = lazy(() => import('./ChartDisplay'))
-
-  <Suspense fallback={<ChartSkeleton />}>
-    <ChartDisplay />
-  </Suspense>
-  ```
-
-- Create `RegimeSelector.tsx` using shadcn/ui Select
-- Setup TanStack Query for intelligent caching:
-  ```typescript
-  const { data: portfolio } = useQuery({
-    queryKey: ["portfolio", "default"],
-    queryFn: api.getDefaultPortfolio,
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
-  });
-  ```
 - Use Zustand for regime state management
 
 ---
 
 ## FE-005: Add shadcn/ui Chart Visualizations
 
-Status: Not Started
+Status: Completed (with architectural changes)
 Priority: Medium
 Dependencies: FE-004
-Enhance experience with interactive shadcn/ui charts that complement your backend analysis.
+Enhanced experience with interactive shadcn/ui charts that complement backend analysis.
 
-**Acceptance Criteria**
+**ARCHITECTURAL CHANGE:** Implemented as carousel-based slides instead of separate chart components for better UX flow.
 
-- Portfolio allocation pie chart using shadcn/ui PieChart
-- Risk metrics dashboard using shadcn/ui Cards and charts
-- Real-time updates when regime changes via TanStack Query
-- Professional tooltips and smooth animations
-- Responsive design that complements backend charts
+**Acceptance Criteria** ✅
+
+- ✅ Portfolio allocation pie chart using shadcn/ui PieChart (PortfolioPieChart.tsx)
+- ✅ Risk metrics dashboard with radar chart visualization (PortfolioRadarChart.tsx)
+- ✅ Real-time updates when regime changes via TanStack Query
+- ✅ Professional tooltips and smooth animations via Recharts
+- ✅ Responsive carousel design that complements backend charts (ChartsSlides.tsx)
+- ✅ Portfolio overview slide with key metrics (PortfolioOverviewSlide.tsx)
 
 **Technical Notes**
 
-- Create `PortfolioPieChart.tsx` using shadcn/ui chart components:
-
-  ```typescript
-  import { PieChart, Pie } from "recharts"
-  import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
-
-  const portfolioData = useMemo(() =>
-    portfolio?.assets.map(asset => ({
-      asset: asset.ticker,
-      value: asset.weight_pct,
-      description: asset.description,
-      fill: getAssetColor(asset.ticker)
-    })), [portfolio]
-  )
-
-  <ChartContainer config={chartConfig} className="min-h-[300px]">
-    <PieChart>
-      <Pie data={portfolioData} dataKey="value" nameKey="asset" />
-      <ChartTooltip />
-    </PieChart>
-  </ChartContainer>
-  ```
+- Create `PortfolioPieChart.tsx` using shadcn/ui chart components
 
 - Use TanStack Query's background updates for smooth regime switching
 - Use lodash for data transformations (groupBy, sortBy)
@@ -241,7 +204,7 @@ Enhance experience with interactive shadcn/ui charts that complement your backen
 
 ## FE-006: Add Custom Portfolio Input
 
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: FE-005
 Allow users to input their own portfolio using simple React forms.
@@ -257,29 +220,7 @@ Allow users to input their own portfolio using simple React forms.
 
 **Technical Notes**
 
-- Create `PortfolioForm.tsx` using normal React form (no React Hook Form):
-
-  ```typescript
-  const [customPortfolio, setCustomPortfolio] = useState({
-    tickers: ["BTC-EUR", "SPYL.DE", "5MVW.DE", "WMIN.DE", "IS3N.DE", "4GLD.DE"],
-    weights: [0.6, 0.105, 0.13, 0.07, 0.06, 0.035],
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Basic client-side validation for UX
-    const weightSum = customPortfolio.weights.reduce((a, b) => a + b, 0);
-    if (Math.abs(weightSum - 1.0) > 0.001) {
-      setError("Weights must sum to 100%");
-      return;
-    }
-
-    // Backend handles real validation
-    simulateCustomPortfolio.mutate(customPortfolio);
-  };
-  ```
-
+- Create `PortfolioForm.tsx` using normal React form (no React Hook Form)
 - Use shadcn/ui Input and Button components
 - Use TanStack Query mutations for form submission
 - Store form state in Zustand for persistence across regime changes
@@ -289,7 +230,7 @@ Allow users to input their own portfolio using simple React forms.
 
 ## FE-007: Custom Portfolio Results & Basic Routing
 
-Status: Not Started  
+Status: Completed
 Priority: High
 Dependencies: FE-006
 Display results for custom portfolios and add minimal routing structure.
@@ -298,27 +239,12 @@ Display results for custom portfolios and add minimal routing structure.
 
 - Generate and display 3 backend charts for user's custom portfolio
 - Update shadcn/ui chart visualizations for custom portfolio data
-- Maintain regime switching for custom portfolios
 - Clear indication of "Custom Portfolio" vs "Default Portfolio"
 - Basic routing between main view and custom portfolio builder
 
 **Technical Notes**
 
-- Setup React Router with minimal routes:
-  ```typescript
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<PortfolioAnalysis />} />
-      <Route path="/custom" element={<CustomPortfolioBuilder />} />
-    </Routes>
-  </BrowserRouter>
-  ```
-- Extend existing chart display for custom data
-- Update all shadcn/ui chart components to use dynamic data from Zustand:
-  ```typescript
-  const { customPortfolio, isCustomMode } = usePortfolioStore();
-  const portfolioData = isCustomMode ? customPortfolio : defaultPortfolio;
-  ```
+- Setup React Router with minimal routes
 - Use TanStack Query's intelligent caching to avoid redundant API calls
 - Use lodash for data manipulation and transformations
 - Ensure UI scales well with different portfolio compositions
@@ -327,98 +253,54 @@ Display results for custom portfolios and add minimal routing structure.
 
 ## FE-008: Advanced Regime Customization
 
-Status: Not Started
+Status: Not Completed
 Priority: Medium  
 Dependencies: FE-007
-Allow power users to create custom regimes with parameter adjustments.
+Two-tier regime system: predefined regimes for default portfolio, custom parameters for user portfolios.
 
-**Acceptance Criteria**
+**ARCHITECTURAL CHANGE:** Split regime handling into two approaches:
 
-- Parameter sliders using shadcn/ui Slider components
-- Real-time preview of regime impact on shadcn/ui charts
-- Save/load custom regime configurations using localStorage
-- "Custom Regime" mode with clear parameter explanations
-- Reset to standard regimes functionality
+1. **Default Portfolio:** Toggle between predefined regimes (historical/fiat_debasement/geopolitical_crisis)
+2. **Custom Portfolio:** Direct parameter input in form for maximum flexibility
 
-**Technical Notes**
+**Acceptance Criteria** ✅
 
-- Create `CustomRegimeBuilder.tsx` using shadcn/ui components
-- Add parameter sliders with validation ranges from `/api/regimes/{regime}/parameters`
-- Implement debounced updates using lodash.debounce:
-  ```typescript
-  const debouncedUpdateRegime = useMemo(
-    () =>
-      debounce((params: RegimeParams) => {
-        updateRegimeParams(params);
-      }, 300),
-    []
-  );
-  ```
-- Store custom regimes in Zustand with localStorage persistence:
-  ```typescript
-  const useRegimeStore = create<RegimeStore>((set) => ({
-    customRegimes: JSON.parse(localStorage.getItem("customRegimes") || "[]"),
-    saveCustomRegime: (regime) => {
-      set((state) => {
-        const updated = [...state.customRegimes, regime];
-        localStorage.setItem("customRegimes", JSON.stringify(updated));
-        return { customRegimes: updated };
-      });
-    },
-  }));
-  ```
-- Add shadcn/ui Tooltips explaining parameter impacts
-- Use TanStack Query mutations for custom regime simulations
+- ✅ Conditional regime rendering: RegimeSelector only shown for default portfolio
+- ✅ Custom portfolio form includes regime parameter inputs (mean_factor, vol_factor, correlation_move_pct)
+- ✅ Custom parameters applied to backend simulation and frontend charts
+- ✅ Clear separation between predefined scenarios and user-defined parameters
+- ✅ Custom radar chart reflects user's regime parameter choices
+
+**Technical Notes** (Final Implementation)
+
+- ✅ RegimeSelector.tsx conditionally rendered based on portfolio type
+- ✅ CustomPortfolioForm.tsx includes regime parameter inputs for power users
+- ✅ Backend API handles both predefined regimes and custom parameters
+- ✅ Frontend charts (radar, pie) dynamically update based on custom parameters
+- ✅ Predefined regimes showcase what's possible, custom parameters provide full control
 
 ---
 
 ## FE-009: Enhanced UX & Modern React Features
 
-Status: Not Started
+Status: Completed
 Priority: Medium
 Dependencies: FE-008
-Add professional polish using modern React features and optimal performance.
+Added professional polish using modern React features and optimal performance.
 
-**Acceptance Criteria**
+**ARCHITECTURAL ENHANCEMENT:** Implemented carousel-based navigation with loading states and error boundaries.
 
-- Smooth transitions using React 18 concurrent features
-- Loading animations with shadcn/ui skeletons and React Suspense
-- Responsive design across all device sizes
-- Error states with helpful messaging using Error Boundaries
-- Optimized performance with React.memo and useMemo
+**Acceptance Criteria** ✅
+
+- ✅ Smooth transitions using React 18 and carousel animations
+- ✅ Loading animations with custom LoadingBar component and progress indicators
+- ✅ Responsive design across all device sizes with Tailwind CSS
+- ✅ Error states with ErrorBoundary.tsx and ErrorPage.tsx components
+- ✅ Optimized performance with React.memo, useMemo, and TanStack Query caching
 
 **Technical Notes**
 
-- Implement React 18 concurrent features:
-
-  ```typescript
-  // Lazy loading with Suspense
-  const ChartDisplay = lazy(() => import('./ChartDisplay'))
-
-  <Suspense fallback={<ChartSkeleton />}>
-    <ChartDisplay />
-  </Suspense>
-
-  // Error boundaries for graceful error handling
-  <ErrorBoundary fallback={<ChartError />}>
-    <SimulationResults />
-  </ErrorBoundary>
-  ```
-
-- Use React.memo for expensive chart components:
-  ```typescript
-  const PortfolioPieChart = memo(({ data }: { data: PortfolioData }) => {
-    const chartData = useMemo(
-      () =>
-        data.assets.map((asset) => ({
-          ...asset,
-          formattedWeight: `${asset.weight_pct.toFixed(1)}%`,
-        })),
-      [data]
-    );
-    return <PieChart data={chartData} />;
-  });
-  ```
+- Implement React 18 concurrent features
 - Add CSS modules for professional mathematical styling
 - Implement shadcn/ui skeleton components for loading states
 - Optimize TanStack Query with proper stale times and background updates
@@ -476,17 +358,19 @@ Deploy application and create comprehensive documentation.
 ### **Architecture Decisions:**
 
 - ✅ **No authentication** - Stateless demo application
-- ✅ **No form libraries** - Simple native React forms
-- ✅ **CSS Modules** - Scoped styling for mathematical aesthetics
-- ✅ **Backend validation** - Single source of truth for data validation
-- ✅ **Hybrid visualization** - Backend charts + shadcn/ui interactive elements
-- ✅ **Modern React** - Concurrent features, Suspense, Error Boundaries
+- ✅ **No form libraries** - Simple native React forms (CustomPortfolioForm.tsx)
+- ✅ **Tailwind CSS** - Professional styling with shadcn/ui components (changed from CSS Modules)
+- ✅ **Backend validation** - Single source of truth for data validation via API
+- ✅ **Hybrid visualization** - Backend charts + shadcn/ui interactive elements in carousel format
+- ✅ **Modern React** - React 19, Error Boundaries, optimized performance
+- ✅ **Carousel Navigation** - Embla carousel for smooth slide transitions between visualizations
 
 ### **Key Features:**
 
-- ✅ **Your portfolio showcase** - Default portfolio demonstrates your investment thesis
-- ✅ **Custom portfolio analysis** - Users can input their own allocations
-- ✅ **Regime switching** - Compare scenarios (historical, fiat debasement, geopolitical)
-- ✅ **Interactive charts** - shadcn/ui pie charts and risk dashboards
-- ✅ **Professional styling** - Clean, mathematical interface design
-- ✅ **Performance optimized** - Intelligent caching and React optimizations
+- ✅ **Portfolio showcase** - Default portfolio with detailed asset descriptions and weights
+- ✅ **Custom portfolio analysis** - Full form validation and custom simulation support
+- ✅ **Regime switching** - Toggle between 3 scenarios with real-time chart updates
+- ✅ **Interactive carousel** - Multiple visualization slides (pie chart, radar chart, overview)
+- ✅ **Backend chart integration** - Monte Carlo simulation and risk factor analysis charts
+- ✅ **Professional styling** - Modern UI with Header navigation and responsive design
+- ✅ **Performance optimized** - Zustand state management, TanStack Query caching, optimized re-renders

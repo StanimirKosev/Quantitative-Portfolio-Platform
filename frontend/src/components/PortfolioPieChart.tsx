@@ -18,6 +18,13 @@ const COLORS = [
   "#0F7485",
 ];
 
+const pieChartStyles = {
+  container: "flex flex-col items-center justify-center w-full lg:w-2/5 min-h-[250px] sm:min-h-[300px]",
+  title: "text-lg sm:text-xl lg:text-2xl mb-2",
+  chartContainer: "mx-auto aspect-square w-full max-w-[280px] sm:max-w-[350px] lg:max-w-[380px] p-2 sm:p-4",
+  description: "mt-2 sm:mt-6 text-center w-full text-xs sm:text-sm",
+};
+
 const PortfolioPieChart = () => {
   const { selectedRegime } = useRegimeStore();
   const { customPortfolio, isCustomStateActive } = useCustomPortfolioStore();
@@ -38,13 +45,13 @@ const PortfolioPieChart = () => {
   }));
 
   return (
-    <div className="flex flex-col items-center justify-center w-2/5">
+    <div className={pieChartStyles.container}>
       <CardHeader className="items-center pb-0">
-        <CardTitle className="text-2xl mb-2">Portfolio Composition</CardTitle>
+        <CardTitle className={pieChartStyles.title}>Portfolio Composition</CardTitle>
       </CardHeader>
       <ChartContainer
         config={{}}
-        className="mx-auto aspect-square w-full max-w-[380px] p-4"
+        className={pieChartStyles.chartContainer}
       >
         <PieChart key={selectedRegime}>
           <ChartTooltip
@@ -68,16 +75,19 @@ const PortfolioPieChart = () => {
           <Legend
             verticalAlign="bottom"
             height={36}
-            wrapperStyle={{ fontSize: "1.05rem", padding: "12px 0" }}
+            wrapperStyle={{ 
+              fontSize: window.innerWidth < 640 ? "0.8rem" : "1.05rem", 
+              padding: "12px 0" 
+            }}
           />
         </PieChart>
       </ChartContainer>
       <CardDescription
-        className="mt-6 text-center w-full"
+        className={pieChartStyles.description}
         style={{
           position: "absolute",
           left: "50%",
-          top: 30,
+          top: window.innerWidth < 640 ? 10 : 30,
           transform: "translateX(-50%)",
         }}
       >
