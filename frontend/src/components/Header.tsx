@@ -1,18 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import RegimeSelector from "./RegimeSelector";
 import { Button } from "./ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCustomPortfolioStore } from "../store/customPortfolioStore";
 
 const headerStyles = {
   header: "flex flex-col lg:flex-row items-center w-full py-4 gap-4 lg:gap-0",
   leftSection: "w-full lg:w-1/4 flex justify-center lg:justify-start",
-  centerSection: "w-full lg:w-1/2 flex justify-center h-14 items-center order-first lg:order-none",
+  centerSection:
+    "w-full lg:w-1/2 flex justify-center h-14 items-center order-first lg:order-none",
   rightSection: "w-full lg:w-1/4 flex justify-center lg:justify-end",
   button: "w-full sm:w-auto",
   buttonIcon: "h-4 w-4 sm:h-6 sm:w-6 mr-1 sm:mr-2",
   buttonText: "text-sm sm:text-base",
-  title: "text-lg sm:text-xl lg:text-2xl font-semibold text-foreground text-center",
+  title:
+    "text-lg sm:text-xl lg:text-2xl font-semibold text-foreground text-center",
 };
 
 const Header = () => {
@@ -53,6 +55,7 @@ const Header = () => {
           className={headerStyles.button}
         >
           <span className={headerStyles.buttonText}>Customize Portfolio</span>
+          <ArrowRight className={headerStyles.buttonIcon} />
         </Button>
       </div>
     </header>
