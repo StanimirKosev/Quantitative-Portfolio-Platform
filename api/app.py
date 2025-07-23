@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Union
 
 
 from portfolio import (
@@ -86,10 +86,14 @@ async def get_default_portfolio():
     }
 
 
+RegimeFactors = Dict[str, Union[Dict[str, float], float]]  # ticker -> {"mean_factor": float, "vol_factor": float} OR "correlation_move_pct" -> float
+
+
 class PortfolioRequestPayload(BaseModel):
     tickers: List[str]
     weights: List[float]
     regime: Optional[str] = "historical"
+    regime_factors: Optional[RegimeFactors] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
 
@@ -103,6 +107,9 @@ async def simulate_custom_portfolio_regime(request: PortfolioRequestPayload):
       - tickers: List of asset ticker symbols (List[str])
       - weights: List of asset weights in fractions
       - regime: Scenario name (str, e.g., "historical", "fiat_debasement", "geopolitical_crisis")
+      - regime_factors: (optional) Custom regime parameters (RegimeFactors)
+        - factors: Dict mapping ticker to {"mean_factor": float, "vol_factor": float}
+        - correlation_move_pct: Global correlation adjustment (float)
       - start_date: (optional) Start date for historical data fetching (YYYY-MM-DD)
       - end_date: (optional) End date for historical data fetching (YYYY-MM-DD)
 
@@ -120,6 +127,7 @@ async def simulate_custom_portfolio_regime(request: PortfolioRequestPayload):
         request.tickers,
         request.weights,
         regime,
+        request.regime_factors,
         start_date=request.start_date,
         end_date=request.end_date,
     )

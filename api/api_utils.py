@@ -40,7 +40,7 @@ def get_available_regimes():
 
 
 def run_portfolio_simulation_api(
-    tickers, weights, regime, start_date=None, end_date=None
+    tickers, weights, regime, regime_factors=None, start_date=None, end_date=None
 ):
     """
     Orchestrates the full Monte Carlo simulation and chart generation for a given portfolio and regime.
@@ -53,6 +53,7 @@ def run_portfolio_simulation_api(
         tickers (List[str]): List of asset ticker symbols.
         weights (List[float]): List of asset weights (fractions, should sum to 1.0).
         regime (str): The scenario to simulate (e.g., "historical", "fiat_debasement", "geopolitical_crisis").
+        regime_factors (RegimeFactors, optional): Custom regime parameters with factors dict and correlation_move_pct.
         start_date (str, optional): Start date for historical data fetching (YYYY-MM-DD).
         end_date (str, optional): End date for historical data fetching (YYYY-MM-DD).
 
@@ -71,7 +72,7 @@ def run_portfolio_simulation_api(
             GEOPOLITICAL_CRISIS_REGIME_NAME,
             GEOPOLITICAL_CRISIS_REGIME,
         ),
-        "custom": ("Custom", {}),
+        "custom": ("Custom", regime_factors),
     }
     if regime_key not in regime_map:
         raise HTTPException(status_code=400, detail=f"Invalid regime name: {regime}")

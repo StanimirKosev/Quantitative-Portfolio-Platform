@@ -17,7 +17,7 @@ import type {
   SimulateChartsResponse,
 } from "../types/portfolio";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { Input } from "../components/ui/input";
 import { Skeleton } from "../components/ui/skeleton";
 import { set, isEqual, omit, cloneDeep } from "lodash";
@@ -25,6 +25,8 @@ import { Progress } from "../components/ui/progress";
 import { Badge } from "../components/ui/badge";
 import { useCustomPortfolioStore } from "../store/customPortfolioStore";
 import { API_BASE_URL } from "../lib/api";
+import { Switch } from "../components/ui/switch";
+import { Collapsible, CollapsibleContent } from "../components/ui/collapsible";
 
 type FormAction =
   | {
@@ -121,6 +123,7 @@ const simulatePortfolio = async (formState: PortfolioResponse) => {
 
 const CustomPortfolioForm = () => {
   const navigate = useNavigate();
+  const [isPowerUserMode, setIsPowerUserMode] = useState<boolean>(false);
   const [formState, dispatch] = useReducer(formReducer, initialState);
   const {
     customPortfolio,
@@ -216,21 +219,31 @@ const CustomPortfolioForm = () => {
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Portfolio Assets</CardTitle>
-            <div className="flex items-center gap-2 w-1/3">
-              <Progress value={totalWeight} />
-              <span className="text-sm text-muted-foreground whitespace-nowrap">
-                <Badge
-                  variant={totalWeight === 100 ? "secondary" : "destructive"}
-                >
-                  {totalWeight.toFixed(1)}%
-                </Badge>
-              </span>
+            <div className="flex items-center gap-4">
+              <CardTitle>Portfolio Assets</CardTitle>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="power-user-mode"
+                  checked={isPowerUserMode}
+                  onCheckedChange={setIsPowerUserMode}
+                />
+                <label htmlFor="power-user-mode" className="text-sm">
+                  Power User
+                </label>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Progress value={totalWeight} className="w-24" />
+              <Badge
+                variant={totalWeight === 100 ? "secondary" : "destructive"}
+              >
+                {totalWeight.toFixed(1)}%
+              </Badge>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="p-0 px-6">
+          <div className="space-y-2">
             {isLoading ? (
               <>
                 <Skeleton className="h-10 w-full" />
@@ -241,7 +254,7 @@ const CustomPortfolioForm = () => {
               formState.portfolio_assets.map((asset, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-[1fr_120px_40px] gap-4 items-center"
+                  className="grid grid-cols-[1fr_120px_40px] gap-x-4 gap-y-2 items-center"
                 >
                   <Input
                     placeholder="Enter ticker (e.g., BTC-EUR)"
@@ -291,19 +304,74 @@ const CustomPortfolioForm = () => {
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
+
+                  <Collapsible open={isPowerUserMode}>
+                    <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2 data-[state=open]:fade-in data-[state=open]:duration-300 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top-2 data-[state=closed]:fade-out data-[state=closed]:duration-200">
+                      <div className="pb-3">
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-0 pl-4 border-l-2 border-muted">
+                          <div className="space-y-1">
+                            <label
+                              htmlFor={`mean-factor-${index}`}
+                              className="text-xs font-medium"
+                            >
+                              Mean Factor
+                            </label>
+                            <Input
+                              id={`mean-factor-${index}`}
+                              type="number"
+                              className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label
+                              htmlFor={`vol-factor-${index}`}
+                              className="text-xs font-medium"
+                            >
+                              Vol Factor
+                            </label>
+                            <Input
+                              id={`vol-factor-${index}`}
+                              type="number"
+                              className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               ))
             )}
             <Button
               onClick={() => dispatch({ type: "ADD_ASSET" })}
               variant="outline"
-              className="w-full mt-4"
+              className="w-full"
             >
               + Add Asset
             </Button>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between items-center">
+        <CardFooter className="flex flex-col items-start gap-4 pt-2">
+          <Collapsible open={isPowerUserMode}>
+            <CollapsibleContent>
+              <div className="flex items-center gap-1">
+                <label
+                  htmlFor="correlation-move"
+                  className="text-sm font-medium whitespace-nowrap text-muted-foreground"
+                >
+                  Correlation Move
+                </label>
+
+                <Input
+                  id="correlation-move"
+                  type="number"
+                  step="0.1"
+                  className="w-32 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
           <div className="flex items-center gap-3">
             <CardDescription className="text-sm font-medium whitespace-nowrap">
               Analysis Period
@@ -331,19 +399,19 @@ const CustomPortfolioForm = () => {
               }
               className="w-32"
             />
+            <Button
+              variant="secondary"
+              onClick={handleSubmit}
+              disabled={isValidating || isSimulating}
+              className="min-w-[9rem] px-4 py-2 flex items-center justify-center"
+            >
+              {isValidating || isSimulating ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                "Analyze Portfolio"
+              )}
+            </Button>
           </div>
-          <Button
-            variant="secondary"
-            onClick={handleSubmit}
-            disabled={isValidating || isSimulating}
-            className="min-w-[9rem] px-4 py-2 flex items-center justify-center"
-          >
-            {isValidating || isSimulating ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              "Analyze Portfolio"
-            )}
-          </Button>
         </CardFooter>
       </Card>
 
