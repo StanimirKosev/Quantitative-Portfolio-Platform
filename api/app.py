@@ -1,8 +1,4 @@
-import sys
-
-sys.path.append("./src")
-
-from api.api_utils import (
+from api_utils import (
     run_portfolio_simulation_api,
     get_available_regimes,
     validate_portfolio,
@@ -27,7 +23,12 @@ app = FastAPI(title="Monte Carlo Portfolio Simulator API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:4173",  # Local production testing
+        "http://localhost:5173",  # Local dev
+        "https://monte-carlo-regime-portfolio-simulator.vercel.app",  # Vercel production
+        "https://monte-carlo-regime-portfolio-simulator-production.up.railway.app",  # Railway API
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -90,7 +91,9 @@ class PortfolioRequestPayload(BaseModel):
     tickers: List[str]
     weights: List[float]
     regime: Optional[str] = "historical"
-    regime_factors: Optional[Dict[str, Union[Dict[str, Optional[float]], Optional[float]]]] = None
+    regime_factors: Optional[
+        Dict[str, Union[Dict[str, Optional[float]], Optional[float]]]
+    ] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
 

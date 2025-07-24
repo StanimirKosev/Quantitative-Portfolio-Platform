@@ -1,4 +1,8 @@
-from portfolio import GEOPOLITICAL_CRISIS_REGIME, FIAT_DEBASEMENT_REGIME, get_portfolio
+from portfolio import (
+    GEOPOLITICAL_CRISIS_REGIME,
+    FIAT_DEBASEMENT_REGIME,
+    get_portfolio,
+)
 from utils import (
     HISTORICAL,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
