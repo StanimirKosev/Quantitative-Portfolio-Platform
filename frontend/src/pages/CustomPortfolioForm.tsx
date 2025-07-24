@@ -55,7 +55,7 @@ type FormAction =
       type: "UPDATE_FIELD";
       payload: {
         field: FormFieldPath;
-        value: FormFieldValue;
+        value: FormFieldValue | null;
       };
     }
   | { type: "ADD_ASSET" }
@@ -94,8 +94,8 @@ function formReducer(
           ...formState.portfolio_factors,
           {
             ticker: "",
-            mean_factor: 1,
-            vol_factor: 1,
+            mean_factor: 1.0,
+            vol_factor: 1.0,
             correlation_move_pct: 0,
           },
         ],
@@ -130,14 +130,16 @@ const doCustomPortfolioRequest = async (
           ({ ticker, mean_factor, vol_factor }) => [
             ticker,
             {
-              mean_factor: Number(mean_factor) / 100 || 0,
-              vol_factor: Number(vol_factor) / 100 || 0,
+              mean_factor: mean_factor == null ? null : Number(mean_factor),
+              vol_factor: vol_factor == null ? null : Number(vol_factor),
             },
           ]
         )
       ),
       correlation_move_pct:
-        Number(formState.portfolio_factors[0].correlation_move_pct) / 100 || 0,
+        formState.portfolio_factors[0]?.correlation_move_pct == null
+          ? null
+          : Number(formState.portfolio_factors[0].correlation_move_pct),
     },
     start_date: formState.start_date,
     end_date: formState.end_date,
@@ -248,13 +250,45 @@ const CustomPortfolioForm = () => {
   }, [defaultPortfolio, customPortfolio, defaultPortfolioFactors]);
 
   const totalWeight = formState.portfolio_assets.reduce(
-    (sum, asset) => sum + (asset.weight_pct || 0),
+    (sum, asset) => sum + (Number(asset.weight_pct) || 0),
     0
   );
 
-  const onNumberFieldChange = (val: string, path: FormFieldPath) => {
-    const value = parseFloat(val);
-    const rounded = Math.round(value * 10) / 10;
+  const onNumberFieldChange = (
+    val: string,
+    path: FormFieldPath,
+    decimalPlaces: number
+  ) => {
+    // Simple regex: allow intermediate typing states
+    if (
+      /^-?(\d*\.?\d*)$/.test(val) &&
+      (val === "-" || val.endsWith(".") || val === "-0")
+    ) {
+      // Store intermediate states as string
+      dispatch({
+        type: "UPDATE_FIELD",
+        payload: {
+          field: path,
+          value: val,
+        },
+      });
+      return;
+    }
+
+    const parsed = parseFloat(val);
+    if (val === "" || isNaN(parsed)) {
+      dispatch({
+        type: "UPDATE_FIELD",
+        payload: {
+          field: path,
+          value: null,
+        },
+      });
+      return;
+    }
+
+    const multiplier = Math.pow(10, decimalPlaces);
+    const rounded = Math.round(parsed * multiplier) / multiplier;
 
     dispatch({
       type: "UPDATE_FIELD",
@@ -267,7 +301,7 @@ const CustomPortfolioForm = () => {
 
   const getFactorValue = (index: number, field: keyof RegimeParameter) => {
     const value = formState.portfolio_factors?.[index]?.[field];
-    return Number.isFinite(value) ? value : "";
+    return value == null ? "" : String(value);
   };
 
   return (
@@ -357,14 +391,13 @@ const CustomPortfolioForm = () => {
                     <Input
                       type="number"
                       value={
-                        Number.isFinite(asset.weight_pct)
-                          ? asset.weight_pct
-                          : ""
+                        asset.weight_pct == null ? "" : String(asset.weight_pct)
                       }
                       onChange={(e) =>
                         onNumberFieldChange(
                           e.target.value,
-                          `portfolio_assets.${index}.weight_pct`
+                          `portfolio_assets.${index}.weight_pct`,
+                          1
                         )
                       }
                       className="pr-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -402,7 +435,8 @@ const CustomPortfolioForm = () => {
                               onChange={(e) =>
                                 onNumberFieldChange(
                                   e.target.value,
-                                  `portfolio_factors.${index}.mean_factor`
+                                  `portfolio_factors.${index}.mean_factor`,
+                                  2
                                 )
                               }
                             />
@@ -423,7 +457,8 @@ const CustomPortfolioForm = () => {
                               onChange={(e) =>
                                 onNumberFieldChange(
                                   e.target.value,
-                                  `portfolio_factors.${index}.vol_factor`
+                                  `portfolio_factors.${index}.vol_factor`,
+                                  2
                                 )
                               }
                             />
@@ -458,13 +493,13 @@ const CustomPortfolioForm = () => {
                 <Input
                   id="correlation-move"
                   type="number"
-                  step="0.1"
                   className="w-32 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   value={getFactorValue(0, "correlation_move_pct")}
                   onChange={(e) =>
                     onNumberFieldChange(
                       e.target.value,
-                      `portfolio_factors.0.correlation_move_pct`
+                      `portfolio_factors.0.correlation_move_pct`,
+                      2
                     )
                   }
                 />

@@ -86,14 +86,11 @@ async def get_default_portfolio():
     }
 
 
-RegimeFactors = Dict[str, Union[Dict[str, float], float]]  # ticker -> {"mean_factor": float, "vol_factor": float} OR "correlation_move_pct" -> float
-
-
 class PortfolioRequestPayload(BaseModel):
     tickers: List[str]
     weights: List[float]
     regime: Optional[str] = "historical"
-    regime_factors: Optional[RegimeFactors] = None
+    regime_factors: Optional[Dict[str, Union[Dict[str, Optional[float]], Optional[float]]]] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
 
@@ -179,7 +176,11 @@ async def validate_custom_portfolio(request: PortfolioRequestPayload):
     ```
     """
     return validate_portfolio(
-        request.tickers, request.weights, request.start_date, request.end_date
+        request.tickers,
+        request.weights,
+        request.regime_factors,
+        request.start_date,
+        request.end_date,
     )
 
 

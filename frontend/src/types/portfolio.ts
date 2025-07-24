@@ -27,7 +27,7 @@ export interface PortfolioRequestPayload {
   weights: number[];
   regime_factors: Record<
     string,
-    { mean_factor: number; vol_factor: number } | number
+    { mean_factor: number | null; vol_factor: number | null } | number | null
   >;
   start_date: string;
   end_date: string;

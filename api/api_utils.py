@@ -109,7 +109,7 @@ def run_portfolio_simulation_api(
     }
 
 
-def validate_portfolio(tickers, weights, start_date, end_date):
+def validate_portfolio(tickers, weights, regime_factors, start_date, end_date):
     """
     Internal utility for validating a custom portfolio's tickers and weights for a given date range.
     Used by the /api/portfolio/validate endpoint.
@@ -161,7 +161,31 @@ def validate_portfolio(tickers, weights, start_date, end_date):
         except Exception:
             errors.append("Dates must be in YYYY-MM-DD format.")
 
-    # 6. All tickers fetchable for the given date range
+    # 6. Validate regime factors
+    if regime_factors is not None and not errors:
+
+        correlation_move_pct = regime_factors.get("correlation_move_pct")
+        if correlation_move_pct is None:
+            errors.append("Correlation move is required when using power user mode.")
+        elif abs(correlation_move_pct) >= 1.0:
+            errors.append("Correlation move must be between -0.99 and 0.99.")
+
+        for ticker, factor_dict in regime_factors.items():
+            if ticker == "correlation_move_pct":
+                continue
+
+            mean_factor = factor_dict.get("mean_factor")
+            vol_factor = factor_dict.get("vol_factor")
+
+            if mean_factor is None:
+                errors.append(f"{ticker}: Mean factor is required.")
+
+            if vol_factor is None:
+                errors.append(f"{ticker}: Vol factor is required.")
+            elif vol_factor <= 0:
+                errors.append(f"{ticker}: Vol factor must be positive.")
+
+    # 7. All tickers fetchable for the given date range (only if no regime test errors)
     if not errors:
         try:
             fetch_close_prices(tickers, start=start_date, end=end_date)
