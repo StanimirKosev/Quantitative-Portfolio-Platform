@@ -13,7 +13,6 @@ import type {
   PortfolioAsset,
   PortfolioResponse,
   ValidationResponse,
-  PortfolioRequestPayload,
   SimulateChartsResponse,
 } from "../types/portfolio";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -31,10 +30,16 @@ import type {
   RegimeParametersResponse,
   RegimeParameter,
 } from "../types/regime";
-
-export type CustomPortfolioFormData = PortfolioResponse & {
-  portfolio_factors: RegimeParametersResponse["parameters"];
-};
+import {
+  doCustomPortfolioRequest,
+  processNumberInput,
+  calculateTotalWeight,
+  DEFAULT_ASSET_VALUES,
+  DEFAULT_REGIME_FACTOR_VALUES,
+  DECIMAL_PRECISION,
+  getRegimeFactorValue,
+  type CustomPortfolioFormData,
+} from "../lib/portfolioUtils";
 
 type FormFieldPath =
   | keyof CustomPortfolioFormData
@@ -69,101 +74,67 @@ const initialState: CustomPortfolioFormData = {
 };
 
 function formReducer(
-  formState: CustomPortfolioFormData,
+  currentFormData: CustomPortfolioFormData,
   action: FormAction
 ): CustomPortfolioFormData {
   switch (action.type) {
     case "INITIALIZE_FORM":
       return {
-        ...formState,
+        ...currentFormData,
         portfolio_assets: cloneDeep(action.payload.portfolio_assets),
         start_date: action.payload.start_date,
         end_date: action.payload.end_date,
         portfolio_factors: cloneDeep(action.payload.portfolio_factors),
       };
     case "UPDATE_FIELD":
-      return set({ ...formState }, action.payload.field, action.payload.value);
+      return set(
+        { ...currentFormData },
+        action.payload.field,
+        action.payload.value
+      );
     case "ADD_ASSET":
       return {
-        ...formState,
+        ...currentFormData,
         portfolio_assets: [
-          ...formState.portfolio_assets,
-          { ticker: "", weight_pct: 0 },
+          ...currentFormData.portfolio_assets,
+          DEFAULT_ASSET_VALUES,
         ],
         portfolio_factors: [
-          ...formState.portfolio_factors,
-          {
-            ticker: "",
-            mean_factor: 1.0,
-            vol_factor: 1.0,
-            correlation_move_pct: 0,
-          },
+          ...currentFormData.portfolio_factors,
+          DEFAULT_REGIME_FACTOR_VALUES,
         ],
       };
     case "REMOVE_ASSET":
       return {
-        ...formState,
-        portfolio_assets: formState.portfolio_assets.filter(
+        ...currentFormData,
+        portfolio_assets: currentFormData.portfolio_assets.filter(
           (_, index) => index !== action.payload.index
         ),
-        portfolio_factors: formState.portfolio_factors.filter(
+        portfolio_factors: currentFormData.portfolio_factors.filter(
           (_, index) => index !== action.payload.index
         ),
       };
     default:
-      return formState;
+      return currentFormData;
   }
 }
 
-const doCustomPortfolioRequest = async (
-  formState: CustomPortfolioFormData,
-  url: string
-) => {
-  const payload: PortfolioRequestPayload = {
-    tickers: formState.portfolio_assets.map((a) => a.ticker || ""),
-    weights: formState.portfolio_assets.map(
-      (a) => Number(a.weight_pct) / 100 || 0
-    ),
-    regime_factors: {
-      ...Object.fromEntries(
-        formState.portfolio_factors.map(
-          ({ ticker, mean_factor, vol_factor }) => [
-            ticker,
-            {
-              mean_factor: mean_factor == null ? null : Number(mean_factor),
-              vol_factor: vol_factor == null ? null : Number(vol_factor),
-            },
-          ]
-        )
-      ),
-      correlation_move_pct:
-        formState.portfolio_factors[0]?.correlation_move_pct == null
-          ? null
-          : Number(formState.portfolio_factors[0].correlation_move_pct),
-    },
-    start_date: formState.start_date,
-    end_date: formState.end_date,
-  };
-
-  const res = await fetch(`${API_BASE_URL}/api/${url}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(`HTTP ${res.status}: ${errorData.detail}`);
-  }
-  return res.json();
+const validatePortfolio = async (
+  formState: CustomPortfolioFormData
+): Promise<ValidationResponse> => {
+  return doCustomPortfolioRequest<ValidationResponse>(
+    formState,
+    "portfolio/validate"
+  );
 };
 
-const validatePortfolio = async (formState: CustomPortfolioFormData) => {
-  return doCustomPortfolioRequest(formState, "portfolio/validate");
-};
-
-const simulatePortfolio = async (formState: CustomPortfolioFormData) => {
-  return doCustomPortfolioRequest(formState, "simulate/custom");
+const simulatePortfolio = async (
+  formState: CustomPortfolioFormData
+): Promise<SimulateChartsResponse> => {
+  return doCustomPortfolioRequest<SimulateChartsResponse>(
+    formState,
+    "simulate/custom"
+  );
 };
 
 const CustomPortfolioForm = () => {
@@ -249,59 +220,29 @@ const CustomPortfolioForm = () => {
     });
   }, [defaultPortfolio, customPortfolio, defaultPortfolioFactors]);
 
-  const totalWeight = formState.portfolio_assets.reduce(
-    (sum, asset) => sum + (Number(asset.weight_pct) || 0),
-    0
-  );
+  const totalWeight = calculateTotalWeight(formState.portfolio_assets);
 
-  const onNumberFieldChange = (
-    val: string,
-    path: FormFieldPath,
+  const handleNumberFieldChange = (
+    inputValue: string,
+    fieldPath: FormFieldPath,
     decimalPlaces: number
   ) => {
-    // Simple regex: allow intermediate typing states
-    if (
-      /^-?(\d*\.?\d*)$/.test(val) &&
-      (val === "-" || val.endsWith(".") || val === "-0")
-    ) {
-      // Store intermediate states as string
-      dispatch({
-        type: "UPDATE_FIELD",
-        payload: {
-          field: path,
-          value: val,
-        },
-      });
-      return;
-    }
-
-    const parsed = parseFloat(val);
-    if (val === "" || isNaN(parsed)) {
-      dispatch({
-        type: "UPDATE_FIELD",
-        payload: {
-          field: path,
-          value: null,
-        },
-      });
-      return;
-    }
-
-    const multiplier = Math.pow(10, decimalPlaces);
-    const rounded = Math.round(parsed * multiplier) / multiplier;
+    const processedValue = processNumberInput(inputValue, decimalPlaces);
 
     dispatch({
       type: "UPDATE_FIELD",
       payload: {
-        field: path,
-        value: rounded,
+        field: fieldPath,
+        value: processedValue,
       },
     });
   };
 
-  const getFactorValue = (index: number, field: keyof RegimeParameter) => {
-    const value = formState.portfolio_factors?.[index]?.[field];
-    return value == null ? "" : String(value);
+  const getFactorDisplayValue = (
+    index: number,
+    field: keyof RegimeParameter
+  ) => {
+    return getRegimeFactorValue(formState.portfolio_factors, index, field);
   };
 
   return (
@@ -394,10 +335,10 @@ const CustomPortfolioForm = () => {
                         asset.weight_pct == null ? "" : String(asset.weight_pct)
                       }
                       onChange={(e) =>
-                        onNumberFieldChange(
+                        handleNumberFieldChange(
                           e.target.value,
                           `portfolio_assets.${index}.weight_pct`,
-                          1
+                          DECIMAL_PRECISION.WEIGHT
                         )
                       }
                       className="pr-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -431,12 +372,15 @@ const CustomPortfolioForm = () => {
                               id={`mean-factor-${index}`}
                               type="number"
                               className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              value={getFactorValue(index, "mean_factor")}
+                              value={getFactorDisplayValue(
+                                index,
+                                "mean_factor"
+                              )}
                               onChange={(e) =>
-                                onNumberFieldChange(
+                                handleNumberFieldChange(
                                   e.target.value,
                                   `portfolio_factors.${index}.mean_factor`,
-                                  2
+                                  DECIMAL_PRECISION.FACTOR
                                 )
                               }
                             />
@@ -453,12 +397,12 @@ const CustomPortfolioForm = () => {
                               id={`vol-factor-${index}`}
                               type="number"
                               className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              value={getFactorValue(index, "vol_factor")}
+                              value={getFactorDisplayValue(index, "vol_factor")}
                               onChange={(e) =>
-                                onNumberFieldChange(
+                                handleNumberFieldChange(
                                   e.target.value,
                                   `portfolio_factors.${index}.vol_factor`,
-                                  2
+                                  DECIMAL_PRECISION.FACTOR
                                 )
                               }
                             />
@@ -494,50 +438,52 @@ const CustomPortfolioForm = () => {
                   id="correlation-move"
                   type="number"
                   className="w-32 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  value={getFactorValue(0, "correlation_move_pct")}
+                  value={getFactorDisplayValue(0, "correlation_move_pct")}
                   onChange={(e) =>
-                    onNumberFieldChange(
+                    handleNumberFieldChange(
                       e.target.value,
                       `portfolio_factors.0.correlation_move_pct`,
-                      2
+                      DECIMAL_PRECISION.FACTOR
                     )
                   }
                 />
               </div>
             </CollapsibleContent>
           </Collapsible>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row items-center gap-3">
             <CardDescription className="text-sm font-medium whitespace-nowrap">
               Analysis Period
             </CardDescription>
-            <Input
-              type="text"
-              value={formState.start_date}
-              onChange={(e) =>
-                dispatch({
-                  type: "UPDATE_FIELD",
-                  payload: { field: "start_date", value: e.target.value },
-                })
-              }
-              className="w-32"
-            />
-            <span className="text-muted-foreground text-sm">to</span>
-            <Input
-              type="text"
-              value={formState.end_date}
-              onChange={(e) =>
-                dispatch({
-                  type: "UPDATE_FIELD",
-                  payload: { field: "end_date", value: e.target.value },
-                })
-              }
-              className="w-32"
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                type="text"
+                value={formState.start_date}
+                onChange={(e) =>
+                  dispatch({
+                    type: "UPDATE_FIELD",
+                    payload: { field: "start_date", value: e.target.value },
+                  })
+                }
+                className="w-32"
+              />
+              <span className="text-muted-foreground text-sm">to</span>
+              <Input
+                type="text"
+                value={formState.end_date}
+                onChange={(e) =>
+                  dispatch({
+                    type: "UPDATE_FIELD",
+                    payload: { field: "end_date", value: e.target.value },
+                  })
+                }
+                className="w-32"
+              />
+            </div>
             <Button
               variant="secondary"
               onClick={handleSubmit}
               disabled={isValidating || isSimulating}
-              className="min-w-[9rem] px-4 py-2 flex items-center justify-center"
+              className="min-w-[9rem] px-4 py-2 flex items-center justify-center mt-2 md:mt-0"
             >
               {isValidating || isSimulating ? (
                 <Loader2 className="h-5 w-5 animate-spin" />

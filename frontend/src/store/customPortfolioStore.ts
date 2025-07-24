@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { SimulateChartsResponse } from "../types/portfolio";
-import type { CustomPortfolioFormData } from "../pages/CustomPortfolioForm";
+import type { CustomPortfolioFormData } from "../lib/portfolioUtils";
 
 interface CustomPortfolioState {
   // State

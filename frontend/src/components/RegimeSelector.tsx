@@ -1,6 +1,6 @@
 import { useRegimeStore } from "../store/regimeStore";
 import { useQuery } from "@tanstack/react-query";
-import type { Regime } from "../types/regime";
+import type { Regime, RegimeKey } from "../types/regime";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 import { API_BASE_URL } from "../lib/api";
 
@@ -20,7 +20,10 @@ const RegimeSelector = () => {
       <ToggleGroup
         type="single"
         value={selectedRegime}
-        onValueChange={setSelectedRegime}
+        onValueChange={(value: RegimeKey) => {
+          if (!value) return;
+          setSelectedRegime(value);
+        }}
         className="flex-wrap justify-center gap-2"
       >
         {data?.map((regime) => (

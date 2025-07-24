@@ -253,7 +253,7 @@ Display results for custom portfolios and add minimal routing structure.
 
 ## FE-008: Advanced Regime Customization
 
-Status: Not Completed
+Status: Completed
 Priority: Medium  
 Dependencies: FE-007
 Two-tier regime system: predefined regimes for default portfolio, custom parameters for user portfolios.
