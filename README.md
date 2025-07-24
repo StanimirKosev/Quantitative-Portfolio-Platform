@@ -1,126 +1,184 @@
 # Monte Carlo Portfolio Simulation
 
-Monte Carlo simulation platform for multi-asset portfolios, featuring regime-dependent risk modeling, scenario-based analytics, and advanced visualizations. Built to explore how real-world macroeconomic shifts impact portfolio outcomes, this project integrates real market data, flexible scenario design, and industry-standard risk metrics. Includes principal component analysis (PCA) and eigenvalue decomposition for deep risk factor insights.
+Full-stack Monte Carlo simulation platform with **Python simulation engine**, **FastAPI backend**, and **React frontend**. Features regime-dependent risk modeling, customizable portfolios, and interactive visualizations. Explore how macroeconomic shifts impact portfolio outcomes through real market data, advanced financial mathematics, and intuitive web interface.
 
 ## 🎯 Project Overview
 
-- **Multi-asset portfolio simulation** with 6 diverse assets (Bitcoin, global stocks, commodities)
-- **Historical data analysis** using real market data from Yahoo Finance
-- **Macroeconomic regime modeling** (fiat debasement, geopolitical crisis, and more)
-- **Regime-dependent covariance matrices** for realistic scenario stress-testing
-- **Professional risk metrics**: Value at Risk (VaR), Conditional VaR (CVaR)
-- **PCA & eigenvalue analysis**: Identify dominant risk factors and explained variance
-- **Advanced visualization**: Confidence intervals, percentile bands, and clear analytics
+- **Full-stack architecture**: Python simulation engine + FastAPI + React dashboard
+- **Default portfolio simulation** with pre-configured 6-asset portfolio across 3 regimes (historical, fiat debasement, geopolitical crisis)
+- **Fully customizable portfolios** with interactive web interface - modify tickers, weights, asset count, mean/volatility factors, and correlation adjustments
+- **Advanced financial mathematics**: Regime-dependent risk modeling with sophisticated correlation adjustments
+- **Professional visualizations**: Interactive charts with Monte Carlo paths, correlation matrices, and risk analysis
+- **Real-time portfolio validation** with form feedback and error handling
 
-## 📊 Portfolio Composition
+## 📸 Screenshots & Demo
 
-| Asset | Ticker | Weight | Description |
-|-------|--------|--------|-------------|
-| Bitcoin | BTC-EUR | 60% | Cryptocurrency hedge |
-| iShares MSCI World Energy Sector | 5MVW.DE | 13% | Global developed energy markets |
-| SPDR S&P 500 | SPYL.DE | 10.5% | US large-cap stocks |
-| VanEck S&P Global Mining | WMIN.DE | 7% | Global miners |
-| iShares Core MSCI EM IMI | IS3N.DE | 6% | Emerging market stocks |
-| Gold | 4GLD.DE | 3.5% | Precious metals |
+**Live Demo**: [monte-carlo-regime-portfolio-simulator.vercel.app](https://monte-carlo-regime-portfolio-simulator.vercel.app/default-portfolio)
+
+### Default Portfolio Dashboard
+
+![Portfolio Interface](screenshots/default-portfolio-geopolitical-crisis.png)
+_Interactive dashboard with portfolio composition and regime analysis_
+
+### Monte Carlo Simulation Results
+
+![Monte Carlo Paths](screenshots/monte-carlo-fiat-debasement.png)
+_1000 simulation paths showing potential portfolio outcomes with confidence intervals_
+
+### Portfolio Builder Interface
+
+![Custom Portfolio Builder](screenshots/custom-portfolio-form.png)
+_Interactive form with real-time validation - create any portfolio combination_
+
+### Risk Analysis Dashboard
+
+<details>
+<summary>📊 View Additional Analysis Charts</summary>
+
+![Correlation Matrix](screenshots/correlation-matrix-heatmap-fiat-debasement.png)
+_Asset correlation heatmap showing regime-dependent relationships_
+
+![PCA Analysis](screenshots/risk-factor-analysis-fiat-debasement.png)
+_Principal component analysis identifying dominant risk factors_
+
+</details>
 
 ## 🏗️ Architecture & Features
 
-- **portfolio.py**: Portfolio definition and regime factors
-- **utils.py**: Data fetching and statistics
-- **monte_carlo.py**: Simulation engine, risk metrics, PCA, eigenvalue analysis
-- **visualization.py**: Professional plotting and analytics
-- **main.py**: Orchestrates all regimes and outputs
+**Three-tier separation:**
 
-**Key features:**
-- Historical and regime-based analysis
-- Scenario-driven risk and return simulation
-- PCA/eigenvalue decomposition for risk factor analysis
-- Visual analytics: simulation results, correlation heatmaps, PCA bar charts
+- **Simulation Engine + API Layer** (`api/`) - Core Monte Carlo with regime modeling + FastAPI wrapper with CORS configuration
+- **Frontend** (`frontend/src/`) - React dashboard with interactive charts
 
-## 🚀 Installation
+**Technology Stack:**
 
-**Prerequisites:** Python 3.8+, pip
+- **Backend**: Python, FastAPI, NumPy, Pandas, Matplotlib, yfinance
+- **Frontend**: React 19, TypeScript, Vite, shadcn/ui, Recharts, TanStack Query, Zustand
+
+## 🎨 Frontend Features
+
+**Interactive Portfolio Dashboard:**
+
+- **Portfolio Composition Chart** - Pie chart visualization of asset weights
+- **Regime Factors Radar Chart** - Visual comparison of mean/volatility factors and correlation adjustments
+- **Three Generated Visualizations** - Monte Carlo simulation paths, correlation matrix heatmap, PCA risk factor analysis
+
+**Fully Customizable Form:**
+
+- **Dynamic asset management** - Add/remove tickers with real-time validation
+- **Custom weightings** - Adjustable portfolio weights with automatic normalization
+- **Date range selection** - Historical data period customization
+- **Regime parameter tuning** - Individual mean/volatility factors per asset
+- **Global correlation adjustment** - Portfolio-wide correlation modification
+- **Real-time feedback** - Form validation with error messages and success indicators
+
+## 📊 Backend Simulation Features
+
+**Generated Outputs (each regime produces):**
+
+- **Monte Carlo simulation paths** - Confidence intervals, key trajectories, risk metrics (VaR, CVaR)
+- **Correlation matrix heatmap** - Asset correlations with matrix conditioning analysis
+- **PCA risk factor analysis** - Principal components, explained variance, factor loadings
+
+**Key Metrics:**
+
+- Complete portfolio performance statistics (median, mean, best/worst case outcomes)
+- Professional risk assessment with confidence intervals and stress testing
+- Systematic risk factor identification and asset contribution analysis
+
+**Advanced Mathematical Methodology:**
+
+- **Data Foundation**: Historical daily returns from Yahoo Finance API with comprehensive data validation
+- **Regime Modeling**: Two-stage covariance adjustment process:
+  - _Stage 1_: Scale each covariance element Σ[i,j] by vol_factor[i] × vol_factor[j], preserving correlation structure while adjusting joint risk magnitudes
+  - _Stage 2_: Extract correlation matrix, apply regime-specific correlation_move_pct to off-diagonal elements, then reconstruct covariance with numerical clipping to [-1,1]
+- **Monte Carlo Engine**: 1000 simulations using multivariate normal sampling over 252 trading days with regime-adjusted parameters
+- **Risk Factor Analysis**: PCA identifies key risk factors (eigenvalue > 1.0 threshold) with smart asset selection (top 2 contributors or all above 10% threshold)
+- **Risk Metrics**: Professional VaR/CVaR calculations at 95% and 99% confidence levels with percentile-based path analysis
+- **Numerical Stability**: Ensures mathematical validity through correlation matrix conditioning and eigenvalue monitoring
+- **Assumptions**: Frictionless markets (no transaction costs), perfect daily rebalancing, normally distributed returns
+
+## 🚀 API Endpoints
+
+**Live API Documentation**: [https://monte-carlo-regime-portfolio-simulator-production.up.railway.app/docs](https://monte-carlo-regime-portfolio-simulator-production.up.railway.app/docs)
+
+- **`GET /api/portfolio/default`** - Default 6-asset portfolio composition and date range
+- **`POST /api/simulate/{regime}`** - Run Monte Carlo simulation for default portfolio (historical/fiat_debasement/geopolitical_crisis)
+- **`POST /api/simulate/custom`** - Run simulation for fully customizable portfolio with custom regime parameters
+- **`POST /api/portfolio/validate`** - Validate portfolio tickers, weights, and date ranges
+- **`GET /api/regimes`** - Available regime scenarios with descriptions
+- **`GET /api/regimes/{regime}/parameters`** - Regime-specific factor adjustments
+
+## 📚 Educational Value
+
+This project bridges fundamental mathematical concepts with real-world financial applications, demonstrating:
+
+**What You'll Learn:**
+
+- **Linear Algebra in Action**: Matrix operations, PCA, and correlation analysis applied to real financial data
+- **Statistics & Probability**: Monte Carlo methods, risk calculations, and working with correlated random variables
+- **Financial Modeling**: Portfolio theory, regime analysis, and professional risk metrics (VaR/CVaR)
+- **Full-Stack Development**: Python backend, React frontend, API design, and data visualization
+- **Production Skills**: Error handling, data validation, performance optimization, and deployment
+- **Modern Development Practices**: AI-assisted development with Cursor and Claude Code, demonstrating AI literacy and prompt engineering skills
+
+This project shows how foundational math and programming knowledge can be applied to build real financial analysis tools.
+
+## 📊 Default Portfolio Composition
+
+| Asset                            | Ticker  | Weight | Description                     |
+| -------------------------------- | ------- | ------ | ------------------------------- |
+| Bitcoin                          | BTC-EUR | 60%    | Cryptocurrency hedge            |
+| iShares MSCI World Energy Sector | 5MVW.DE | 13%    | Global developed energy markets |
+| SPDR S&P 500                     | SPYL.DE | 10.5%  | US large-cap stocks             |
+| VanEck S&P Global Mining         | WMIN.DE | 7%     | Global miners                   |
+| iShares Core MSCI EM IMI         | IS3N.DE | 6%     | Emerging market stocks          |
+| Gold                             | 4GLD.DE | 3.5%   | Precious metals                 |
+
+## 🚀 Installation & Setup
+
+**Prerequisites:** Python 3.8+, Node.js 18+
+
+### Backend Setup
 
 ```bash
-# Clone and install
+# Clone repository
 git clone <repository-url>
 cd monte-carlo
+
+# Install Python dependencies
 pip install -r requirements.txt
-mkdir charts  # if not exists
+
+# Run API server
+cd api && uvicorn app:app --reload --port 8000
+```
+
+### Frontend Setup
+
+```bash
+# In new terminal, navigate to frontend
+cd frontend
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev          # Development (port 5173)
+npm run build        # Production build
+npm run preview      # Preview production build
 ```
 
 ## 📈 Usage
 
-Run all scenarios:
+### Full-Stack Web Application
+
+1. **Start API server**: `cd api && uvicorn app:app --reload --port 8000`
+2. **Start frontend**: `cd frontend && npm run dev`
+3. **Access application**: http://localhost:5173
+
+### Standalone Python Simulation
+
 ```bash
-python src/main.py
+# Run all scenarios (generates charts/ folder)
+python api/main.py
 ```
-
-This will:
-- Download historical data
-- Calculate mean returns and covariance
-- Simulate portfolio under historical, fiat debasement, and geopolitical crisis regimes
-- Output charts to `charts/`
-
-## 📊 Output & Interpretation
-
-Each regime produces:
-- **Simulation results**: Confidence intervals, key paths, risk metrics (VaR, CVaR)
-- **Correlation heatmap**: Asset correlations, matrix conditioning
-- **PCA analysis**: Principal components, explained variance, factor loadings
-
-**Key metrics:**
-- Median, mean, best/worst case outcomes
-- VaR/CVaR at 95% and 99% levels
-- PCA: top risk factors, asset contributions
-
-## 🔬 Methodology & Assumptions
-
-- Historical daily returns from Yahoo Finance
-- Mean/covariance estimation, regime-dependent adjustments
-- Multivariate normal sampling for correlated returns
-- 1000 simulations, 252 trading days
-- No transaction costs, perfect rebalancing
-
-## 🛠️ Customization
-
-**Change portfolio:** Edit `src/portfolio.py`:
-```python
-def get_portfolio():
-    tickers = ["YOUR_TICKERS"]
-    weights = [YOUR_WEIGHTS]  # Must sum to 1.0
-    return (tickers, weights)
-```
-
-**Add new regime:**
-```python
-NEW_REGIME = {
-    "BTC-EUR": {"mean_factor": 1.2, "vol_factor": 1.1},
-    # ... all assets ...
-    "correlation_move_pct": 0.1
-}
-```
-
-**Adjust simulation parameters:** Edit `src/monte_carlo.py`:
-```python
-portfolio_paths = simulate_portfolio_paths(
-    mean_returns, cov_matrix, weights, num_simulations=2000, initial_value=50000
-)
-```
-
-## 📚 Educational Value
-
-Demonstrates:
-- Portfolio theory, diversification, correlation
-- Monte Carlo methods, risk metrics (VaR, CVaR)
-- Regime/sensitivity analysis
-- PCA/eigenvalue decomposition for risk factors
-- Data science: financial data processing, visualization
-
-## 📄 License & Dependencies
-
-- **numpy**: Numerical computations
-- **pandas**: Data analysis
-- **matplotlib**: Visualization
-- **yfinance**: Data retrieval
-- **black**: Code formatting
