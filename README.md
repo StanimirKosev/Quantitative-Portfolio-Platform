@@ -10,10 +10,12 @@ Full-stack Monte Carlo simulation platform with **Python simulation engine**, **
 - **Advanced financial mathematics**: Regime-dependent risk modeling with sophisticated correlation adjustments
 - **Professional visualizations**: Interactive charts with Monte Carlo paths, correlation matrices, and risk analysis
 - **Real-time portfolio validation** with form feedback and error handling
+- **Cloud-native deployment**: Containerized with Docker, deployed on Google Cloud Run (GCP)
 
 ## 📸 Screenshots & Demo
 
-**Live Demo**: [monte-carlo-regime-portfolio-simulator.vercel.app](https://monte-carlo-regime-portfolio-simulator.vercel.app/default-portfolio)
+**Live Frontend**: [mc-frontend (Cloud Run)](https://mc-frontend-668378177815.europe-west1.run.app)
+**Live Backend API**: [mc-backend (Cloud Run)](https://mc-backend-668378177815.europe-west1.run.app/docs)
 
 ### Default Portfolio Dashboard
 
@@ -54,6 +56,7 @@ _Principal component analysis identifying dominant risk factors_
 
 - **Backend**: Python, FastAPI, NumPy, Pandas, Matplotlib, yfinance
 - **Frontend**: React 19, TypeScript, Vite, shadcn/ui, Recharts, TanStack Query, Zustand
+- **Cloud & DevOps**: Docker, Google Cloud Run, Google Artifact Registry
 
 ## 🎨 Frontend Features
 
@@ -100,8 +103,6 @@ _Principal component analysis identifying dominant risk factors_
 
 ## 🚀 API Endpoints
 
-**Live API Documentation**: [https://monte-carlo-regime-portfolio-simulator-production.up.railway.app/docs](https://monte-carlo-regime-portfolio-simulator-production.up.railway.app/docs)
-
 - **`GET /api/portfolio/default`** - Default 6-asset portfolio composition and date range
 - **`POST /api/simulate/{regime}`** - Run Monte Carlo simulation for default portfolio (historical/fiat_debasement/geopolitical_crisis)
 - **`POST /api/simulate/custom`** - Run simulation for fully customizable portfolio with custom regime parameters
@@ -137,7 +138,8 @@ This project shows how foundational math and programming knowledge can be applie
 
 ## 🚀 Installation & Setup
 
-**Prerequisites:** Python 3.8+, Node.js 18+
+**Prerequisites (local dev):** Python 3.8+, Node.js 18+
+**Prerequisites (containers/cloud):** Docker Desktop, gcloud CLI, a GCP project with Cloud Run and Artifact Registry APIs enabled
 
 ### Backend Setup
 
@@ -172,9 +174,52 @@ npm run preview      # Preview production build
 
 ### Full-Stack Web Application
 
-1. **Start API server**: `cd api && uvicorn app:app --reload --port 8000`
-2. **Start frontend**: `cd frontend && npm run dev`
-3. **Access application**: http://localhost:5173
+Start services using the commands in Installation & Setup above, then open:
+
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8000
+
+### Docker + GCP (Artifact Registry + Cloud Run)
+
+1. Configure gcloud and create a repo (example region europe-west1):
+
+```bash
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+gcloud config set run/region europe-west1
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com
+gcloud artifacts repositories create mc --repository-format=docker --location=europe-west1
+gcloud auth configure-docker europe-west1-docker.pkg.dev
+```
+
+2. Build and push backend image:
+
+```bash
+docker build -t montecarlo-backend ./api
+docker tag montecarlo-backend europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-backend:latest
+docker push europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-backend:latest
+```
+
+3. Deploy backend to Cloud Run (copy the resulting URL):
+
+```bash
+gcloud run deploy mc-backend \
+  --image europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-backend:latest \
+  --allow-unauthenticated
+```
+
+4. Build frontend with backend URL baked in, push, deploy:
+
+```bash
+# Replace BACKEND_URL with the Cloud Run URL from step 3
+docker build --build-arg VITE_API_URL=BACKEND_URL -t montecarlo-frontend ./frontend
+docker tag montecarlo-frontend europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-frontend:latest
+docker push europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-frontend:latest
+
+gcloud run deploy mc-frontend \
+  --image europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-frontend:latest \
+  --allow-unauthenticated
+```
 
 ### Standalone Python Simulation
 

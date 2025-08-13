@@ -1,5 +1,7 @@
 # Frontend Integration Sprint Tasks - Final 2025 Stack
 
+> Note: Deployment tasks are consolidated in `tasks/backend-tasks.md` (Docker + GCP).
+
 ## FE-001: Setup FastAPI Wrapper
 
 Status: Completed
@@ -305,41 +307,6 @@ Added professional polish using modern React features and optimal performance.
 - Implement shadcn/ui skeleton components for loading states
 - Optimize TanStack Query with proper stale times and background updates
 - Use lodash for performance-critical data transformations
-
----
-
-## FE-010: Deployment & Documentation
-
-Status: Completed ✅
-Priority: Low
-Dependencies: FE-009
-Deploy application and create comprehensive documentation.
-
-**Acceptance Criteria** ✅
-
-- ✅ Frontend deployed to Vercel (optimal for Vite + React)
-- ✅ Backend deployed to Railway/Render
-- ✅ Environment variables properly configured
-- ✅ Updated README with complete tech stack explanation
-- ✅ User guide with screenshots and feature explanations
-- ✅ Architecture documentation showing library integrations
-
-**Technical Notes**
-
-- Build production versions with TypeScript compilation
-- Configure environment variables for production API endpoints
-- Setup Vercel deployment with proper build settings for Vite
-- Update repository README with:
-  - **Tech Stack**: Vite, TypeScript, TanStack Query, Zustand, React Router, shadcn/ui, Lodash
-  - **Architecture**: Component relationships, state management flow
-  - **API Integration**: How frontend connects to FastAPI backend
-  - **Chart Strategy**: Backend-generated charts + shadcn/ui interactive elements
-- Create user documentation with screenshots of:
-  - Your default portfolio analysis
-  - Custom portfolio creation
-  - Regime switching functionality
-  - Interactive shadcn/ui chart features
-- Include troubleshooting section and performance optimization notes
 
 ---
 

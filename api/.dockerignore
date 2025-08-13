@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+.git/
+# Ignore runtime-generated charts; they are not needed in the build context
+charts/*
+screenshots/

@@ -26,8 +26,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:4173",  # Local production testing
         "http://localhost:5173",  # Local dev
-        "https://monte-carlo-regime-portfolio-simulator.vercel.app",  # Vercel production
-        "https://monte-carlo-regime-portfolio-simulator-production.up.railway.app",  # Railway API
+        "https://mc-frontend-668378177815.europe-west1.run.app",  # GCP Cloud Run frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],

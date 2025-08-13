@@ -20,7 +20,6 @@ Use simple Python lists for now
 Example: tickers = ['AAPL', 'GOOGL', ...]
 Example: weights = [0.2, 0.15, ...]
 
-
 MC-002: Download Historical Stock Data
 Status: Completed
 Priority: High
@@ -41,7 +40,6 @@ Technical Notes
 Use pandas for data handling
 Daily return = (today_price - yesterday_price) / yesterday_price
 Store returns, not prices
-
 
 MC-003: Calculate Mean Returns and Covariance
 Status: Completed
@@ -64,7 +62,6 @@ Use numpy.mean() for returns
 Use numpy.cov() for covariance matrix
 Covariance shows how assets move together
 
-
 MC-004: Generate Random Samples
 Status: Completed
 Priority: High
@@ -86,7 +83,6 @@ Use numpy.random.multivariate_normal()
 Input: mean returns, covariance matrix
 Output: random daily returns for simulation
 
-
 MC-005: Run Basic Portfolio Simulation
 Status: Completed
 Priority: High
@@ -105,10 +101,9 @@ Runs multiple simulations (e.g., 1000 times)
 
 Technical Notes
 
-portfolio_value[day] = portfolio_value[day-1] * (1 + daily_return)
+portfolio_value[day] = portfolio_value[day-1] \* (1 + daily_return)
 Store all simulation paths
 Each simulation is one possible future
-
 
 MC-006: Visualize Monte Carlo Results
 Status: Completed
@@ -133,7 +128,6 @@ Plot individual paths with low alpha for transparency
 Use different colors for mean, median, and confidence bands
 Add statistics text box on the plot
 Include proper axis labels and title
-
 
 MC-007: Calculate Risk Metrics
 Status: Not Started
@@ -171,11 +165,13 @@ Test how different parameter adjustments affect portfolio outcomes
 Acceptance Criteria
 
 Test different parameter combinations:
+
 - Fiat debasement scenario (your macro view)
 - High inflation vs deflation scenarios
 - High vs low volatility scenarios
 
 Show sensitivity analysis:
+
 - How small parameter changes affect final outcomes
 - Risk/return profiles under different assumptions
 - Visualization of multiple scenarios
@@ -183,10 +179,10 @@ Show sensitivity analysis:
 Technical Notes
 
 Use simple arithmetic operations:
-- mean_returns * inflation_factor
-- cov_matrix * volatility_multiplier
-- correlation_adjustments for asset relationships
 
+- mean_returns \* inflation_factor
+- cov_matrix \* volatility_multiplier
+- correlation_adjustments for asset relationships
 
 MC-009: Documentation & README
 Status: Completed
@@ -233,7 +229,6 @@ Create correlation matrix from covariance: corr = cov / (std_outer_product)
 Use plt.imshow() or seaborn.heatmap() for correlation visualization
 Conditioning number = max_eigenvalue / min_eigenvalue
 
-
 MC-011: Principal Component Analysis (PCA)
 Status: Completed
 Priority: Medium
@@ -273,6 +268,32 @@ Acceptance Criteria
 
 Technical Notes
 
-- Start with simple scaling (e.g., cov_matrix * factor)
+- Start with simple scaling (e.g., cov_matrix \* factor)
 - Optionally, allow for custom correlation adjustments
 - Update all analysis and visualization scripts to use the correct matrix for each regime
+
+MC-012: Docker and GCP Deployment
+Status: Completed
+Priority: High
+Dependencies: FE-002, FE-003
+
+Objective: Containerize backend and frontend, run both locally, push images to GCP Artifact Registry, and deploy on Cloud Run.
+
+Acceptance Criteria
+
+- Backend image builds and runs locally:
+  - `docker build -t montecarlo-backend ./api`
+  - `docker run --rm -p 8000:8000 montecarlo-backend`
+  - API reachable at `http://localhost:8000/`
+- Frontend image builds and runs locally (Vite preview on port 8080):
+  - `docker build --build-arg VITE_API_URL=http://localhost:8000 -t montecarlo-frontend ./frontend`
+  - `docker run --rm -p 5173:8080 montecarlo-frontend`
+  - App reachable at `http://localhost:5173/` and calls the API
+- Local container testing done individually:
+  - Backend: `docker build -t montecarlo-backend ./api && docker run --rm -p 8000:8000 montecarlo-backend`
+  - Frontend: `docker build --build-arg VITE_API_URL=http://localhost:8000 -t montecarlo-frontend ./frontend && docker run --rm -p 5173:8080 montecarlo-frontend`
+- GCP Artifact Registry repositories created and images pushed for both services
+- Two Cloud Run services created from Artifact Registry images:
+  - Backend: listens on `$PORT` (Dockerfile defaults to 8000 locally)
+  - Frontend: listens on `$PORT` (Dockerfile defaults to 8080 locally) and is built with `VITE_API_URL=<backend Cloud Run URL>`
+- Visiting the frontend Cloud Run URL shows data loaded from the backend Cloud Run URL
