@@ -66,7 +66,9 @@ def fetch_close_prices(
     return close
 
 
-def transform_to_daily_returns_percent(close_prices: pd.DataFrame) -> pd.DataFrame:
+def transform_to_daily_returns_percent(
+    close_prices: Optional[pd.DataFrame],
+) -> pd.DataFrame:
     """
     Convert a DataFrame of closing prices to daily returns in percent.
 

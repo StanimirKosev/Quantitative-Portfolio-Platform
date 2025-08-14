@@ -390,7 +390,20 @@ Achieve >80% code coverage on core mathematical functions
 
 Technical Notes
 
-Use pytest framework: pip install pytest pytest-cov
+### Testing Framework and Dependencies
+```bash
+cd api
+pip install pytest pytest-asyncio pytest-mock pytest-httpx pytest-cov httpx
+```
+
+### Tools and Libraries
+- **pytest**: Core testing framework with excellent fixtures for financial mathematics
+- **pytest-asyncio**: Native FastAPI async/await testing support  
+- **pytest-httpx**: FastAPI TestClient integration for API endpoint testing
+- **pytest-mock**: Mock external dependencies (yfinance) for reliable CI/CD
+- **pytest-cov**: Code coverage reporting with HTML output
+
+Use pytest framework
 Create tests/ directory with test\_\*.py files
 Test mathematical properties: matrix symmetry, eigenvalue ordering
 Use pytest.approx() for floating-point comparisons

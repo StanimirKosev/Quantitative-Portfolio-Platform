@@ -308,6 +308,39 @@ Added professional polish using modern React features and optimal performance.
 - Optimize TanStack Query with proper stale times and background updates
 - Use lodash for performance-critical data transformations
 
+## FE-010: Implement Comprehensive Testing Suite
+
+Status: Not Started
+Priority: High
+Dependencies: FE-009
+Create testing coverage for frontend components, stores, and API integration.
+
+**Acceptance Criteria**
+- Unit tests for Zustand stores and utility functions
+- Component tests for key UI components and charts  
+- API integration tests with TanStack Query
+- E2E tests for main user workflows
+- Achieve >80% code coverage on critical paths
+
+**Technical Notes**
+
+### Dependencies
+```bash
+cd frontend
+npm install -D vitest jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event msw
+```
+
+### Tools
+- **Vitest**: Testing framework with Vite integration
+- **React Testing Library**: Component testing
+- **MSW**: API mocking  
+- **jsdom**: Browser environment simulation
+
+### Setup
+- Update vite.config.ts for test environment
+- Create test setup files and API mocks
+- Configure coverage reporting
+
 ---
 
 ## Final Tech Stack Summary
