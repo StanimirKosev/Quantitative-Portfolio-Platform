@@ -3,6 +3,8 @@ import matplotlib
 matplotlib.use("Agg")  # Use non-GUI backend before importing pyplot
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from typing import List
 from monte_carlo import (
     analyze_portfolio_correlation,
     analyze_portfolio_risk_factors,
@@ -13,7 +15,9 @@ import seaborn as sns
 from utils import get_regime_display_suffix, save_figure
 
 
-def plot_simulation_results(portfolio_paths, regime_name, show=True):
+def plot_simulation_results(
+    portfolio_paths: List[List[float]], regime_name: str, show: bool = True
+) -> str:
     """Visualizes the results of a Monte Carlo portfolio simulation with percentile bands and key paths.
 
     This function generates a professional plot displaying the outcomes of multiple portfolio
@@ -159,7 +163,9 @@ def plot_simulation_results(portfolio_paths, regime_name, show=True):
     return url_path
 
 
-def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
+def plot_correlation_heatmap(
+    cov_matrix: pd.DataFrame, regime_name: str, show: bool = True
+) -> str:
     """
     Plot a heatmap of the portfolio's correlation matrix using seaborn, with conditioning diagnostics.
 
@@ -238,7 +244,9 @@ def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
     return url_path
 
 
-def plot_portfolio_pca_analysis(cov_matrix, regime_name, show=True):
+def plot_portfolio_pca_analysis(
+    cov_matrix: pd.DataFrame, regime_name: str, show: bool = True
+) -> str:
     """
     Visualize principal component analysis (PCA) results for a portfolio as a risk factor bar chart.
 

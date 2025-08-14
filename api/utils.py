@@ -1,6 +1,9 @@
 import yfinance as yf
 import os
 import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from typing import List, Tuple, Optional, Union
 
 HISTORICAL = "Historical"
 GEOPOLITICAL_CRISIS_REGIME_NAME = "Geopolitical Crisis"
@@ -10,12 +13,16 @@ DEFAULT_PORTFOLIO_DATES = {"start": "2022-01-01", "end": "2024-12-31"}
 
 
 class InvalidTickersException(Exception):
-    def __init__(self, message, invalid_tickers=None):
+    def __init__(self, message: str, invalid_tickers: Optional[List[str]] = None):
         super().__init__(message)
         self.invalid_tickers = invalid_tickers
 
 
-def fetch_close_prices(tickers, start=None, end=None):
+def fetch_close_prices(
+    tickers: Union[List[str], str],
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+) -> Optional[pd.DataFrame]:
     """
     Fetches daily closing prices for specified tickers within a date range using yfinance.
 
@@ -59,7 +66,7 @@ def fetch_close_prices(tickers, start=None, end=None):
     return close
 
 
-def transform_to_daily_returns_percent(close_prices):
+def transform_to_daily_returns_percent(close_prices: pd.DataFrame) -> pd.DataFrame:
     """
     Convert a DataFrame of closing prices to daily returns in percent.
 
@@ -80,7 +87,9 @@ def transform_to_daily_returns_percent(close_prices):
     return daily_returns * 100
 
 
-def calculate_mean_and_covariance(daily_returns):
+def calculate_mean_and_covariance(
+    daily_returns: pd.DataFrame,
+) -> Tuple[np.ndarray, pd.DataFrame]:
     """
     Calculate the mean daily returns and covariance matrix for a set of assets.
 
@@ -98,7 +107,7 @@ def calculate_mean_and_covariance(daily_returns):
     return mean_returns, cov_matrix
 
 
-def save_figure(regime_name, prefix):
+def save_figure(regime_name: str, prefix: str) -> str:
     """
     Save the current matplotlib figure to the scenario-specific charts folder.
 
@@ -125,6 +134,6 @@ def save_figure(regime_name, prefix):
     return url_path
 
 
-def get_regime_display_suffix(regime_name):
+def get_regime_display_suffix(regime_name: str) -> str:
     """Returns a formatted suffix for regime name display, excluding 'Custom'."""
     return f" - {regime_name}" if (regime_name and regime_name != "Custom") else ""

@@ -1,8 +1,14 @@
 import numpy as np
 import pandas as pd
+from typing import List, Dict, Tuple, Optional, Union
 
 
-def simulate_daily_returns(mean_returns, cov_matrix, weights, size=252):
+def simulate_daily_returns(
+    mean_returns: np.ndarray,
+    cov_matrix: np.ndarray,
+    weights: np.ndarray,
+    size: int = 252,
+) -> np.ndarray:
     """
     Simulate portfolio daily return samples using a multivariate normal distribution.
 
@@ -22,12 +28,12 @@ def simulate_daily_returns(mean_returns, cov_matrix, weights, size=252):
 
 
 def simulate_portfolio_paths(
-    mean_returns,
-    cov_matrix,
-    weights,
-    initial_value=10000,
-    num_simulations=1000,
-):
+    mean_returns: np.ndarray,
+    cov_matrix: np.ndarray,
+    weights: np.ndarray,
+    initial_value: float = 10000,
+    num_simulations: int = 1000,
+) -> List[List[float]]:
     """
     Simulate multiple portfolio value paths over time using Monte Carlo simulation.
 
@@ -60,7 +66,7 @@ def simulate_portfolio_paths(
     return portfolio_paths
 
 
-def calculate_risk_metrics(portfolio_paths):
+def calculate_risk_metrics(portfolio_paths: List[List[float]]) -> Dict[str, float]:
     """
     Calculate professional risk metrics from Monte Carlo simulation results.
 
@@ -79,11 +85,11 @@ def calculate_risk_metrics(portfolio_paths):
     for path in portfolio_paths:
         final_value = path[-1]
         final_values.append(final_value)
-        
+
         # Loss calculation
         loss = -(final_value / initial_value - 1)
         losses.append(loss)
-        
+
         # Max drawdown calculation (peak-to-trough)
         running_max = np.maximum.accumulate(path)
         drawdowns = (path - running_max) / running_max
@@ -123,7 +129,9 @@ def calculate_risk_metrics(portfolio_paths):
     }
 
 
-def calculate_simulation_statistics(portfolio_paths):
+def calculate_simulation_statistics(
+    portfolio_paths: List[List[float]],
+) -> Dict[str, Union[float, int]]:
     """
     Calculate comprehensive statistics and metrics from Monte Carlo simulation results.
 
@@ -189,7 +197,11 @@ def calculate_simulation_statistics(portfolio_paths):
     }
 
 
-def modify_portfolio_for_regime(mean_returns, cov_matrix, regime_asset_factors):
+def modify_portfolio_for_regime(
+    mean_returns: np.ndarray,
+    cov_matrix: np.ndarray,
+    regime_asset_factors: Dict[str, Dict[str, Optional[float]]],
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Modify mean returns and covariance matrix based on macroeconomic regime factors.
 
@@ -250,7 +262,9 @@ def modify_portfolio_for_regime(mean_returns, cov_matrix, regime_asset_factors):
     return modified_mean_returns, modified_cov_matrix
 
 
-def analyze_portfolio_risk_factors(cov_matrix):
+def analyze_portfolio_risk_factors(
+    cov_matrix: pd.DataFrame,
+) -> Dict[str, Union[np.ndarray, Dict[int, List[Dict[str, Union[str, float]]]], float]]:
     """
     Perform principal component analysis (PCA) on a covariance matrix to identify dominant risk factors in a portfolio.
 
@@ -324,7 +338,9 @@ def analyze_portfolio_risk_factors(cov_matrix):
     }
 
 
-def analyze_portfolio_correlation(cov_matrix):
+def analyze_portfolio_correlation(
+    cov_matrix: pd.DataFrame,
+) -> Dict[str, Union[float, bool, pd.DataFrame, np.ndarray]]:
     """
     Compute eigenvalues, condition number, and correlation matrix from a covariance matrix.
 

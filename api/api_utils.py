@@ -1,3 +1,4 @@
+from typing import List, Dict, Optional, Union, Mapping, TypedDict
 from portfolio import (
     GEOPOLITICAL_CRISIS_REGIME,
     FIAT_DEBASEMENT_REGIME,
@@ -22,7 +23,17 @@ from fastapi import HTTPException
 from datetime import datetime
 
 
-def get_available_regimes():
+class AssetFactor(TypedDict, total=False):
+    mean_factor: Optional[float]
+    vol_factor: Optional[float]
+
+
+# Regime factors payload maps tickers → AssetFactor, plus a special key
+# 'correlation_move_pct' → float
+RegimeFactors = Mapping[str, Union[AssetFactor, float]]
+
+
+def get_available_regimes() -> Dict[str, List[Dict[str, str]]]:
     """
     Returns a list of available regimes, each with key and name.
     """
@@ -44,8 +55,13 @@ def get_available_regimes():
 
 
 def run_portfolio_simulation_api(
-    tickers, weights, regime, regime_factors=None, start_date=None, end_date=None
-):
+    tickers: List[str],
+    weights: List[float],
+    regime: str,
+    regime_factors: Optional[RegimeFactors] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+) -> Dict[str, str]:
     """
     Orchestrates the full Monte Carlo simulation and chart generation for a given portfolio and regime.
 
@@ -113,7 +129,13 @@ def run_portfolio_simulation_api(
     }
 
 
-def validate_portfolio(tickers, weights, regime_factors, start_date, end_date):
+def validate_portfolio(
+    tickers: List[str],
+    weights: List[float],
+    regime_factors: Optional[RegimeFactors],
+    start_date: Optional[str],
+    end_date: Optional[str],
+) -> Dict[str, Union[bool, List[str]]]:
     """
     Internal utility for validating a custom portfolio's tickers and weights for a given date range.
     Used by the /api/portfolio/validate endpoint.
@@ -140,7 +162,7 @@ def validate_portfolio(tickers, weights, regime_factors, start_date, end_date):
     if not all(w > 0 for w in weights):
         errors.append("All weights must be greater than zero.")
     if abs(sum(weights) - 1.0) > 0.0001:
-        errors.append("Weights must sum to 100.")
+        errors.append("Weights must sum to 100%.")
 
     # 4. No duplicate tickers
     if len(set(tickers)) != len(tickers):
@@ -201,7 +223,9 @@ def validate_portfolio(tickers, weights, regime_factors, start_date, end_date):
     return {"success": True, "message": "Portfolio is valid."}
 
 
-def get_regime_parameters(regime_key):
+def get_regime_parameters(
+    regime_key: str,
+) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
     """
     Returns the regime modification parameters for a given regime.
     The returned object has the following structure:

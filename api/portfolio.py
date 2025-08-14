@@ -1,4 +1,7 @@
-def get_portfolio():
+from typing import List, Tuple
+
+
+def get_portfolio() -> Tuple[List[str], List[float]]:
     tickers = ["BTC-EUR", "5MVW.DE", "SPYL.DE", "WMIN.DE", "IS3N.DE", "4GLD.DE"]
     weights = [0.6, 0.13, 0.105, 0.07, 0.06, 0.035]
 

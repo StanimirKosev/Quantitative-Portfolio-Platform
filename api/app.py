@@ -36,12 +36,14 @@ app.mount("/charts", StaticFiles(directory="charts"), name="charts")
 
 
 @app.get("/")
-async def root():
+async def root() -> Dict[str, str]:
     return {"message": "API running"}
 
 
 @app.get("/api/portfolio/default")
-async def get_default_portfolio():
+async def get_default_portfolio() -> (
+    Dict[str, Union[List[Dict[str, Union[str, float]]], str]]
+):
     """
     Returns the default portfolio as a list of assets, each with ticker, weight_pct (percentage), and description, and the default date range for visualization.
 
@@ -97,7 +99,9 @@ class PortfolioRequestPayload(BaseModel):
 
 
 @app.post("/api/simulate/custom")
-async def simulate_custom_portfolio_regime(request: PortfolioRequestPayload):
+async def simulate_custom_portfolio_regime(
+    request: PortfolioRequestPayload,
+) -> Dict[str, str]:
     """
     Run a Monte Carlo simulation for a custom portfolio under a specified regime.
 
@@ -132,7 +136,7 @@ async def simulate_custom_portfolio_regime(request: PortfolioRequestPayload):
 
 
 @app.post("/api/simulate/{regime}")
-async def simulate_default_portfolio_regime(regime: str):
+async def simulate_default_portfolio_regime(regime: str) -> Dict[str, str]:
     """
     Run a Monte Carlo simulation for the default portfolio under a specified regime.
 
@@ -153,7 +157,9 @@ async def simulate_default_portfolio_regime(regime: str):
 
 
 @app.post("/api/portfolio/validate")
-async def validate_custom_portfolio(request: PortfolioRequestPayload):
+async def validate_custom_portfolio(
+    request: PortfolioRequestPayload,
+) -> Dict[str, Union[bool, List[str]]]:
     """
     Validates a custom portfolio's tickers and weights for a given date range.
     Expects:
@@ -186,7 +192,7 @@ async def validate_custom_portfolio(request: PortfolioRequestPayload):
 
 
 @app.get("/api/regimes")
-async def get_regimes():
+async def get_regimes() -> Dict[str, List[Dict[str, str]]]:
     """
     Returns a list of available regimes, each with key, name, and description.
 
@@ -204,7 +210,9 @@ async def get_regimes():
 
 
 @app.get("/api/regimes/{regime}/parameters")
-async def get_regime_parameters_endpoint(regime: str):
+async def get_regime_parameters_endpoint(
+    regime: str,
+) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
     """
     Returns the regime modification parameters for the given regime.
 
