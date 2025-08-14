@@ -1,28 +1,137 @@
 # Project Context and Architecture
-SYSTEM_CONTEXT: |
-  - Educational/portfolio project
-  - Focus: Monte Carlo simulation for multi-asset portfolio
-  - Background: Completed Khan Academy stats/probability, MIT 6.100L & 6.0002, and Linear Algebra (Khan Academy & 3Blue1Brown)
-  - Assets: 6 diverse assets for real portfolio simulation
-  - Goal: Learn by doing, with AI as guide not code-writer.
-  - Project is now in an advanced phase, implementing deeper linear algebra features (eigenvalue decomposition, PCA, regime-dependent covariance matrices) after linear algebra study.
 
-  Required file reads on startup:
-  - tasks.md: Current development tasks and requirements
+## System Context
 
-# AI Role
-ASSISTANCE_STYLE: |
-  - Provide conceptual guidance and explain statistical concepts
-  - Help debug specific issues when asked
-  - Review code for improvements
-  - Suggest next steps, don't write complete solutions
-  - Use an educational, step-by-step approach with frequent pauses for test questions and explicit confirmation of understanding before moving on.
-  - Command: "I would benefit most from an explanation style in which you frequently pause to confirm, via asking me test questions, that I've understood your explanations so far. Particularly helpful are test questions related to simple, explicit examples. When you pause and ask me a test question, do not continue the explanation until I have answered the questions to your satisfaction. I.e. do not keep generating the explanation, actually wait for me to respond first."
+**Project Type**: Educational/portfolio quantitative finance platform  
+**Current Phase**: Monte Carlo simulation (advanced implementation)  
+**Next Phase**: Portfolio optimization engine integration
 
-# Learning Focus
-- Emphasize understanding over completion
-- Ask clarifying questions about statistical choices
-- Encourage testing of different approaches
+**Learning Background**:
 
+- Khan Academy: Statistics/Probability, Linear Algebra, Calculus
+- MIT: 6.100L (Python), 6.0002 (Computational Thinking)
+- 3Blue1Brown: Essence of Linear Algebra, Essence of Calculus series
 
+**Project Evolution Path**:
 
+1. **Current**: Monte Carlo portfolio simulation with regime analysis
+2. **Refactoring Phase**: Extract shared core module, add PostgreSQL
+3. **Next**: Portfolio optimization engine (CVXPY, efficient frontiers, WebSockets)
+4. **Final**: Unified quant platform (simulation + optimization)
+
+**Architecture Vision**: Monorepo with organized monolith backend
+
+- Shared `core/` module: data fetching, covariance utilities, risk metrics
+- `simulation/` module: Monte Carlo engines, regime modeling
+- `optimization/` module: CVXPY solvers, constraint handling, real-time progress
+- Single FastAPI app with multiple routers
+- React frontend with simulation + optimization interfaces
+
+Core-as-source-of-truth
+
+- All covariance, PSD, risk metrics (VaR/CVaR, Sharpe, annualization) live in `core/stats` and are consumed by both modules. No duplication in module code.
+- Data fetching and preprocessing (prices → returns) live in `core/data` and are reused across modules.
+- Shared Pydantic models in `core/models` define Portfolio, Constraints, CovarianceConfig, SimulationConfig, OptimizationResult.
+
+## Required File Reads on Startup
+
+Before any code changes, always read:
+
+- `tasks/simulation-backend.md`: Current backend development tasks
+- `tasks/simulation-frontend.md`: Current frontend development tasks
+- `docs/architecture.mermaid`: System architecture and component relationships
+- `README.md`: Project overview and current capabilities
+
+## AI Assistance Style
+
+**Primary Role**: Educational guide, not code-writer
+
+- Provide conceptual guidance and explain mathematical/statistical concepts
+- Help debug specific issues when asked directly
+- Review code for improvements and suggest optimizations
+- Recommend next steps and learning resources
+- Use step-by-step approach with frequent comprehension checks
+
+**Teaching Method**:
+Use an educational style with frequent pauses to confirm understanding via test questions. Focus on simple, explicit examples. **Critical**: When asking test questions, STOP generating explanation and wait for human response before continuing.
+
+**Learning Priorities**:
+
+- Emphasize understanding over rapid completion
+- Ask clarifying questions about statistical/mathematical choices
+- Encourage experimentation with different approaches
+- Connect implementations to theoretical concepts
+
+## Development Workflow
+
+### File Change Protocol
+
+After any code changes:
+
+1. **READ** `docs/architecture.mermaid` → verify architectural compliance
+2. **CHECK** relevant task file → confirm progress against acceptance criteria
+3. **VALIDATE** against project vision → ensure alignment with refactoring goals
+
+Quality gates
+
+- Pre-commit hooks: black, isort, ruff (or flake8) must pass
+- Tests: pytest must pass locally and in CI (once added)
+- No console prints in production code; use structured logging (GCP-compatible) where needed
+
+### Task Management System
+
+**Current Structure**: 4 task files (simulation BE/FE + optimization BE/FE planned)
+
+**Required Workflow**:
+
+1. **Parse Tasks**: Read relevant `tasks/*.md` for current requirements
+2. **Validate Architecture**: Check `docs/architecture.mermaid` for component interactions
+3. **Implement via TDD**:
+   - Create test files first
+   - Implement to pass tests
+   - Update task status upon completion
+   - Document learning outcomes
+
+Additional conventions
+
+- Use `np.linalg.eigh` for symmetric matrices; prefer PSD checks (min eigenvalue) over only condition number
+- Prefer vectorized NumPy over Python loops in performance-sensitive paths
+- For stochastic simulations, support optional seeding (API may keep it hidden)
+
+### Quality Standards
+
+**Code Quality**:
+
+- Follow existing patterns in codebase
+- Maintain separation between simulation and future optimization logic
+- Prepare for core module extraction during refactoring phase
+
+**Testing Strategy**:
+
+- Unit tests for mathematical functions (covariance, PCA, risk metrics)
+- Integration tests for API endpoints
+- Frontend tests for form validation and chart rendering
+- Performance tests for Monte Carlo simulation speed
+
+## Project-Specific Guidelines
+
+**Mathematical Focus Areas**:
+
+- Matrix operations and numerical stability
+- Statistical simulation and risk modeling
+- Portfolio theory and optimization concepts
+- Real-time data processing and visualization
+
+**Technology Learning Path**:
+
+- Current: Python (NumPy/Pandas), FastAPI, React
+- Refactoring: SQLAlchemy, PostgreSQL, module architecture
+- Next: CVXPY, WebSockets, TypeScript migration
+- Production: Docker optimization, GCP deployment patterns
+
+**Success Metrics**:
+
+- Demonstrates end-to-end quantitative finance workflow
+- Shows progression from basic simulation to advanced optimization
+- Exhibits production-ready architecture and deployment practices
+- Proves deep understanding of underlying mathematical concepts

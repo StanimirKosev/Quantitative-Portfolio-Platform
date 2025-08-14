@@ -1,0 +1,65 @@
+graph TD
+    A[quant-platform/] --> B[backend/]
+    A --> C[frontend/]
+    A --> D[tasks/]
+    A --> F[README.md]
+
+    subgraph Backend
+        B --> G[core/]
+        B --> H[simulation/]
+        B --> I[optimization/]
+        B --> J[database/]
+        B --> K[FastAPI app]
+
+        subgraph Core
+            G --> G1[data/]
+            G --> G2[stats/]
+            G --> G3[validation/]
+            G --> G4[models/]
+            G1 --> G1a[yfinance, caching, preprocessing]
+            G2 --> G2a[covariance, shrinkage, PSD, risk metrics]
+            G3 --> G3a[portfolio validation]
+            G4 --> G4a[shared Pydantic models]
+        end
+
+        subgraph Simulation
+            H --> H1[engines/]
+            H --> H2[router /sim/*]
+            H1 --> H1a[MC engines, regime logic]
+        end
+
+        subgraph Optimization
+            I --> I1[engines/]
+            I --> I2[websockets/]
+            I --> I3[router /opt/*]
+            I1 --> I1a[CVXPY solvers, constraints]
+            I2 --> I2a[Live progress updates]
+        end
+
+        J --> J1[SQLAlchemy models, migrations]
+    end
+
+    subgraph Frontend
+        C --> L[src/]
+        L --> L1[components/]
+        L --> L2[pages/]
+        L --> L3[lib/]
+        L1 --> L1a[shared/]
+        L1a --> L1a1[Portfolio forms, charts]
+        L2 --> L2a[simulation]
+        L2 --> L2b[optimization]
+        L3 --> L3a[API clients, WS clients]
+    end
+
+    %% Data/control flows
+    L3a -- REST --> K
+    L2b -- WS connect --> I2
+    K -- uses --> G2a
+    K -- uses --> G1a
+    K -- uses --> G4a
+    K -- DB CRUD --> J1
+
+    D --> D1[simulation-backend.md]
+    D --> D2[simulation-frontend.md]
+    D --> D3[optimization-backend.md]
+    D --> D4[optimization-frontend.md]

@@ -130,7 +130,7 @@ Add statistics text box on the plot
 Include proper axis labels and title
 
 MC-007: Calculate Risk Metrics
-Status: Not Started
+Status: In Progress
 Priority: High
 Dependencies: MC-006
 
@@ -141,17 +141,22 @@ Create risk-return scatter plot visualization
 
 Acceptance Criteria
 
-Calculate VaR at 95% and 99% confidence levels
-Calculate Conditional VaR (Expected Shortfall) at same levels
-Determine maximum drawdown from all simulation paths
+Calculate VaR at 90%, 95% and 99% confidence levels (on loss distribution)
+Calculate Conditional VaR (Expected Shortfall) at same levels (tail mean)
+Guard for empty tails (CVaR falls back to VaR if tail is empty)
+Determine maximum drawdown from all simulation paths (moved to MC-007A)
 Display risk metrics in clear, interpretable format
+Support documented annualization for different horizons
+Validate VaR/CVaR against known test cases
 
 Technical Notes
 
-VaR = percentile of final portfolio values
-CVaR = mean of values below VaR threshold
-Max drawdown = largest peak-to-trough decline
-Use numpy.percentile() and conditional calculations
+Work with cumulative returns: R = V_T / V_0 - 1; define Loss L = -R
+VaR (95%) = percentile(L, 95); CVaR (95%) = mean(L[L >= VaR95])
+Report both absolute loss amounts and percentage losses
+Max drawdown = largest peak-to-trough decline (see MC-007A)
+Use numpy.percentile() and conditional tail means
+Support multiple confidence levels and document annualization conventions
 
 MC-008: Add Your Unique Angle
 Status: Completed
@@ -208,7 +213,7 @@ Explain key concepts and statistical methodology
 Provide examples of how to interpret results
 
 MC-010: Covariance Matrix Deep Analysis
-Status: Completed
+Status: In Progress
 Priority: High
 Dependencies: MC-003
 
@@ -216,18 +221,22 @@ Enhance covariance matrix analysis with eigenvalue decomposition and correlation
 
 Acceptance Criteria
 
-Calculate eigenvalues and eigenvectors of covariance matrix
+Calculate eigenvalues and eigenvectors of covariance (or correlation) matrix
 Identify dominant risk factors (top 2-3 eigenvalues)
 Create correlation matrix heatmap visualization
-Check matrix conditioning number
+Compute conditioning diagnostics (condition number and min eigenvalue)
+Validate PSD after any covariance/correlation modification (min eigenvalue ≥ tolerance)
+If needed, apply nearest-PSD projection and re-validate
 Add interpretation text explaining main risk drivers
 
 Technical Notes
 
-Use np.linalg.eig() for eigenvalue decomposition
+Use np.linalg.eigh() for symmetric (co)variance/correlation matrices
 Create correlation matrix from covariance: corr = cov / (std_outer_product)
 Use plt.imshow() or seaborn.heatmap() for correlation visualization
-Conditioning number = max_eigenvalue / min_eigenvalue
+Condition number = max_eigenvalue / min_eigenvalue; also report min eigenvalue to indicate PSD status
+Nearest-PSD projection via eigenvalue clipping; symmetrize result, set diagonal to 1.0, clip to [-1, 1]
+Log/warn when projection was required
 
 MC-011: Principal Component Analysis (PCA)
 Status: Completed
@@ -246,11 +255,29 @@ Add interpretation of top 2-3 factors
 
 Technical Notes
 
-Use eigenvalue decomposition from MC-010
+Use eigh()-based eigen decomposition from MC-010
 Sort eigenvalues/eigenvectors by importance
 Calculate explained variance ratio
 Create bar charts for factor loadings
 Focus on components explaining >10% of variance
+
+MC-007A: Maximum Drawdown Calculation
+Status: Not Started
+Priority: Medium
+Dependencies: MC-007
+
+Calculate maximum drawdown across all simulation paths and integrate into risk metrics output.
+
+Acceptance Criteria
+
+- Compute per-path max drawdown (peak-to-trough) and summary stats (mean, median, worst)
+- Display max drawdown in risk metrics panel
+- Unit test drawdown logic on synthetic monotone and V-shaped paths
+
+Technical Notes
+
+- Use rolling peak tracking with vectorized operations when possible
+- Drawdown = (trough - peak) / peak; report as negative percentage
 
 MC-008A: Regime-Dependent Covariance Matrices
 Status: Completed
@@ -297,3 +324,127 @@ Acceptance Criteria
   - Backend: listens on `$PORT` (Dockerfile defaults to 8000 locally)
   - Frontend: listens on `$PORT` (Dockerfile defaults to 8080 locally) and is built with `VITE_API_URL=<backend Cloud Run URL>`
 - Visiting the frontend Cloud Run URL shows data loaded from the backend Cloud Run URL
+
+MC-013: Add Type Hints and Python Typing
+Status: Not Started
+Priority: High
+Dependencies: MC-012
+Add comprehensive type hints throughout the Monte Carlo simulation codebase
+Improve code clarity, IDE support, and catch potential type-related bugs
+Prepare foundation for core module extraction
+
+Acceptance Criteria
+
+All functions have proper type hints for parameters and return values
+Import necessary typing modules (List, Dict, Tuple, Optional, etc.)
+Portfolio data structures properly typed
+NumPy arrays typed with appropriate shape annotations
+API endpoint functions include proper FastAPI type annotations
+
+Technical Notes
+
+Use from typing import List, Dict, Tuple, Optional, Union
+NumPy arrays: np.ndarray or npt.NDArray[np.floating]
+Portfolio weights: List[float] or np.ndarray
+Return data: pd.DataFrame for historical data
+Follow PEP 484 typing conventions
+
+MC-014: Replace Nested Dicts with Pydantic Models
+Status: Not Started
+Priority: High
+Dependencies: MC-013
+Convert nested dictionary structures to typed Pydantic models
+Improve data validation, serialization, and API documentation
+Create foundation for shared data models in core module
+Acceptance Criteria
+
+Create Portfolio model with tickers, weights, date_range fields
+Create SimulationResult model for Monte Carlo outputs
+Create RegimeParameters model for scenario configurations
+Replace all nested dict usage with these models
+Automatic API documentation generation via FastAPI + Pydantic
+
+Technical Notes
+
+Install pydantic: pip install pydantic
+Use BaseModel for all data structures
+Add field validation (weights sum to 1.0, positive values)
+Include Config class for JSON serialization
+Update API endpoints to use Pydantic models
+
+MC-015: Implement Comprehensive Testing Suite
+Status: Not Started
+Priority: High
+Dependencies: MC-014
+Create unit tests for mathematical functions and integration tests for API endpoints
+Focus on core financial calculations that will be reused in optimization module
+Establish TDD foundation for future development
+Acceptance Criteria
+
+Unit tests for covariance matrix calculations (including PSD properties)
+Unit tests for PCA and eigenvalue decomposition functions
+Unit tests for portfolio simulation logic
+Integration tests for all API endpoints
+Tests for regime parameter adjustments
+Achieve >80% code coverage on core mathematical functions
+
+Technical Notes
+
+Use pytest framework: pip install pytest pytest-cov
+Create tests/ directory with test\_\*.py files
+Test mathematical properties: matrix symmetry, eigenvalue ordering
+Use pytest.approx() for floating-point comparisons
+Mock external data sources (yfinance) in tests
+Run tests with: pytest --cov=app tests/
+
+MC-016: Add GCP Structured Logging
+Status: Not Started
+Priority: Medium
+Dependencies: MC-010
+Implement structured logging compatible with Google Cloud Platform
+Add comprehensive logging throughout simulation pipeline
+Prepare logging infrastructure for production deployment and debugging
+Acceptance Criteria
+
+Configure structured JSON logging for GCP Cloud Logging
+Add INFO level logs for simulation start/completion
+Add DEBUG level logs for intermediate calculation steps
+Add ERROR level logs with proper exception handling
+Include request IDs for API endpoint tracing
+Log performance metrics (simulation timing, data fetch duration)
+
+Technical Notes
+
+Use Python logging module with JSON formatter
+Install google-cloud-logging: pip install google-cloud-logging
+Configure different log levels for development vs production
+Include correlation IDs for request tracing
+Log statistical validation (matrix properties, convergence)
+Avoid logging sensitive data (only metadata and metrics)
+
+MC-017: Core Module Foundation Setup
+Status: Not Started
+Priority: High
+Dependencies: MC-016
+Create the foundation for shared core module that will support both simulation and optimization
+Extract reusable components while maintaining simulation functionality
+Prepare architecture for portfolio optimization integration
+Acceptance Criteria
+
+Create core/ package with proper **init**.py structure
+Move data fetching logic to core/data/ module
+Move statistical calculations to core/stats/ module
+Move validation logic to core/validation/ module
+Update simulation module to import from core
+All existing functionality continues to work unchanged
+Clear separation between simulation-specific and shared logic
+
+Technical Notes
+
+Create package structure: core/**init**.py, core/data/**init**.py, etc.
+Move yfinance wrapper to core/data/market_data.py
+Move covariance, PCA, VaR/CVaR to core/stats/risk_metrics.py
+Move portfolio validation to core/validation/portfolio.py
+Update imports in simulation module
+Maintain backward compatibility during transition
+Document core module API for optimization phase
