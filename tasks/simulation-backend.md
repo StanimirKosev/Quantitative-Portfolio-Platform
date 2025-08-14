@@ -350,7 +350,7 @@ Return data: pd.DataFrame for historical data
 Follow PEP 484 typing conventions
 
 MC-014: Replace Nested Dicts with Pydantic Models
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: MC-013
 Convert nested dictionary structures to typed Pydantic models

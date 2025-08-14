@@ -8,14 +8,21 @@ from api_utils import (
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Union
+from typing import Dict
 
 
 from portfolio import (
     get_portfolio,
 )
 from utils import DEFAULT_PORTFOLIO_DATES
+from models import (
+    PortfolioRequestPayload,
+    PortfolioDefaultResponse,
+    SimulationChartsResponse,
+    ValidationResponse,
+    RegimesResponse,
+    RegimeParametersResponse,
+)
 
 
 app = FastAPI(title="Monte Carlo Portfolio Simulator API")
@@ -41,9 +48,7 @@ async def root() -> Dict[str, str]:
 
 
 @app.get("/api/portfolio/default")
-async def get_default_portfolio() -> (
-    Dict[str, Union[List[Dict[str, Union[str, float]]], str]]
-):
+async def get_default_portfolio() -> PortfolioDefaultResponse:
     """
     Returns the default portfolio as a list of assets, each with ticker, weight_pct (percentage), and description, and the default date range for visualization.
 
@@ -87,21 +92,10 @@ async def get_default_portfolio() -> (
     }
 
 
-class PortfolioRequestPayload(BaseModel):
-    tickers: List[str]
-    weights: List[float]
-    regime: Optional[str] = "historical"
-    regime_factors: Optional[
-        Dict[str, Union[Dict[str, Optional[float]], Optional[float]]]
-    ] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-
-
 @app.post("/api/simulate/custom")
 async def simulate_custom_portfolio_regime(
     request: PortfolioRequestPayload,
-) -> Dict[str, str]:
+) -> SimulationChartsResponse:
     """
     Run a Monte Carlo simulation for a custom portfolio under a specified regime.
 
@@ -136,7 +130,7 @@ async def simulate_custom_portfolio_regime(
 
 
 @app.post("/api/simulate/{regime}")
-async def simulate_default_portfolio_regime(regime: str) -> Dict[str, str]:
+async def simulate_default_portfolio_regime(regime: str) -> SimulationChartsResponse:
     """
     Run a Monte Carlo simulation for the default portfolio under a specified regime.
 
@@ -159,7 +153,7 @@ async def simulate_default_portfolio_regime(regime: str) -> Dict[str, str]:
 @app.post("/api/portfolio/validate")
 async def validate_custom_portfolio(
     request: PortfolioRequestPayload,
-) -> Dict[str, Union[bool, List[str]]]:
+) -> ValidationResponse:
     """
     Validates a custom portfolio's tickers and weights for a given date range.
     Expects:
@@ -192,7 +186,7 @@ async def validate_custom_portfolio(
 
 
 @app.get("/api/regimes")
-async def get_regimes() -> Dict[str, List[Dict[str, str]]]:
+async def get_regimes() -> RegimesResponse:
     """
     Returns a list of available regimes, each with key, name, and description.
 
@@ -212,7 +206,7 @@ async def get_regimes() -> Dict[str, List[Dict[str, str]]]:
 @app.get("/api/regimes/{regime}/parameters")
 async def get_regime_parameters_endpoint(
     regime: str,
-) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
+) -> RegimeParametersResponse:
     """
     Returns the regime modification parameters for the given regime.
 

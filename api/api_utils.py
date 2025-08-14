@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Union, Mapping, TypedDict
+from typing import List, Optional
 from portfolio import (
     GEOPOLITICAL_CRISIS_REGIME,
     FIAT_DEBASEMENT_REGIME,
@@ -21,19 +21,16 @@ from visualization import (
 )
 from fastapi import HTTPException
 from datetime import datetime
+from models import (
+    RegimeParametersResponse,
+    RegimesResponse,
+    SimulationChartsResponse,
+    ValidationResponse,
+    RegimeFactors,
+)
 
 
-class AssetFactor(TypedDict, total=False):
-    mean_factor: Optional[float]
-    vol_factor: Optional[float]
-
-
-# Regime factors payload maps tickers → AssetFactor, plus a special key
-# 'correlation_move_pct' → float
-RegimeFactors = Mapping[str, Union[AssetFactor, float]]
-
-
-def get_available_regimes() -> Dict[str, List[Dict[str, str]]]:
+def get_available_regimes() -> RegimesResponse:
     """
     Returns a list of available regimes, each with key and name.
     """
@@ -61,7 +58,7 @@ def run_portfolio_simulation_api(
     regime_factors: Optional[RegimeFactors] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-) -> Dict[str, str]:
+) -> SimulationChartsResponse:
     """
     Orchestrates the full Monte Carlo simulation and chart generation for a given portfolio and regime.
 
@@ -135,7 +132,7 @@ def validate_portfolio(
     regime_factors: Optional[RegimeFactors],
     start_date: Optional[str],
     end_date: Optional[str],
-) -> Dict[str, Union[bool, List[str]]]:
+) -> ValidationResponse:
     """
     Internal utility for validating a custom portfolio's tickers and weights for a given date range.
     Used by the /api/portfolio/validate endpoint.
@@ -225,7 +222,7 @@ def validate_portfolio(
 
 def get_regime_parameters(
     regime_key: str,
-) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
+) -> RegimeParametersResponse:
     """
     Returns the regime modification parameters for a given regime.
     The returned object has the following structure:
