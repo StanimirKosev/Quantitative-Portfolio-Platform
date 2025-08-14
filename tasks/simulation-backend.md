@@ -262,7 +262,7 @@ Create bar charts for factor loadings
 Focus on components explaining >10% of variance
 
 MC-007A: Maximum Drawdown Calculation
-Status: Not Started
+Status: Completed
 Priority: Medium
 Dependencies: MC-007
 

@@ -71,10 +71,27 @@ def calculate_risk_metrics(portfolio_paths):
         dict: Dictionary containing risk metrics with euro amounts and percentages.
     """
     initial_value = portfolio_paths[0][0]
-    final_values = [path[-1] for path in portfolio_paths]
+    final_values = []
+    losses = []
+    max_drawdowns = []
 
-    # Calculate losses: L = -(V_T / V_0 - 1) = -(final/initial - 1)
-    losses = [-(final_value / initial_value - 1) for final_value in final_values]
+    # Calculate losses and max drawdown for each path
+    for path in portfolio_paths:
+        final_value = path[-1]
+        final_values.append(final_value)
+        
+        # Loss calculation
+        loss = -(final_value / initial_value - 1)
+        losses.append(loss)
+        
+        # Max drawdown calculation (peak-to-trough)
+        running_max = np.maximum.accumulate(path)
+        drawdowns = (path - running_max) / running_max
+        max_drawdown = np.min(drawdowns)
+        max_drawdowns.append(max_drawdown)
+
+    # Worst max drawdown across all paths
+    worst_max_drawdown_pct = min(max_drawdowns) * 100
 
     # Value at Risk at 90% and 99% confidence levels
     var_90 = np.percentile(losses, 90)
@@ -102,6 +119,7 @@ def calculate_risk_metrics(portfolio_paths):
         "var_99_pct": var_99 * 100,
         "cvar_90_pct": cvar_90 * 100,
         "cvar_99_pct": cvar_99 * 100,
+        "max_drawdown_pct": worst_max_drawdown_pct,
     }
 
 

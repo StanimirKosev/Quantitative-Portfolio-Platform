@@ -121,7 +121,8 @@ def plot_simulation_results(portfolio_paths, regime_name, show=True):
     • 90% VaR: {risk_metrics['var_90']:,.0f} ({risk_metrics['var_90_pct']:+.1f}%)
     • 99% VaR: {risk_metrics['var_99']:,.0f} ({risk_metrics['var_99_pct']:+.1f}%)
     • 90% CVaR: {risk_metrics['cvar_90']:,.0f} ({risk_metrics['cvar_90_pct']:+.1f}%)
-    • 99% CVaR: {risk_metrics['cvar_99']:,.0f} ({risk_metrics['cvar_99_pct']:+.1f}%)"""
+    • 99% CVaR: {risk_metrics['cvar_99']:,.0f} ({risk_metrics['cvar_99_pct']:+.1f}%)
+    • Max Drawdown: {risk_metrics['max_drawdown_pct']:+.1f}%"""
 
     plt.text(
         0.02,
