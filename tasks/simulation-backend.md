@@ -130,7 +130,7 @@ Add statistics text box on the plot
 Include proper axis labels and title
 
 MC-007: Calculate Risk Metrics
-Status: In Progress
+Status: Completed
 Priority: High
 Dependencies: MC-006
 
@@ -213,7 +213,7 @@ Explain key concepts and statistical methodology
 Provide examples of how to interpret results
 
 MC-010: Covariance Matrix Deep Analysis
-Status: In Progress
+Status: Completed
 Priority: High
 Dependencies: MC-003
 
@@ -226,7 +226,7 @@ Identify dominant risk factors (top 2-3 eigenvalues)
 Create correlation matrix heatmap visualization
 Compute conditioning diagnostics (condition number and min eigenvalue)
 Validate PSD after any covariance/correlation modification (min eigenvalue ≥ tolerance)
-If needed, apply nearest-PSD projection and re-validate
+If needed, apply nearest-PSD projection and re-validate # Note: PSD projection intentionally omitted by design to let users see invalid matrices
 Add interpretation text explaining main risk drivers
 
 Technical Notes

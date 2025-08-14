@@ -97,11 +97,11 @@ function formReducer(
         ...currentFormData,
         portfolio_assets: [
           ...currentFormData.portfolio_assets,
-          DEFAULT_ASSET_VALUES,
+          { ...DEFAULT_ASSET_VALUES },
         ],
         portfolio_factors: [
           ...currentFormData.portfolio_factors,
-          DEFAULT_REGIME_FACTOR_VALUES,
+          { ...DEFAULT_REGIME_FACTOR_VALUES },
         ],
       };
     case "REMOVE_ASSET":

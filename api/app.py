@@ -24,8 +24,7 @@ app = FastAPI(title="Monte Carlo Portfolio Simulator API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:4173",  # Local production testing
-        "http://localhost:5173",  # Local dev
+        "http://localhost:8080",  # Local dev and preview
         "https://mc-frontend-668378177815.europe-west1.run.app",  # GCP Cloud Run frontend
     ],
     allow_credentials=True,

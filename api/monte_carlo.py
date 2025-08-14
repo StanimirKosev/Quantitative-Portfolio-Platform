@@ -66,37 +66,42 @@ def calculate_risk_metrics(portfolio_paths):
 
     Parameters:
         portfolio_paths (list): List of portfolio value paths.
-        initial_value (float): Initial portfolio value for percentage calculations.
 
     Returns:
         dict: Dictionary containing risk metrics with euro amounts and percentages.
     """
-
+    initial_value = portfolio_paths[0][0]
     final_values = [path[-1] for path in portfolio_paths]
 
-    # Value at Risk
-    var_95 = np.percentile(final_values, 5)
-    var_99 = np.percentile(final_values, 1)
+    # Calculate losses: L = -(V_T / V_0 - 1) = -(final/initial - 1)
+    losses = [-(final_value / initial_value - 1) for final_value in final_values]
 
-    # Conditional Value at Risk
-    cvar_95 = np.mean([v for v in final_values if v <= var_95])
-    cvar_99 = np.mean([v for v in final_values if v <= var_99])
+    # Value at Risk at 90% and 99% confidence levels
+    var_90 = np.percentile(losses, 90)
+    var_99 = np.percentile(losses, 99)
 
-    initial_value = portfolio_paths[0][0]
-    var_95_pct = ((var_95 / initial_value) - 1) * 100
-    var_99_pct = ((var_99 / initial_value) - 1) * 100
-    cvar_95_pct = ((cvar_95 / initial_value) - 1) * 100
-    cvar_99_pct = ((cvar_99 / initial_value) - 1) * 100
+    # Conditional Value at Risk (Expected Shortfall) with empty tail guard
+    tail_90 = [l for l in losses if l >= var_90]
+    tail_99 = [l for l in losses if l >= var_99]
+
+    cvar_90 = np.mean(tail_90) if tail_90 else var_90
+    cvar_99 = np.mean(tail_99) if tail_99 else var_99
+
+    # Convert to absolute loss amounts
+    var_90_abs = var_90 * initial_value
+    var_99_abs = var_99 * initial_value
+    cvar_90_abs = cvar_90 * initial_value
+    cvar_99_abs = cvar_99 * initial_value
 
     return {
-        "var_95": var_95,
-        "var_99": var_99,
-        "cvar_95": cvar_95,
-        "cvar_99": cvar_99,
-        "var_95_pct": var_95_pct,
-        "var_99_pct": var_99_pct,
-        "cvar_95_pct": cvar_95_pct,
-        "cvar_99_pct": cvar_99_pct,
+        "var_90": var_90_abs,
+        "var_99": var_99_abs,
+        "cvar_90": cvar_90_abs,
+        "cvar_99": cvar_99_abs,
+        "var_90_pct": var_90 * 100,
+        "var_99_pct": var_99 * 100,
+        "cvar_90_pct": cvar_90 * 100,
+        "cvar_99_pct": cvar_99 * 100,
     }
 
 
@@ -242,7 +247,7 @@ def analyze_portfolio_risk_factors(cov_matrix):
             - 'dominant_factor_loadings': dict mapping PC index (1-based) to list of top asset contributors (dicts with 'asset' and 'pct')
             - 'explained_variance_dominant': float, total variance explained by dominant PCs (as a percentage)
     """
-    eigenvalues, eigenvectors = np.linalg.eig(cov_matrix.values)
+    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix.values)
 
     # Sort eigenvalues and eigenvectors from largest to smallest
     idx = np.argsort(eigenvalues)[::-1]
@@ -311,9 +316,16 @@ def analyze_portfolio_correlation(cov_matrix):
     Returns:
         dict: Condition number, correlation matrix, and stdev outer product.
     """
-    eigenvalues, _ = np.linalg.eig(cov_matrix.values)
+    eigenvalues, _ = np.linalg.eigh(cov_matrix.values)
 
-    condition_number = max(eigenvalues) / min(eigenvalues)
+    # Conditioning diagnostics
+    min_eigenvalue = min(eigenvalues)
+    max_eigenvalue = max(eigenvalues)
+    condition_number = max_eigenvalue / min_eigenvalue if min_eigenvalue > 0 else np.inf
+
+    # PSD validation (tolerance for numerical precision)
+    tolerance = 1e-8
+    is_psd = min_eigenvalue >= -tolerance
 
     # Compute correlation matrix
     std_devs = np.sqrt(np.diag(cov_matrix.values))
@@ -327,6 +339,9 @@ def analyze_portfolio_correlation(cov_matrix):
 
     return {
         "condition_number": condition_number,
+        "min_eigenvalue": min_eigenvalue,
+        "max_eigenvalue": max_eigenvalue,
+        "is_psd": is_psd,
         "correlation_matrix": corr_matrix_df,
         "stdev_outer_product": stdev_outer_product,
     }

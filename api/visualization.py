@@ -118,9 +118,9 @@ def plot_simulation_results(portfolio_paths, regime_name, show=True):
     • Initial: {perf_stats['initial_value']:,.0f}
 
     Risk Metrics:
-    • 95% VaR: {risk_metrics['var_95']:,.0f} ({risk_metrics['var_95_pct']:+.1f}%)
+    • 90% VaR: {risk_metrics['var_90']:,.0f} ({risk_metrics['var_90_pct']:+.1f}%)
     • 99% VaR: {risk_metrics['var_99']:,.0f} ({risk_metrics['var_99_pct']:+.1f}%)
-    • 95% CVaR: {risk_metrics['cvar_95']:,.0f} ({risk_metrics['cvar_95_pct']:+.1f}%)
+    • 90% CVaR: {risk_metrics['cvar_90']:,.0f} ({risk_metrics['cvar_90_pct']:+.1f}%)
     • 99% CVaR: {risk_metrics['cvar_99']:,.0f} ({risk_metrics['cvar_99_pct']:+.1f}%)"""
 
     plt.text(
@@ -175,11 +175,13 @@ def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
     analysis = analyze_portfolio_correlation(cov_matrix)
     corr_matrix = analysis["correlation_matrix"]
     condition_number = analysis["condition_number"]
+    is_psd = analysis.get("is_psd", True)
+    min_eigenvalue = analysis.get("min_eigenvalue", float("nan"))
     cond_color = ""
 
-    # Determine conditioning status (arbitrary threshold: < 100 is 'Well', else 'Poorly')
-    if condition_number < 0:
-        cond_status = "Invalid (Negative Eigenvalues)"
+    # Determine status using PSD (Positive Semi-Definite) first, then conditioning
+    if not is_psd:
+        cond_status = f"Not PSD (min eigenvalue = {min_eigenvalue:.2e})"
         cond_color = "red"
     elif condition_number < 100:
         cond_status = "Well Conditioned"
@@ -211,10 +213,16 @@ def plot_correlation_heatmap(cov_matrix, regime_name, show=True):
         pad=20,
     )
 
+    display_condition = (
+        "N/A"
+        if not is_psd
+        else ("∞" if not np.isfinite(condition_number) else f"{condition_number:.1f}")
+    )
+
     plt.text(
         0.5,
         1.005,
-        f"Condition Number: {condition_number:.1f} - {cond_status}",
+        f"Condition Number: {display_condition} • {cond_status}",
         fontsize=12,
         color=cond_color,
         ha="center",
