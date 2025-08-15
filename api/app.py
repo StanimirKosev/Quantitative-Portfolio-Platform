@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import Dict
+from logging_config import log_info, setup_logging
 
 
 from portfolio import (
@@ -26,6 +27,9 @@ from models import (
 
 
 app = FastAPI(title="Monte Carlo Portfolio Simulator API")
+
+setup_logging()
+log_info("Monte Carlo API starting up")
 
 
 app.add_middleware(

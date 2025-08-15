@@ -21,6 +21,7 @@ from visualization import (
 )
 from fastapi import HTTPException
 from datetime import datetime
+from logging_config import log_info, log_error
 from models import (
     RegimeParametersResponse,
     RegimesResponse,
@@ -80,6 +81,13 @@ def run_portfolio_simulation_api(
     Raises:
         HTTPException: If the regime name is invalid or if any required data is missing or invalid.
     """
+    log_info(
+        "Portfolio simulation started",
+        ticker=tickers,
+        regime=regime,
+        date_range=f"{start_date} to {end_date}",
+    )
+
     regime_key = regime.strip().lower().replace(" ", "_")
 
     regime_map = {
@@ -119,6 +127,8 @@ def run_portfolio_simulation_api(
     corr_chart_path = plot_correlation_heatmap(cov_matrix, regime_name, show=False)
     risk_chart_path = plot_portfolio_pca_analysis(cov_matrix, regime_name, show=False)
 
+    log_info("Charts generated successfully", regime=regime_name, chart_count=3)
+
     return {
         "simulation_chart_path": sim_chart_path,
         "correlation_matrix_chart_path": corr_chart_path,
@@ -141,6 +151,10 @@ def validate_portfolio(
       - dict: {"success": True, "message": ...} if valid
       - dict: {"success": False, "errors": [...]} if invalid
     """
+    log_info(
+        "Portfolio validation started",
+        ticker=tickers,
+    )
 
     errors = []
     # 1. Length match
@@ -216,7 +230,15 @@ def validate_portfolio(
             errors.append(str(e))
 
     if errors:
+        log_error(
+            "Portfolio validation failed",
+            error_count=len(errors),
+            errors=errors,
+            tickers=tickers,
+        )
         return {"success": False, "errors": errors}
+
+    log_info("Portfolio validation successful", tickers=tickers)
     return {"success": True, "message": "Portfolio is valid."}
 
 

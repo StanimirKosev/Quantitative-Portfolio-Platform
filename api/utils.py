@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from typing import List, Tuple, Optional, Union
+from logging_config import log_info, log_error
 
 HISTORICAL = "Historical"
 GEOPOLITICAL_CRISIS_REGIME_NAME = "Geopolitical Crisis"
@@ -39,11 +40,18 @@ def fetch_close_prices(
     if start is None or end is None:
         start = DEFAULT_PORTFOLIO_DATES["start"]
         end = DEFAULT_PORTFOLIO_DATES["end"]
+    
+    log_info("Fetching price data from Yahoo Finance", 
+             tickers=tickers[:3] if isinstance(tickers, list) else [tickers],
+             date_range=f"{start} to {end}")
 
     # yfinance now defaults auto_adjust=True (adjusted prices). Set explicitly for clarity and to silence FutureWarning.
     data = yf.download(tickers, start=start, end=end, auto_adjust=True)
 
     if data is None or data.empty or "Close" not in data:
+        log_error("Yahoo Finance returned no data", 
+                  tickers=tickers,
+                  error="Empty response or missing Close column")
         raise InvalidTickersException(
             f"Could not fetch price data for tickers: {tickers}.",
             invalid_tickers=tickers,
@@ -58,10 +66,18 @@ def fetch_close_prices(
             invalid_tickers.append(t)
 
     if invalid_tickers:
+        log_error("Invalid tickers detected", 
+                  invalid_tickers=invalid_tickers,
+                  valid_tickers=[t for t in tickers if t not in invalid_tickers])
         raise InvalidTickersException(
             f"Could not fetch valid price data for tickers: {', '.join(invalid_tickers)}.",
             invalid_tickers=invalid_tickers,
         )
+
+    log_info("Price data fetched successfully", 
+             num_tickers=len(close.columns),
+             data_points=len(close),
+             tickers=list(close.columns)[:3])
 
     return close
 

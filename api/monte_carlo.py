@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple, Optional, Union
+from logging_config import log_info, log_error
 
 
 def simulate_daily_returns(
@@ -215,11 +216,22 @@ def modify_portfolio_for_regime(
             - pd.Series: Modified mean returns for the regime
             - pd.DataFrame: Modified covariance matrix for the regime
     """
+    log_info(
+        "Applying regime modifications",
+        num_assets=len(cov_matrix.columns),
+        correlation_move=regime_asset_factors.get("correlation_move_pct", 0),
+    )
+
     modified_mean_returns = mean_returns.copy()
     modified_cov_matrix = cov_matrix.copy()
 
     for ticker_i in cov_matrix.columns:
         if ticker_i not in regime_asset_factors:
+            log_error(
+                "Missing regime factors for ticker",
+                ticker=ticker_i,
+                available_tickers=list(regime_asset_factors.keys()),
+            )
             return modified_mean_returns, modified_cov_matrix
         # Modify mean returns
         # Use loc for position-based assignment to avoid FutureWarning
@@ -257,6 +269,16 @@ def modify_portfolio_for_regime(
     new_cov = corr_matrix.values * stdev_outer_product
     modified_cov_matrix = pd.DataFrame(
         new_cov, index=cov_matrix.columns, columns=cov_matrix.columns
+    )
+
+    log_info(
+        "Regime modifications applied successfully",
+        mean_returns_changed=not np.array_equal(
+            mean_returns.values, modified_mean_returns.values
+        ),
+        covariance_changed=not np.array_equal(
+            cov_matrix.values, modified_cov_matrix.values
+        ),
     )
 
     return modified_mean_returns, modified_cov_matrix
