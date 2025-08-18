@@ -50,7 +50,7 @@ _Principal component analysis identifying dominant risk factors_
 **Modular Monolith Architecture:**
 
 - **Backend** (`backend/`) - Organized monolith with modular structure: simulation engine, shared core utilities, and FastAPI API layer
-  - `core/` - Shared utilities (logging, data fetching, risk metrics) 
+  - `core/` - Shared utilities (logging, data fetching, risk metrics)
   - `simulation/` - Monte Carlo engine with comprehensive test coverage
   - `optimization/` - Future portfolio optimization module
 - **Frontend** (`frontend/src/`) - React dashboard with TypeScript, interactive visualizations, and real-time validation
@@ -152,11 +152,11 @@ This project shows how foundational math and programming knowledge can be applie
 git clone <repository-url>
 cd monte-carlo
 
-# Install Python dependencies
-cd backend && pip install -r requirements.txt
+# Install Python dependencies with Poetry
+cd backend && poetry install
 
 # Run API server
-cd backend && uvicorn app:app --reload --port 8000
+cd backend && poetry run uvicorn app:app --reload --port 8000
 ```
 
 ### Frontend Setup
@@ -229,5 +229,29 @@ gcloud run deploy mc-frontend \
 
 ```bash
 # Run all scenarios (generates backend/simulation/charts/ folder)
-cd backend && python -m simulation.main
+cd backend && poetry run python -m simulation.main
+```
+
+## 🔧 Development Commands
+
+### Poetry Dependency Management
+
+```bash
+# Add new dependency
+poetry add package_name
+
+# Add development dependency
+poetry add --group dev package_name
+
+# Show installed packages
+poetry show
+
+# Update dependencies
+poetry update
+
+# Activate virtual environment
+poetry shell
+
+# Run any command in Poetry environment
+poetry run <command>
 ```

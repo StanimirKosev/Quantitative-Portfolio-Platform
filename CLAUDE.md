@@ -29,17 +29,26 @@ Monte Carlo portfolio simulation platform with full-stack architecture: Python s
 
 ## Key Development Commands
 
-**Backend (Python):**
+**Backend (Python) - Poetry:**
 
 ```bash
 # Install dependencies (from project root)
-cd backend && pip install -r requirements.txt
+cd backend && poetry install
 
 # Run standalone simulation (generates backend/simulation/charts/)
-cd backend && python -m simulation.main
+cd backend && poetry run python -m simulation.main
 
 # Run API server (from project root)
-cd backend && uvicorn app:app --reload --port 8000
+cd backend && poetry run uvicorn app:app --reload --port 8000
+
+# Activate virtual environment
+cd backend && poetry shell
+
+# Add new dependencies
+cd backend && poetry add package_name
+
+# Add development dependencies  
+cd backend && poetry add --group dev package_name
 ```
 
 **Frontend (React/TypeScript):**
