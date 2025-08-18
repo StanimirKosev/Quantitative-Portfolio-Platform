@@ -1,16 +1,16 @@
 from typing import List, Optional
-from simulation.engine.portfolio import (
+from core.portfolio import (
     GEOPOLITICAL_CRISIS_REGIME,
     FIAT_DEBASEMENT_REGIME,
     get_portfolio,
 )
-from simulation.engine.utils import (
+from core.utils import (
     HISTORICAL,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
     FIAT_DEBASEMENT_REGIME_NAME,
     calculate_mean_and_covariance,
     fetch_close_prices,
-    transform_to_daily_returns_percent,
+    transform_to_daily_returns,
     InvalidTickersException,
 )
 from simulation.engine.monte_carlo import (
@@ -112,7 +112,7 @@ def run_portfolio_simulation_api(
     except InvalidTickersException as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    daily_returns = transform_to_daily_returns_percent(close_values)
+    daily_returns = transform_to_daily_returns(close_values)
     historical_mean_returns, historical_cov_matrix = calculate_mean_and_covariance(
         daily_returns
     )

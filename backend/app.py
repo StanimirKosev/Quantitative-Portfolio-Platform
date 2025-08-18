@@ -12,10 +12,10 @@ from typing import Dict
 from core.logging_config import log_info, setup_logging
 
 
-from simulation.engine.portfolio import (
+from core.portfolio import (
     get_portfolio,
 )
-from simulation.engine.utils import DEFAULT_PORTFOLIO_DATES
+from core.utils import DEFAULT_PORTFOLIO_DATES
 from simulation.api.models import (
     PortfolioRequestPayload,
     PortfolioDefaultResponse,

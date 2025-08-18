@@ -1,14 +1,14 @@
-from simulation.engine.portfolio import (
+from core.portfolio import (
     get_portfolio,
     GEOPOLITICAL_CRISIS_REGIME,
     FIAT_DEBASEMENT_REGIME,
 )
-from simulation.engine.utils import (
+from core.utils import (
     FIAT_DEBASEMENT_REGIME_NAME,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
     HISTORICAL,
     fetch_close_prices,
-    transform_to_daily_returns_percent,
+    transform_to_daily_returns,
     calculate_mean_and_covariance,
 )
 from simulation.engine.monte_carlo import (
@@ -25,7 +25,7 @@ tickers, weights = get_portfolio()
 
 close_values = fetch_close_prices(tickers)
 
-daily_returns = transform_to_daily_returns_percent(close_values)
+daily_returns = transform_to_daily_returns(close_values)
 
 # Historical regime: Baseline scenario using actual past returns and risk.
 historical_mean_returns, historical_cov_matrix = calculate_mean_and_covariance(

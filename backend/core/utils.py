@@ -90,17 +90,17 @@ def fetch_close_prices(
     return close
 
 
-def transform_to_daily_returns_percent(
+def transform_to_daily_returns(
     close_prices: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
     """
-    Convert a DataFrame of closing prices to daily returns in percent.
+    Convert a DataFrame of closing prices to daily returns.
 
     Parameters:
         close_prices (pd.DataFrame): DataFrame of asset closing prices, indexed by date.
 
     Returns:
-        pd.DataFrame: DataFrame of daily returns (percentage change), indexed by date.
+        pd.DataFrame: DataFrame of daily returns (decimal fraction), indexed by date.
                       Returns None if input is None.
     """
 
@@ -110,7 +110,7 @@ def transform_to_daily_returns_percent(
     # Set fill_method=None to avoid FutureWarning and ensure no forward-filling of missing values.
     daily_returns = close_prices.pct_change(fill_method=None).dropna()
 
-    return daily_returns * 100
+    return daily_returns
 
 
 def calculate_mean_and_covariance(

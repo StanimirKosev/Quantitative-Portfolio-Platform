@@ -52,7 +52,7 @@ Technical Notes
 - Alembic for migrations: `alembic init` and `alembic revision --autogenerate`
 
 OPT-003: Basic CVXPY Optimization Engine
-Status: Not Started
+Status: Started
 Priority: High
 Dependencies: OPT-002
 

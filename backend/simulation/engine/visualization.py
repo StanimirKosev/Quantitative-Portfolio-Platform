@@ -12,7 +12,7 @@ from simulation.engine.monte_carlo import (
     calculate_risk_metrics,
 )
 import seaborn as sns
-from simulation.engine.utils import get_regime_display_suffix, save_figure
+from core.utils import get_regime_display_suffix, save_figure
 
 
 def plot_simulation_results(

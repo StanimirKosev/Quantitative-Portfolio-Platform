@@ -10,6 +10,7 @@ from unittest.mock import patch
 import pandas as pd
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
+from core.utils import InvalidTickersException
 
 from simulation.api.utils import (
     run_portfolio_simulation_api,
@@ -113,7 +114,6 @@ class TestRunPortfolioSimulationApi:
     @patch("simulation.api.utils.fetch_close_prices")
     def test_data_fetch_exception_handling(self, mock_fetch):
         """Test that data fetching errors are properly converted to HTTPException."""
-        from simulation.engine.utils import InvalidTickersException
 
         tickers = ["INVALID_TICKER"]
         weights = [1.0]
@@ -281,7 +281,6 @@ class TestValidatePortfolio:
     @patch("simulation.api.utils.fetch_close_prices")
     def test_invalid_tickers_fail_validation(self, mock_fetch):
         """Test that invalid tickers fail validation."""
-        from simulation.engine.utils import InvalidTickersException
 
         tickers = ["INVALID_TICKER"]
         weights = [1.0]

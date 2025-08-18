@@ -59,7 +59,7 @@ def simulate_portfolio_paths(
 
         portfolio_path = [initial_value]
         for day in range(len(simulated_daily_returns)):
-            new_value = portfolio_path[-1] * (1 + simulated_daily_returns[day] / 100)
+            new_value = portfolio_path[-1] * (1 + simulated_daily_returns[day])
             portfolio_path.append(new_value)
 
         portfolio_paths.append(portfolio_path)
