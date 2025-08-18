@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import RegimeSelector from "./RegimeSelector";
-import { Button } from "./ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCustomPortfolioStore } from "../store/customPortfolioStore";
+import { ButtonWithLoggingOnClick } from "./withLoggingOnClick";
 
 const headerStyles = {
   header: "flex flex-col lg:flex-row items-center w-full py-4 gap-4 lg:gap-0",
@@ -27,14 +27,22 @@ const Header = () => {
     <header className={headerStyles.header}>
       <div className={headerStyles.leftSection}>
         {customStateActive ? (
-          <Button
+          <ButtonWithLoggingOnClick
             onClick={() => navigate("/default-portfolio")}
             variant="secondary"
             className={headerStyles.button}
+            logData={{
+              event: "navigation_to_default_portfolio",
+              route: window.location.pathname,
+              context: {
+                from_page: "custom-portfolio",
+                navigation_direction: "back_to_default",
+              },
+            }}
           >
             <ArrowLeft className={headerStyles.buttonIcon} />
             <span className={headerStyles.buttonText}>Default Portfolio</span>
-          </Button>
+          </ButtonWithLoggingOnClick>
         ) : (
           <RegimeSelector />
         )}
@@ -49,14 +57,22 @@ const Header = () => {
       </div>
 
       <div className={headerStyles.rightSection}>
-        <Button
+        <ButtonWithLoggingOnClick
           onClick={() => navigate("/custom-portfolio-form")}
           variant="secondary"
           className={headerStyles.button}
+          logData={{
+            event: "navigation_to_custom_portfolio_form",
+            route: window.location.pathname,
+            context: {
+              from_page: "default-portfolio",
+              navigation_direction: "to_custom_portfolio_form",
+            },
+          }}
         >
           <span className={headerStyles.buttonText}>Customize Portfolio</span>
           <ArrowRight className={headerStyles.buttonIcon} />
-        </Button>
+        </ButtonWithLoggingOnClick>
       </div>
     </header>
   );

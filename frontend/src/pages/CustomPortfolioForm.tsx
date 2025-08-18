@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { Button } from "../components/ui/button";
 import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type {
@@ -40,6 +39,7 @@ import {
   getRegimeFactorValue,
   type CustomPortfolioFormData,
 } from "../lib/portfolioUtils";
+import { ButtonWithLoggingOnClick } from "../components/withLoggingOnClick";
 
 type FormFieldPath =
   | keyof CustomPortfolioFormData
@@ -250,10 +250,22 @@ const CustomPortfolioForm = () => {
       <div className="w-full mb-8">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center">
           <div className="justify-self-start">
-            <Button variant="secondary" onClick={() => navigate(-1)}>
+            <ButtonWithLoggingOnClick
+              variant="secondary"
+              onClick={() => navigate(-1)}
+              logData={{
+                event: "navigation_back_from_form",
+                route: window.location.pathname,
+                context: {
+                  from_page: "custom-portfolio-form",
+                  navigation_direction: "back",
+                  form_completed: false,
+                },
+              }}
+            >
               <ArrowLeft className="h-6 w-6 mr-2" />
               Back
-            </Button>
+            </ButtonWithLoggingOnClick>
           </div>
 
           <h1 className="text-3xl font-bold whitespace-nowrap text-center">
@@ -347,15 +359,24 @@ const CustomPortfolioForm = () => {
                       %
                     </span>
                   </div>
-                  <Button
+                  <ButtonWithLoggingOnClick
                     variant="ghost"
                     size="icon"
                     onClick={() =>
                       dispatch({ type: "REMOVE_ASSET", payload: { index } })
                     }
+                    logData={{
+                      event: "remove_asset_from_portfolio",
+                      route: window.location.pathname,
+                      context: {
+                        asset_index: index,
+                        asset_ticker: asset.ticker,
+                        total_assets: formState.portfolio_assets.length,
+                      },
+                    }}
                   >
                     <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </ButtonWithLoggingOnClick>
 
                   <Collapsible open={isPowerUserMode}>
                     <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2 data-[state=open]:fade-in data-[state=open]:duration-300 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top-2 data-[state=closed]:fade-out data-[state=closed]:duration-200">
@@ -414,13 +435,21 @@ const CustomPortfolioForm = () => {
                 </div>
               ))
             )}
-            <Button
+            <ButtonWithLoggingOnClick
               onClick={() => dispatch({ type: "ADD_ASSET" })}
               variant="outline"
               className="w-full"
+              logData={{
+                event: "add_asset_to_portfolio",
+                route: window.location.pathname,
+                context: {
+                  current_asset_count: formState.portfolio_assets.length,
+                  total_weight: totalWeight,
+                },
+              }}
             >
               + Add Asset
-            </Button>
+            </ButtonWithLoggingOnClick>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-start gap-4 pt-2">
@@ -479,18 +508,27 @@ const CustomPortfolioForm = () => {
                 className="w-32"
               />
             </div>
-            <Button
+            <ButtonWithLoggingOnClick
               variant="secondary"
               onClick={handleSubmit}
               disabled={isValidating || isSimulating}
               className="min-w-[9rem] px-4 py-2 flex items-center justify-center mt-2 md:mt-0"
+              logData={{
+                event: "submit_custom_portfolio_form",
+                route: window.location.pathname,
+                context: {
+                  assets: formState.portfolio_assets,
+                  factors: formState.portfolio_factors,
+                  date_range: `${formState.start_date}-${formState.end_date}`,
+                },
+              }}
             >
               {isValidating || isSimulating ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 "Analyze Portfolio"
               )}
-            </Button>
+            </ButtonWithLoggingOnClick>
           </div>
         </CardFooter>
       </Card>

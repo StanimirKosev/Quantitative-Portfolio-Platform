@@ -316,8 +316,9 @@ Dependencies: FE-009
 Create testing coverage for frontend components, stores, and API integration.
 
 **Acceptance Criteria**
+
 - Unit tests for Zustand stores and utility functions
-- Component tests for key UI components and charts  
+- Component tests for key UI components and charts
 - API integration tests with TanStack Query
 - E2E tests for main user workflows
 - Achieve >80% code coverage on critical paths
@@ -325,21 +326,49 @@ Create testing coverage for frontend components, stores, and API integration.
 **Technical Notes**
 
 ### Dependencies
+
 ```bash
 cd frontend
 npm install -D vitest jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event msw
 ```
 
 ### Tools
+
 - **Vitest**: Testing framework with Vite integration
 - **React Testing Library**: Component testing
-- **MSW**: API mocking  
+- **MSW**: API mocking
 - **jsdom**: Browser environment simulation
 
 ### Setup
+
 - Update vite.config.ts for test environment
 - Create test setup files and API mocks
 - Configure coverage reporting
+
+## FE-015: Implement Frontend User Interaction Logging
+
+Status: Completed
+Priority: Medium
+Dependencies: None
+Create comprehensive frontend logging system with Higher Order Components for automatic user interaction tracking
+Send structured logs to backend for analytics and debugging
+Implement production-ready logging that matches backend JSON structure
+Acceptance Criteria:
+
+Create logging service that sends structured logs to backend /api/logs endpoint
+Implement automatic click/interaction logging via Higher Order Components
+Log key user actions: portfolio form submissions, simulation requests, chart interactions
+Include user context: session ID, timestamp, page route, user agent
+Graceful error handling when logging fails (don't break user experience)
+Development vs production logging levels (console.log vs backend API)
+
+Technical Notes:
+
+Create src/lib/logger.ts with structured logging interface
+POST logs to backend: {timestamp, level, event, context, user_session}
+Use localStorage for session tracking (fallback to random UUID)
+Include error boundary integration for unhandled errors
+Rate limiting to prevent log spam (max 10 logs per second)
 
 ---
 

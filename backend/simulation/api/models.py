@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 from pydantic import BaseModel
 
 RegimeFactors = Dict[str, Union[Dict[str, Optional[float]], float]]
@@ -57,3 +57,11 @@ class ValidationResponse(BaseModel):
     success: bool
     message: Optional[str] = None
     errors: Optional[List[str]] = None
+
+
+class LogPayload(BaseModel):
+    event: str
+    level: Literal["info", "error", "fatal"]
+    timestamp: str
+    route: Optional[str] = None
+    context: Optional[Dict] = None

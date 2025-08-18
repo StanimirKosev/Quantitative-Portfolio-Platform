@@ -23,6 +23,7 @@ from simulation.api.models import (
     ValidationResponse,
     RegimesResponse,
     RegimeParametersResponse,
+    LogPayload,
 )
 
 
@@ -49,6 +50,18 @@ app.mount("/charts", StaticFiles(directory="simulation/charts"), name="charts")
 @app.get("/")
 async def root() -> Dict[str, str]:
     return {"message": "API running"}
+
+
+@app.post("/api/logs")
+async def receive_frontend_logs(log_data: LogPayload):
+    log_info(
+        f"Frontend: {log_data.event}",
+        level=log_data.level,
+        timestamp=log_data.timestamp,
+        route=log_data.route,
+        context=log_data.context,
+    )
+    return {"status": "logged"}
 
 
 @app.get("/api/portfolio/default")
