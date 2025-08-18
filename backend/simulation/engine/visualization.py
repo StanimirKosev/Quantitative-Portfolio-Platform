@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from typing import List
-from monte_carlo import (
+from simulation.engine.monte_carlo import (
     analyze_portfolio_correlation,
     analyze_portfolio_risk_factors,
     calculate_simulation_statistics,
     calculate_risk_metrics,
 )
 import seaborn as sns
-from utils import get_regime_display_suffix, save_figure
+from simulation.engine.utils import get_regime_display_suffix, save_figure
 
 
 def plot_simulation_results(

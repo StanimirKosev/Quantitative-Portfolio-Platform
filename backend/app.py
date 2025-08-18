@@ -1,4 +1,4 @@
-from api_utils import (
+from simulation.api.utils import (
     run_portfolio_simulation_api,
     get_available_regimes,
     validate_portfolio,
@@ -9,14 +9,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import Dict
-from logging_config import log_info, setup_logging
+from core.logging_config import log_info, setup_logging
 
 
-from portfolio import (
+from simulation.engine.portfolio import (
     get_portfolio,
 )
-from utils import DEFAULT_PORTFOLIO_DATES
-from models import (
+from simulation.engine.utils import DEFAULT_PORTFOLIO_DATES
+from simulation.api.models import (
     PortfolioRequestPayload,
     PortfolioDefaultResponse,
     SimulationChartsResponse,
@@ -43,7 +43,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/charts", StaticFiles(directory="charts"), name="charts")
+app.mount("/charts", StaticFiles(directory="simulation/charts"), name="charts")
 
 
 @app.get("/")

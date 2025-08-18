@@ -1,65 +1,88 @@
 graph TD
-    A[quant-platform/] --> B[backend/]
+    A[monte-carlo/] --> B[backend/]
     A --> C[frontend/]
     A --> D[tasks/]
-    A --> F[README.md]
+    A --> E[docs/]
+    A --> F[screenshots/]
 
     subgraph Backend
         B --> G[core/]
         B --> H[simulation/]
         B --> I[optimization/]
-        B --> J[database/]
-        B --> K[FastAPI app]
+        B --> J[app.py - FastAPI main]
+        B --> K[Dockerfile]
+        B --> L[requirements.txt]
 
         subgraph Core
-            G --> G1[data/]
-            G --> G2[stats/]
-            G --> G3[validation/]
-            G --> G4[models/]
-            G1 --> G1a[yfinance, caching, preprocessing]
-            G2 --> G2a[covariance, shrinkage, PSD, risk metrics]
-            G3 --> G3a[portfolio validation]
-            G4 --> G4a[shared Pydantic models]
+            G --> G1[__init__.py]
+            G --> G2[logging_config.py]
         end
 
         subgraph Simulation
-            H --> H1[engines/]
-            H --> H2[router /sim/*]
-            H1 --> H1a[MC engines, regime logic]
+            H --> H1[engine/]
+            H --> H2[api/]
+            H --> H3[charts/]
+            H --> H4[tests/]
+            H --> H5[main.py]
+            
+            H1 --> H1a[monte_carlo.py]
+            H1 --> H1b[portfolio.py]
+            H1 --> H1c[utils.py]
+            H1 --> H1d[visualization.py]
+            
+            H2 --> H2a[api_utils.py]
+            H2 --> H2b[models.py]
+            
+            H3 --> H3a[historical/]
+            H3 --> H3b[fiat_debasement/]
+            H3 --> H3c[geopolitical_crisis/]
+            H3 --> H3d[custom/]
+            
+            H4 --> H4a[test_api.py]
+            H4 --> H4b[test_monte_carlo.py]
         end
 
         subgraph Optimization
-            I --> I1[engines/]
-            I --> I2[websockets/]
-            I --> I3[router /opt/*]
-            I1 --> I1a[CVXPY solvers, constraints]
-            I2 --> I2a[Live progress updates]
+            I --> I1[__init__.py]
+            I1 --> I1a[Empty - Future module]
         end
-
-        J --> J1[SQLAlchemy models, migrations]
     end
 
     subgraph Frontend
-        C --> L[src/]
-        L --> L1[components/]
-        L --> L2[pages/]
-        L --> L3[lib/]
-        L1 --> L1a[shared/]
-        L1a --> L1a1[Portfolio forms, charts]
-        L2 --> L2a[simulation]
-        L2 --> L2b[optimization]
-        L3 --> L3a[API clients, WS clients]
+        C --> M[src/]
+        C --> N[public/]
+        C --> O[package.json]
+        C --> P[Dockerfile]
+        
+        M --> M1[components/]
+        M --> M2[pages/]
+        M --> M3[lib/]
+        M --> M4[store/]
+        M --> M5[types/]
+        M --> M6[App.tsx]
+        
+        M1 --> M1a[UI components]
+        M1 --> M1b[Charts & visualizations]
+        M2 --> M2a[CustomPortfolioForm.tsx]
+        M3 --> M3a[api.ts]
+        M3 --> M3b[portfolioUtils.ts]
+        M4 --> M4a[regimeStore.ts]
+        M4 --> M4b[customPortfolioStore.ts]
+        M5 --> M5a[portfolio.ts]
+        M5 --> M5b[regime.ts]
+    end
+
+    subgraph Tasks
+        D --> D1[simulation-backend.md]
+        D --> D2[simulation-frontend.md]
+        D --> D3[optimization-backend.md]
+        D --> D4[optimization-frontend.md]
     end
 
     %% Data/control flows
-    L3a -- REST --> K
-    L2b -- WS connect --> I2
-    K -- uses --> G2a
-    K -- uses --> G1a
-    K -- uses --> G4a
-    K -- DB CRUD --> J1
-
-    D --> D1[simulation-backend.md]
-    D --> D2[simulation-frontend.md]
-    D --> D3[optimization-backend.md]
-    D --> D4[optimization-frontend.md]
+    M3a -- REST API --> J
+    J -- serves static --> H3
+    J -- imports --> H2a
+    H2a -- imports --> H1a
+    H1d -- saves to --> H3
+    H1c -- uses --> G2

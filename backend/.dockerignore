@@ -7,5 +7,5 @@ env/
 venv/
 .git/
 # Ignore runtime-generated charts; they are not needed in the build context
-charts/*
+simulation/charts/*
 screenshots/

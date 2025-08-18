@@ -11,12 +11,7 @@ import pandas as pd
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-import sys
-import os
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from api_utils import (
+from simulation.api.utils import (
     run_portfolio_simulation_api,
     validate_portfolio,
 )
@@ -26,11 +21,11 @@ from app import app
 class TestRunPortfolioSimulationApi:
     """Test the main orchestrator function for Monte Carlo simulations."""
 
-    @patch("api_utils.fetch_close_prices")
-    @patch("api_utils.plot_simulation_results")
-    @patch("api_utils.plot_correlation_heatmap")
-    @patch("api_utils.plot_portfolio_pca_analysis")
-    @patch("api_utils.simulate_portfolio_paths")
+    @patch("simulation.api.utils.fetch_close_prices")
+    @patch("simulation.api.utils.plot_simulation_results")
+    @patch("simulation.api.utils.plot_correlation_heatmap")
+    @patch("simulation.api.utils.plot_portfolio_pca_analysis")
+    @patch("simulation.api.utils.simulate_portfolio_paths")
     def test_historical_regime_simulation(
         self, mock_simulate, mock_pca_plot, mock_corr_plot, mock_sim_plot, mock_fetch
     ):
@@ -99,12 +94,12 @@ class TestRunPortfolioSimulationApi:
             # This will fail for all except "Historical" due to mocking requirements,
             # but tests the normalization logic
             if expected_normalized == "historical":
-                with patch("api_utils.fetch_close_prices"), patch(
-                    "api_utils.simulate_portfolio_paths"
-                ), patch("api_utils.plot_simulation_results"), patch(
-                    "api_utils.plot_correlation_heatmap"
+                with patch("simulation.api.utils.fetch_close_prices"), patch(
+                    "simulation.api.utils.simulate_portfolio_paths"
+                ), patch("simulation.api.utils.plot_simulation_results"), patch(
+                    "simulation.api.utils.plot_correlation_heatmap"
                 ), patch(
-                    "api_utils.plot_portfolio_pca_analysis"
+                    "simulation.api.utils.plot_portfolio_pca_analysis"
                 ):
 
                     # Should not raise HTTPException for normalized regime
@@ -115,10 +110,10 @@ class TestRunPortfolioSimulationApi:
                             f"HTTPException raised for valid regime: {input_regime}"
                         )
 
-    @patch("api_utils.fetch_close_prices")
+    @patch("simulation.api.utils.fetch_close_prices")
     def test_data_fetch_exception_handling(self, mock_fetch):
         """Test that data fetching errors are properly converted to HTTPException."""
-        from utils import InvalidTickersException
+        from simulation.engine.utils import InvalidTickersException
 
         tickers = ["INVALID_TICKER"]
         weights = [1.0]
@@ -135,8 +130,8 @@ class TestRunPortfolioSimulationApi:
         assert exc_info.value.status_code == 400
         assert "Invalid ticker" in str(exc_info.value.detail)
 
-    @patch("api_utils.fetch_close_prices")
-    @patch("api_utils.modify_portfolio_for_regime")
+    @patch("simulation.api.utils.fetch_close_prices")
+    @patch("simulation.api.utils.modify_portfolio_for_regime")
     def test_custom_regime_with_factors(self, mock_modify, mock_fetch):
         """Test custom regime with regime_factors parameter."""
         tickers = ["BTC-EUR", "SPYL.DE"]
@@ -162,10 +157,10 @@ class TestRunPortfolioSimulationApi:
             ),
         )
 
-        with patch("api_utils.simulate_portfolio_paths"), patch(
-            "api_utils.plot_simulation_results"
-        ), patch("api_utils.plot_correlation_heatmap"), patch(
-            "api_utils.plot_portfolio_pca_analysis"
+        with patch("simulation.api.utils.simulate_portfolio_paths"), patch(
+            "simulation.api.utils.plot_simulation_results"
+        ), patch("simulation.api.utils.plot_correlation_heatmap"), patch(
+            "simulation.api.utils.plot_portfolio_pca_analysis"
         ):
 
             result = run_portfolio_simulation_api(
@@ -188,7 +183,7 @@ class TestValidatePortfolio:
         start_date = "2023-01-01"
         end_date = "2023-12-31"
 
-        with patch("api_utils.fetch_close_prices") as mock_fetch:
+        with patch("simulation.api.utils.fetch_close_prices") as mock_fetch:
             # Mock successful data fetching
             mock_fetch.return_value = pd.DataFrame()
 
@@ -283,10 +278,10 @@ class TestValidatePortfolio:
         assert "Vol factor must be positive" in errors
         assert "between -0.99 and 0.99" in errors
 
-    @patch("api_utils.fetch_close_prices")
+    @patch("simulation.api.utils.fetch_close_prices")
     def test_invalid_tickers_fail_validation(self, mock_fetch):
         """Test that invalid tickers fail validation."""
-        from utils import InvalidTickersException
+        from simulation.engine.utils import InvalidTickersException
 
         tickers = ["INVALID_TICKER"]
         weights = [1.0]
@@ -424,7 +419,7 @@ class TestDualAccessPatterns:
 
     def test_modify_portfolio_for_regime_consistency(self):
         """Test that modify_portfolio_for_regime produces consistent results via direct call and API."""
-        from monte_carlo import modify_portfolio_for_regime
+        from simulation.engine.monte_carlo import modify_portfolio_for_regime
 
         # Test data
         mean_returns = pd.Series([0.001, 0.0005], index=["BTC-EUR", "SPYL.DE"])

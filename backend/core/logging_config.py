@@ -1,8 +1,5 @@
 import logging
 import json
-import uuid
-import time
-from functools import wraps
 from google.cloud import logging as cloud_logging
 
 

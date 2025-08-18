@@ -1,9 +1,9 @@
-from portfolio import (
+from simulation.engine.portfolio import (
     get_portfolio,
     GEOPOLITICAL_CRISIS_REGIME,
     FIAT_DEBASEMENT_REGIME,
 )
-from utils import (
+from simulation.engine.utils import (
     FIAT_DEBASEMENT_REGIME_NAME,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
     HISTORICAL,
@@ -11,11 +11,11 @@ from utils import (
     transform_to_daily_returns_percent,
     calculate_mean_and_covariance,
 )
-from monte_carlo import (
+from simulation.engine.monte_carlo import (
     simulate_portfolio_paths,
     modify_portfolio_for_regime,
 )
-from visualization import (
+from simulation.engine.visualization import (
     plot_correlation_heatmap,
     plot_portfolio_pca_analysis,
     plot_simulation_results,

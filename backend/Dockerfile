@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Ensure charts directory exists for runtime-generated images
-RUN mkdir -p charts
+RUN mkdir -p simulation/charts
 
 # Create non-root user and fix permissions (charts must be writable)
 RUN adduser --disabled-password --gecos "" appuser \

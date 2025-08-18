@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple, Optional, Union
-from logging_config import log_info, log_error
+from core.logging_config import log_info, log_error
 
 
 def simulate_daily_returns(

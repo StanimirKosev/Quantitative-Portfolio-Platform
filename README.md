@@ -47,15 +47,19 @@ _Principal component analysis identifying dominant risk factors_
 
 ## 🏗️ Architecture & Features
 
-**Three-tier separation:**
+**Modular Monolith Architecture:**
 
-- **Simulation Engine + API Layer** (`api/`) - Core Monte Carlo with regime modeling + FastAPI wrapper with CORS configuration
-- **Frontend** (`frontend/src/`) - React dashboard with interactive charts
+- **Backend** (`backend/`) - Organized monolith with modular structure: simulation engine, shared core utilities, and FastAPI API layer
+  - `core/` - Shared utilities (logging, data fetching, risk metrics) 
+  - `simulation/` - Monte Carlo engine with comprehensive test coverage
+  - `optimization/` - Future portfolio optimization module
+- **Frontend** (`frontend/src/`) - React dashboard with TypeScript, interactive visualizations, and real-time validation
 
 **Technology Stack:**
 
-- **Backend**: Python, FastAPI, NumPy, Pandas, Matplotlib, yfinance
+- **Backend**: Python, FastAPI, NumPy, Pandas, Matplotlib, yfinance, pytest (testing), Pydantic (type validation), structured logging
 - **Frontend**: React 19, TypeScript, Vite, shadcn/ui, Recharts, TanStack Query, Zustand
+- **Testing & Quality**: pytest, comprehensive test coverage, type hints, linting
 - **Cloud & DevOps**: Docker, Google Cloud Run, Google Artifact Registry
 
 ## 🎨 Frontend Features
@@ -149,10 +153,10 @@ git clone <repository-url>
 cd monte-carlo
 
 # Install Python dependencies
-pip install -r requirements.txt
+cd backend && pip install -r requirements.txt
 
 # Run API server
-cd api && uvicorn app:app --reload --port 8000
+cd backend && uvicorn app:app --reload --port 8000
 ```
 
 ### Frontend Setup
@@ -195,7 +199,7 @@ gcloud auth configure-docker europe-west1-docker.pkg.dev
 2. Build and push backend image:
 
 ```bash
-docker build -t montecarlo-backend ./api
+docker build -t montecarlo-backend ./backend
 docker tag montecarlo-backend europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-backend:latest
 docker push europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-backend:latest
 ```
@@ -224,6 +228,6 @@ gcloud run deploy mc-frontend \
 ### Standalone Python Simulation
 
 ```bash
-# Run all scenarios (generates charts/ folder)
-python api/main.py
+# Run all scenarios (generates backend/simulation/charts/ folder)
+cd backend && python -m simulation.main
 ```

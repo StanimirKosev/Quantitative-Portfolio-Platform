@@ -3,9 +3,8 @@ Unit tests for Monte Carlo simulation mathematical functions.
 """
 
 import pytest
-import numpy as np
 import pandas as pd
-from monte_carlo import (
+from simulation.engine.monte_carlo import (
     calculate_risk_metrics,
     modify_portfolio_for_regime,
     analyze_portfolio_risk_factors,

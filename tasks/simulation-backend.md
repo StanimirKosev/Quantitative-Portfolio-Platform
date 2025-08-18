@@ -438,7 +438,7 @@ Log statistical validation (matrix properties, convergence)
 Avoid logging sensitive data (only metadata and metrics)
 
 MC-017: Core Module Foundation Setup
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: MC-016
 Create the foundation for shared core module that will support both simulation and optimization

@@ -21,17 +21,17 @@
 
 **Architecture Vision**: Monorepo with organized monolith backend
 
-- Shared `core/` module: data fetching, covariance utilities, risk metrics
-- `simulation/` module: Monte Carlo engines, regime modeling
-- `optimization/` module: CVXPY solvers, constraint handling, real-time progress
-- Single FastAPI app with multiple routers
+- Shared `backend/core/` module: data fetching, covariance utilities, risk metrics
+- `backend/simulation/` module: Monte Carlo engines, regime modeling
+- `backend/optimization/` module: CVXPY solvers, constraint handling, real-time progress
+- Single FastAPI app (`backend/app.py`) with multiple routers
 - React frontend with simulation + optimization interfaces
 
 Core-as-source-of-truth
 
-- All covariance, PSD, risk metrics (VaR/CVaR, Sharpe, annualization) live in `core/stats` and are consumed by both modules. No duplication in module code.
-- Data fetching and preprocessing (prices → returns) live in `core/data` and are reused across modules.
-- Shared Pydantic models in `core/models` define Portfolio, Constraints, CovarianceConfig, SimulationConfig, OptimizationResult.
+- All covariance, PSD, risk metrics (VaR/CVaR, Sharpe, annualization) live in `backend/core/stats` and are consumed by both modules. No duplication in module code.
+- Data fetching and preprocessing (prices → returns) live in `backend/core/data` and are reused across modules.
+- Shared Pydantic models in `backend/core/models` define Portfolio, Constraints, CovarianceConfig, SimulationConfig, OptimizationResult.
 
 ## Required File Reads on Startup
 
