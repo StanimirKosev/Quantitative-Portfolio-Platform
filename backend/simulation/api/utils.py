@@ -113,7 +113,7 @@ def run_portfolio_simulation_api(
         raise HTTPException(status_code=400, detail=str(e))
 
     daily_returns = transform_to_daily_returns(close_values)
-    historical_mean_returns, historical_cov_matrix = calculate_mean_and_covariance(
+    historical_mean_returns, historical_cov_matrix, _ = calculate_mean_and_covariance(
         daily_returns
     )
 

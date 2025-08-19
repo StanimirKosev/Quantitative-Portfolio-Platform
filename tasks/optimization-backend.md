@@ -52,7 +52,7 @@ Technical Notes
 - Alembic for migrations: `alembic init` and `alembic revision --autogenerate`
 
 OPT-003: Basic CVXPY Optimization Engine
-Status: Started
+Status: Completed
 Priority: High
 Dependencies: OPT-002
 
@@ -64,7 +64,7 @@ Acceptance Criteria
 
 - Minimize risk optimization: given target return, find minimum variance portfolio
 - Maximize Sharpe ratio optimization: find optimal risk-adjusted return
-- Basic constraint handling: long-only, budget constraint (weights sum to 1), bounds per asset
+- Basic constraint handling: long-only, budget constraint (weights sum to 1)
 - Return optimal weights and portfolio metrics (expected return, volatility, Sharpe)
 - Solver controls: time limit, fallback solver, clear infeasibility messages
 - Use shrinkage covariance from core by default
@@ -78,7 +78,7 @@ Technical Notes
 - Solver selection: OSQP or ECOS for quadratic problems
 
 OPT-004: Efficient Frontier Calculation
-Status: Not Started
+Status: Completed
 Priority: High
 Dependencies: OPT-003
 
@@ -90,9 +90,7 @@ Acceptance Criteria
 
 - Calculate 20-30 optimal portfolios across return range
 - Each point: target return, minimum risk, optimal weights
-- Identify portfolio with maximum Sharpe ratio on frontier
 - Return structured data for efficient frontier plotting
-- Emit progress events (step/total, best Sharpe so far) to a WS topic
 - Handle edge cases: infeasible targets (skip/mark), numerical issues (retry/fallback)
 
 Technical Notes
@@ -116,7 +114,6 @@ Acceptance Criteria
 
 - `/api/optimize/portfolio` endpoint for single portfolio optimization
 - `/api/optimize/efficient-frontier` endpoint for frontier calculation (async)
-- WebSocket `/ws/optimize/progress/{run_id}` for real-time updates
 - Request/response models using Pydantic (shared with simulation via core/models)
 - Error handling for optimization failures with meaningful messages
 - Integration with existing FastAPI app structure
@@ -154,23 +151,62 @@ Technical Notes
 - Prepare constraint framework: sector limits, factor exposures
 - Document risk attribution methodology for optimization constraints
 
-OPT-007: Core Covariance and PSD Utilities (Shared)
+OPT-007: Efficient Frontier Visualization Backend Support
 Status: Not Started
 Priority: High
-Dependencies: OPT-001, MC-019
+Dependencies: OPT-005
 
-Create shared covariance utilities (Ledoit–Wolf/OAS shrinkage), PSD projection helpers, and Sharpe/annualization utilities in `core/stats`. Both simulation and optimization must consume these.
+Create backend visualization utilities for efficient frontier plotting, similar to simulation's chart generation.
+Generate matplotlib-based efficient frontier plots with max Sharpe ratio highlighting for backend testing
+and optional frontend integration.
 
 Acceptance Criteria
 
-- Implement shrinkage covariance (Ledoit–Wolf or OAS)
-- Implement nearest-PSD projection via eigenvalue clipping and symmetrization
-- Provide Sharpe/annualization helpers with clear period/rf handling
-- Unit tests cover PSD, shrinkage outputs, and Sharpe conventions
+- Create `optimization/engine/visualization.py` module following simulation patterns
+- Implement `plot_efficient_frontier()` function generating risk-return scatter plot
+- Highlight maximum Sharpe ratio portfolio with distinct marker/color
+- Save plots to `optimization/charts/` directory with consistent naming
+- Include portfolio weights visualization (pie chart) for selected point
+- Return chart paths for potential API serving (following simulation structure)
+- Handle edge cases: empty frontier, single point, visualization failures
+
+Technical Notes
+
+- Follow simulation visualization patterns from `simulation/engine/visualization.py`
+- Use matplotlib for scatter plot: X-axis=volatility, Y-axis=returns
+- Efficient frontier as connected line/curve with individual points
+- Max Sharpe portfolio as starred/highlighted point with legend
+- Save charts: `optimization/charts/efficient_frontier_{timestamp}.png`
+- Optional: Interactive hover showing portfolio weights for each point
+- Consistent styling with simulation charts (colors, fonts, layout)
+
+OPT-008: Real-time WebSocket Progress Updates
+Status: Not Started
+Priority: Medium
+Dependencies: OPT-005
+
+Implement WebSocket-based real-time progress updates for efficient frontier calculations.
+This is the primary WebSocket use case for the entire project, providing live feedback
+during long-running optimization processes (20-40 seconds).
+
+Acceptance Criteria
+
+- Add progress callback parameter to `calculate_efficient_frontier()` function
+- Create WebSocket endpoint `/ws/optimize/progress/{session_id}` for real-time updates
+- Emit progress events: `{"current": 15, "total": 25, "message": "Calculating portfolio 15/25"}`
+- Frontend receives real-time updates and displays progress bar
+- Handle WebSocket connection cleanup on completion or error
+- Session-based progress tracking for multiple concurrent optimizations
+
+Technical Notes
+
+- Modify efficient frontier loop to call `progress_callback(current, total)` 
+- Use FastAPI WebSocket with unique session IDs
+- Frontend connects to WebSocket before starting optimization
+- Progress updates every 1-2 seconds as each portfolio point completes
+- Graceful fallback if WebSocket connection fails
 
 ## Additional Features & Ideas (Future Tasks)
-
-**WebSocket Real-time Progress**: Live optimization progress updates ("Iteration 47/100, current Sharpe ratio: 1.23") for complex optimizations that take 5-30 seconds. Essential for user experience during efficient frontier calculations.
 
 **Advanced Financial Metrics**:
 

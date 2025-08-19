@@ -28,7 +28,7 @@ close_values = fetch_close_prices(tickers)
 daily_returns = transform_to_daily_returns(close_values)
 
 # Historical regime: Baseline scenario using actual past returns and risk.
-historical_mean_returns, historical_cov_matrix = calculate_mean_and_covariance(
+historical_mean_returns, historical_cov_matrix, _ = calculate_mean_and_covariance(
     daily_returns
 )
 
