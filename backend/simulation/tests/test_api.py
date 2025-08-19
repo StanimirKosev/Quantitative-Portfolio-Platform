@@ -12,10 +12,8 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from core.utils import InvalidTickersException
 
-from simulation.api.utils import (
-    run_portfolio_simulation_api,
-    validate_portfolio,
-)
+from simulation.api.utils import run_portfolio_simulation_api
+from core.api.utils import validate_portfolio
 from app import app
 
 
@@ -183,7 +181,7 @@ class TestValidatePortfolio:
         start_date = "2023-01-01"
         end_date = "2023-12-31"
 
-        with patch("simulation.api.utils.fetch_close_prices") as mock_fetch:
+        with patch("core.api.utils.fetch_close_prices") as mock_fetch:
             # Mock successful data fetching
             mock_fetch.return_value = pd.DataFrame()
 
@@ -278,7 +276,7 @@ class TestValidatePortfolio:
         assert "Vol factor must be positive" in errors
         assert "between -0.99 and 0.99" in errors
 
-    @patch("simulation.api.utils.fetch_close_prices")
+    @patch("core.api.utils.fetch_close_prices")
     def test_invalid_tickers_fail_validation(self, mock_fetch):
         """Test that invalid tickers fail validation."""
 
@@ -308,7 +306,7 @@ class TestFastApiIntegration:
         """Set up test client for each test."""
         self.client = TestClient(app)
 
-    @patch("app.run_portfolio_simulation_api")
+    @patch("simulation.api.routes.run_portfolio_simulation_api")
     def test_default_portfolio_simulation_endpoint(self, mock_simulation):
         """Test /api/simulate/{regime} endpoint."""
         # Mock the simulation function
@@ -326,7 +324,7 @@ class TestFastApiIntegration:
         assert "historical" in data["simulation_chart_path"]
         mock_simulation.assert_called_once()
 
-    @patch("app.run_portfolio_simulation_api")
+    @patch("simulation.api.routes.run_portfolio_simulation_api")
     def test_custom_portfolio_simulation_endpoint(self, mock_simulation):
         """Test /api/simulate/custom endpoint."""
         # Mock the simulation function
@@ -351,7 +349,7 @@ class TestFastApiIntegration:
         assert "simulation_chart_path" in data
         mock_simulation.assert_called_once()
 
-    @patch("app.validate_portfolio")
+    @patch("core.api.routes.validate_portfolio")
     def test_portfolio_validation_endpoint(self, mock_validate):
         """Test /api/portfolio/validate endpoint."""
         # Mock validation success
@@ -387,7 +385,7 @@ class TestFastApiIntegration:
             assert "key" in regime
             assert "name" in regime
 
-    @patch("app.get_regime_parameters")
+    @patch("core.api.routes.get_regime_parameters")
     def test_regime_parameters_endpoint(self, mock_get_params):
         """Test /api/regimes/{regime}/parameters endpoint."""
         mock_get_params.return_value = {

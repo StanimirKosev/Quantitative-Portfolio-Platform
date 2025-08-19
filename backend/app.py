@@ -1,36 +1,18 @@
-from simulation.api.utils import (
-    run_portfolio_simulation_api,
-    get_available_regimes,
-    validate_portfolio,
-    get_regime_parameters,
-)
+from typing import Dict
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from typing import Dict
+
 from core.logging_config import log_info, setup_logging
+from core.api.routes import router as core_router
+from simulation.api.routes import router as simulation_router
 
 
-from core.portfolio import (
-    get_portfolio,
-)
-from core.utils import DEFAULT_PORTFOLIO_DATES
-from simulation.api.models import (
-    PortfolioRequestPayload,
-    PortfolioDefaultResponse,
-    SimulationChartsResponse,
-    ValidationResponse,
-    RegimesResponse,
-    RegimeParametersResponse,
-    LogPayload,
-)
-
-
-app = FastAPI(title="Monte Carlo Portfolio Simulator API")
+app = FastAPI(title="Quantitative Portfolio API")
 
 setup_logging()
-log_info("Monte Carlo API starting up")
+log_info("Quantitative Portfolio API starting up")
 
 
 app.add_middleware(
@@ -44,200 +26,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Static file serving
 app.mount("/charts", StaticFiles(directory="simulation/charts"), name="charts")
+
+
+app.include_router(core_router)
+app.include_router(simulation_router)
 
 
 @app.get("/")
 async def root() -> Dict[str, str]:
     return {"message": "API running"}
-
-
-@app.post("/api/logs")
-async def receive_frontend_logs(log_data: LogPayload):
-    log_info(
-        f"Frontend: {log_data.event}",
-        level=log_data.level,
-        timestamp=log_data.timestamp,
-        route=log_data.route,
-        context=log_data.context,
-    )
-    return {"status": "logged"}
-
-
-@app.get("/api/portfolio/default")
-async def get_default_portfolio() -> PortfolioDefaultResponse:
-    """
-    Returns the default portfolio as a list of assets, each with ticker, weight_pct (percentage), and description, and the default date range for visualization.
-
-    Response example:
-    ```json
-    {
-      "success": true,
-      "portfolio_assets": [
-        {"ticker": "BTC-EUR", "weight_pct": 25.0, "description": "Bitcoin - Main hedge against fiat debasement"},
-        ...
-      ],
-      "start_date": "2022-01-01",
-      "end_date": "2024-12-31"
-    }
-    ```
-    """
-    tickers, weights = get_portfolio()
-
-    descriptions = {
-        "BTC-EUR": "Bitcoin - Main hedge against fiat debasement",
-        "5MVW.DE": "Energy Sector - Global energy infrastructure",
-        "SPYL.DE": "S&P 500 - US large-cap stocks",
-        "WMIN.DE": "Global Miners - Commodity producers",
-        "IS3N.DE": "Emerging Markets - High-growth economies",
-        "4GLD.DE": "Gold - Traditional safe haven",
-    }
-
-    default_portfolio_assets = [
-        {
-            "ticker": ticker,
-            "weight_pct": round(weight * 100, 2),
-            "description": descriptions.get(ticker, ""),
-        }
-        for ticker, weight in zip(tickers, weights)
-    ]
-
-    return {
-        "portfolio_assets": default_portfolio_assets,
-        "start_date": DEFAULT_PORTFOLIO_DATES["start"],
-        "end_date": DEFAULT_PORTFOLIO_DATES["end"],
-    }
-
-
-@app.post("/api/simulate/custom")
-async def simulate_custom_portfolio_regime(
-    request: PortfolioRequestPayload,
-) -> SimulationChartsResponse:
-    """
-    Run a Monte Carlo simulation for a custom portfolio under a specified regime.
-
-    Expects a JSON body with:
-      - tickers: List of asset ticker symbols (List[str])
-      - weights: List of asset weights in fractions
-      - regime: Scenario name (str, e.g., "historical", "fiat_debasement", "geopolitical_crisis")
-      - regime_factors: (optional) Custom regime parameters (RegimeFactors)
-        - factors: Dict mapping ticker to {"mean_factor": float, "vol_factor": float}
-        - correlation_move_pct: Global correlation adjustment (float)
-      - start_date: (optional) Start date for historical data fetching (YYYY-MM-DD)
-      - end_date: (optional) End date for historical data fetching (YYYY-MM-DD)
-
-    Response example:
-    ```json
-    {
-      "simulation_chart_path": "/charts/fiat_debasement/monte_carlo_simulation_fiat_debasement.png",
-      "correlation_matrix_chart_path": "/charts/fiat_debasement/correlation_matrix_fiat_debasement.png",
-      "risk_factors_chart_path": "/charts/fiat_debasement/risk_factor_analysis_fiat_debasement.png"
-    }
-    ```
-    """
-    regime = "custom"
-    return run_portfolio_simulation_api(
-        request.tickers,
-        request.weights,
-        regime,
-        request.regime_factors,
-        start_date=request.start_date,
-        end_date=request.end_date,
-    )
-
-
-@app.post("/api/simulate/{regime}")
-async def simulate_default_portfolio_regime(regime: str) -> SimulationChartsResponse:
-    """
-    Run a Monte Carlo simulation for the default portfolio under a specified regime.
-
-    Args:
-      regime (str): The scenario to simulate ("historical", "fiat_debasement", or "geopolitical_crisis").
-
-    Response example:
-    ```json
-    {
-      "simulation_chart_path": "/charts/historical/monte_carlo_simulation_historical.png",
-      "correlation_matrix_chart_path": "/charts/historical/correlation_matrix_historical.png",
-      "risk_factors_chart_path": "/charts/historical/risk_factor_analysis_historical.png"
-    }
-    ```
-    """
-    tickers, weights = get_portfolio()
-    return run_portfolio_simulation_api(tickers, weights, regime)
-
-
-@app.post("/api/portfolio/validate")
-async def validate_custom_portfolio(
-    request: PortfolioRequestPayload,
-) -> ValidationResponse:
-    """
-    Validates a custom portfolio's tickers and weights for a given date range.
-    Expects:
-      - tickers: List of asset ticker symbols (List[str])
-      - weights: List of asset weights as fractions (List[float], must sum to 1.0)
-      - start_date: Start date for historical data fetching (YYYY-MM-DD)
-      - end_date: End date for historical data fetching (YYYY-MM-DD)
-    Checks:
-      - Tickers and weights are same length
-      - Weights are numbers, non-negative, and sum to 1.0 (within tolerance)
-      - No duplicate tickers
-      - All tickers are fetchable (exist in yfinance) for the given date range
-
-    Response example (valid):
-    ```json
-    { "success": true, "message": "Portfolio is valid." }
-    ```
-    Response example (invalid):
-    ```json
-    { "success": false, "errors": ["Weights must sum to 1.0.", "Ticker 'XYZ' is invalid."] }
-    ```
-    """
-    return validate_portfolio(
-        request.tickers,
-        request.weights,
-        request.regime_factors,
-        request.start_date,
-        request.end_date,
-    )
-
-
-@app.get("/api/regimes")
-async def get_regimes() -> RegimesResponse:
-    """
-    Returns a list of available regimes, each with key, name, and description.
-
-    Response example:
-    ```json
-    {
-      "regimes": [
-        {"key": "historical", "name": "Historical", "description": "Baseline: actual past returns and risk."},
-        ...
-      ]
-    }
-    ```
-    """
-    return get_available_regimes()
-
-
-@app.get("/api/regimes/{regime}/parameters")
-async def get_regime_parameters_endpoint(
-    regime: str,
-) -> RegimeParametersResponse:
-    """
-    Returns the regime modification parameters for the given regime.
-
-    Response example:
-    ```json
-    {
-      "regime": "fiat_debasement",
-      "parameters": [
-        {"ticker": "BTC-EUR", "mean_factor": 1.3, "vol_factor": 1.1, "correlation_move_pct": -0.15},
-        {"ticker": "4GLD.DE", "mean_factor": 1.15, "vol_factor": 1.05, "correlation_move_pct": -0.15},
-        ...
-      ],
-      "description": "Inflation: BTC & gold outperform, higher volatility. ..."
-    }
-    ```
-    """
-    return get_regime_parameters(regime)

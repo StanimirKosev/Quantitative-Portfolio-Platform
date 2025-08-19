@@ -106,8 +106,6 @@ Technical Notes
 - Convert percentage rate to decimal for calculations (divide by 100)
 - Integration points: optimization Sharpe ratio calculations, efficient frontier metrics
 
-## Remaining Tasks
-
 **OPT-005: FastAPI Optimization Router**
 Status: Not Started
 Priority: High
@@ -133,36 +131,7 @@ Technical Notes
 - Response models: optimal weights, metrics, efficient frontier data
 - Include optimization in main FastAPI app: `app.include_router(opt_router)`
 
-**OPT-006: Efficient Frontier Visualization Backend Support**
-Status: Not Started
-Priority: High
-Dependencies: OPT-005
-
-Create backend visualization utilities for efficient frontier plotting, similar to simulation's chart generation.
-Generate matplotlib-based efficient frontier plots with max Sharpe ratio highlighting for backend testing
-and optional frontend integration.
-
-Acceptance Criteria
-
-- Create `optimization/engine/visualization.py` module following simulation patterns
-- Implement `plot_efficient_frontier()` function generating risk-return scatter plot
-- Highlight maximum Sharpe ratio portfolio with distinct marker/color
-- Save plots to `optimization/charts/` directory with consistent naming
-- Include portfolio weights visualization (pie chart) for selected point
-- Return chart paths for potential API serving (following simulation structure)
-- Handle edge cases: empty frontier, single point, visualization failures
-
-Technical Notes
-
-- Follow simulation visualization patterns from `simulation/engine/visualization.py`
-- Use matplotlib for scatter plot: X-axis=volatility, Y-axis=returns
-- Efficient frontier as connected line/curve with individual points
-- Max Sharpe portfolio as starred/highlighted point with legend
-- Save charts: `optimization/charts/efficient_frontier_{timestamp}.png`
-- Optional: Interactive hover showing portfolio weights for each point
-- Consistent styling with simulation charts (colors, fonts, layout)
-
-**OPT-007: Real-time WebSocket Progress Updates**
+**OPT-006: Real-time WebSocket Progress Updates**
 Status: Not Started
 Priority: Medium
 Dependencies: OPT-005
@@ -188,7 +157,7 @@ Technical Notes
 - Progress updates every 1-2 seconds as each portfolio point completes
 - Graceful fallback if WebSocket connection failsW
 
-**OPT-008: Production Infrastructure**
+**OPT-007: Production Infrastructure**
 Status: Not Started  
 Priority: Low
 Dependencies: OPT-007
@@ -208,17 +177,3 @@ Technical Notes
 - CI/CD: automated testing, Docker image builds, deployment to cloud platforms
 - Logging: optimization timing, solver performance, error tracking
 - Config: environment variables for FRED API, optimization parameters
-
-## Ideas for Advanced Features (Future Considerations)
-
-**Advanced Financial Metrics** (Core Module):
-
-- CAPM Beta calculation against market indices
-- Information Ratio for active return vs tracking error
-- Stress testing with historical crisis scenarios (2008, COVID)
-
-**UI/UX Enhancements** (Frontend):
-
-- Interactive efficient frontier charts with hover details
-- Portfolio comparison tools (side-by-side optimization results)
-- Advanced constraint builder interface (sector limits, position sizes)
