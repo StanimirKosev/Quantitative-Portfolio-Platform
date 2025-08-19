@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from core.logging_config import log_info, setup_logging
 from core.api.routes import router as core_router
 from simulation.api.routes import router as simulation_router
+from optimization.api.routes import router as optimization_router
 
 
 app = FastAPI(title="Quantitative Portfolio API")
@@ -32,6 +33,7 @@ app.mount("/charts", StaticFiles(directory="simulation/charts"), name="charts")
 
 app.include_router(core_router)
 app.include_router(simulation_router)
+app.include_router(optimization_router)
 
 
 @app.get("/")

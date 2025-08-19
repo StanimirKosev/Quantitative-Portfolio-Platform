@@ -161,7 +161,7 @@ def maximize_sharpe_portfolio(
         risk_free_rate: Annual risk-free rate, typically 10-year Treasury yield (default: 2%)
 
     Returns:
-        dict: Portfolio with 'return', 'volatility', 'weights', 'sharpe_ratio'
+        dict: Portfolio with 'return', 'volatility', 'weights', 'sharpe_ratio', 'risk_free_rate'
         None: If optimization fails
     """
 
@@ -238,4 +238,5 @@ def maximize_sharpe_portfolio(
         "volatility": portfolio_volatility,
         "weights": optimal_weights,
         "sharpe_ratio": sharpe_ratio,
+        "risk_free_rate": risk_free_rate,
     }
