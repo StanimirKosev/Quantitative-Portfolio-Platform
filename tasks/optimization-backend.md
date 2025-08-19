@@ -1,4 +1,6 @@
-OPT-001: Migration to Poetry and Dependency Management
+# Optimization Backend Tasks
+
+**OPT-001: Migration to Poetry and Dependency Management**
 Status: Completed
 Priority: High
 Dependencies: MC-019
@@ -23,38 +25,10 @@ Technical Notes
 - Dev deps: `poetry add --group dev pytest pytest-cov black isort`
 - Virtual env: `poetry shell` and `poetry install`
 
-OPT-002: PostgreSQL Database Schema Design
-Status: Not Started
-Priority: High
-Dependencies: OPT-001
-
-Design and implement PostgreSQL database schema for portfolio optimization
-Create SQLAlchemy models for portfolios, optimizations, and market data
-Set up database connection and migration system
-
-Acceptance Criteria
-
-- SQLAlchemy models for: Portfolio, PortfolioAsset, Optimization, PriceData tables
-- Database connection configuration with environment variables
-- Alembic migrations for schema versioning
-- Portfolio table: id, name, constraints (JSON), created_at
-- PortfolioAsset table: portfolio_id (FK), ticker, weight (indexable, numeric)
-- Optimization table: id, portfolio_id, objective, params_json, results_json, duration_ms, created_at
-- PriceData: composite PK (ticker, date), indexes for lookups
-- Local PostgreSQL development setup documented
-
-Technical Notes
-
-- Use SQLAlchemy 2.0 syntax with async support
-- JSON columns for flexible portfolio configurations
-- Foreign key relationships between tables
-- Connection string: `postgresql://user:pass@localhost/portfolio_db`
-- Alembic for migrations: `alembic init` and `alembic revision --autogenerate`
-
-OPT-003: Basic CVXPY Optimization Engine
+**OPT-002: Basic CVXPY Optimization Engine**
 Status: Completed
 Priority: High
-Dependencies: OPT-002
+Dependencies: OPT-001
 
 Implement core portfolio optimization using CVXPY
 Start with basic mean-variance optimization (Markowitz model)
@@ -77,10 +51,10 @@ Technical Notes
 - Objective functions: minimize variance or maximize return/risk ratio
 - Solver selection: OSQP or ECOS for quadratic problems
 
-OPT-004: Efficient Frontier Calculation
+**OPT-003: Efficient Frontier Calculation**
 Status: Completed
 Priority: High
-Dependencies: OPT-003
+Dependencies: OPT-002
 
 Implement efficient frontier calculation across risk-return spectrum
 Generate multiple optimal portfolios for different target returns
@@ -101,151 +75,7 @@ Technical Notes
 - Find max Sharpe ratio: `max((r - rf) / vol)` across frontier points
 - Validate feasibility before solving each optimization
 
-OPT-005: FastAPI Optimization Router
-Status: Not Started
-Priority: Medium
-Dependencies: OPT-004
-
-Create FastAPI router for optimization endpoints
-Integrate with existing simulation API structure
-Add basic portfolio optimization endpoints
-
-Acceptance Criteria
-
-- `/api/optimize/portfolio` endpoint for single portfolio optimization
-- `/api/optimize/efficient-frontier` endpoint for frontier calculation (async)
-- Request/response models using Pydantic (shared with simulation via core/models)
-- Error handling for optimization failures with meaningful messages
-- Integration with existing FastAPI app structure
-
-Technical Notes
-
-- Create `optimization/router.py` similar to simulation structure
-- Use async endpoints for potentially long-running optimizations
-- Request models: portfolio data + optimization parameters
-- Response models: optimal weights, metrics, efficient frontier data
-- Include optimization in main FastAPI app: `app.include_router(opt_router)`
-
-OPT-006: Portfolio Risk Attribution Foundation
-Status: Not Started
-Priority: Low
-Dependencies: OPT-005
-
-Create foundation for portfolio risk attribution analysis
-Implement factor-based risk decomposition using core module components
-Prepare for advanced constraint handling in optimization
-
-Acceptance Criteria
-
-- Calculate portfolio risk contribution by asset
-- Implement marginal contribution to risk (MCTR) calculations
-- Factor-based risk attribution using PCA from core module
-- Foundation for sector/factor-based optimization constraints
-- Risk attribution data structure for future frontend display
-
-Technical Notes
-
-- MCTR calculation: `(cov_matrix @ weights) * weights / portfolio_variance`
-- Component contribution: `weights * MCTR`
-- Use core module PCA for factor attribution
-- Prepare constraint framework: sector limits, factor exposures
-- Document risk attribution methodology for optimization constraints
-
-OPT-007: Efficient Frontier Visualization Backend Support
-Status: Not Started
-Priority: High
-Dependencies: OPT-005
-
-Create backend visualization utilities for efficient frontier plotting, similar to simulation's chart generation.
-Generate matplotlib-based efficient frontier plots with max Sharpe ratio highlighting for backend testing
-and optional frontend integration.
-
-Acceptance Criteria
-
-- Create `optimization/engine/visualization.py` module following simulation patterns
-- Implement `plot_efficient_frontier()` function generating risk-return scatter plot
-- Highlight maximum Sharpe ratio portfolio with distinct marker/color
-- Save plots to `optimization/charts/` directory with consistent naming
-- Include portfolio weights visualization (pie chart) for selected point
-- Return chart paths for potential API serving (following simulation structure)
-- Handle edge cases: empty frontier, single point, visualization failures
-
-Technical Notes
-
-- Follow simulation visualization patterns from `simulation/engine/visualization.py`
-- Use matplotlib for scatter plot: X-axis=volatility, Y-axis=returns
-- Efficient frontier as connected line/curve with individual points
-- Max Sharpe portfolio as starred/highlighted point with legend
-- Save charts: `optimization/charts/efficient_frontier_{timestamp}.png`
-- Optional: Interactive hover showing portfolio weights for each point
-- Consistent styling with simulation charts (colors, fonts, layout)
-
-OPT-008: Real-time WebSocket Progress Updates
-Status: Not Started
-Priority: Medium
-Dependencies: OPT-005
-
-Implement WebSocket-based real-time progress updates for efficient frontier calculations.
-This is the primary WebSocket use case for the entire project, providing live feedback
-during long-running optimization processes (20-40 seconds).
-
-Acceptance Criteria
-
-- Add progress callback parameter to `calculate_efficient_frontier()` function
-- Create WebSocket endpoint `/ws/optimize/progress/{session_id}` for real-time updates
-- Emit progress events: `{"current": 15, "total": 25, "message": "Calculating portfolio 15/25"}`
-- Frontend receives real-time updates and displays progress bar
-- Handle WebSocket connection cleanup on completion or error
-- Session-based progress tracking for multiple concurrent optimizations
-
-Technical Notes
-
-- Modify efficient frontier loop to call `progress_callback(current, total)`
-- Use FastAPI WebSocket with unique session IDs
-- Frontend connects to WebSocket before starting optimization
-- Progress updates every 1-2 seconds as each portfolio point completes
-- Graceful fallback if WebSocket connection fails
-
-## Additional Features & Ideas (Future Tasks)
-
-**Advanced Financial Metrics**:
-
-- CAPM (Beta calculation against market index) - belongs in core module for both simulation and optimization
-- Information Ratio (active return vs tracking error) - core module, useful for optimization constraints
-- Stress Testing (scenario analysis with extreme market conditions like 2008 crisis, COVID crash) - simulation module feature
-- Sharpe Ratio standardization (ensure industry standard annualized calculations with risk-free rate handling)
-
-**Optimization Constraints & Features**:
-
-- Custom constraint builder: no short-selling, sector limits, max position size, budget constraints
-- Efficient frontier visualization with 20-30 optimal portfolios across risk spectrum
-- Risk-return scatter plots with optimal portfolio highlighted
-- Optimal portfolio weights display (pie charts, allocation tables)
-- Historical optimization comparison and performance tracking
-- Factor-based optimization constraints (sector allocation limits, factor exposures)
-
-**Production & Architecture**:
-
-- CI/CD pipelines (skip for now - add during production polish phase after 7+ weeks of development)
-- Monitoring and logging enhancements for optimization performance
-- Docker multi-stage builds optimization
-- Portfolio management: save/load configurations, optimization history, export results (JSON, CSV)
-
-**Integration Points**:
-
-- Shared portfolio validation between simulation and optimization modules
-- Unified risk metrics calculation (VaR/CVaR) across both modules
-- Consistent data models and API response formats
-- Single UI with two tabs (simulation + optimization) sharing common components
-
-**Technical Debt & Improvements**:
-
-- Vectorization for optimization engine (skip for simulation - already working code)
-- Advanced numerical stability for large portfolio optimizations
-- Performance optimization for real-time efficient frontier calculations
-- Database query optimization for portfolio history and caching
-
-OPT-009: FRED API Integration for Risk-Free Rates
+**OPT-004: FRED API Integration for Risk-Free Rates**
 Status: Completed
 Priority: High
 Dependencies: None (core module enhancement)
@@ -275,3 +105,120 @@ Technical Notes
 - Environment variable: `FRED_API_KEY` for production deployment
 - Convert percentage rate to decimal for calculations (divide by 100)
 - Integration points: optimization Sharpe ratio calculations, efficient frontier metrics
+
+## Remaining Tasks
+
+**OPT-005: FastAPI Optimization Router**
+Status: Not Started
+Priority: High
+Dependencies: OPT-003
+
+Create FastAPI router for optimization endpoints
+Integrate with existing simulation API structure
+Add basic portfolio optimization endpoints
+
+Acceptance Criteria
+
+- `/api/optimize/portfolio` endpoint for single portfolio optimization
+- `/api/optimize/efficient-frontier` endpoint for frontier calculation (async)
+- Request/response models using Pydantic (shared with simulation via core/models)
+- Error handling for optimization failures with meaningful messages
+- Integration with existing FastAPI app structure
+
+Technical Notes
+
+- Create `optimization/router.py` similar to simulation structure
+- Use async endpoints for potentially long-running optimizations
+- Request models: portfolio data + optimization parameters
+- Response models: optimal weights, metrics, efficient frontier data
+- Include optimization in main FastAPI app: `app.include_router(opt_router)`
+
+**OPT-006: Efficient Frontier Visualization Backend Support**
+Status: Not Started
+Priority: High
+Dependencies: OPT-005
+
+Create backend visualization utilities for efficient frontier plotting, similar to simulation's chart generation.
+Generate matplotlib-based efficient frontier plots with max Sharpe ratio highlighting for backend testing
+and optional frontend integration.
+
+Acceptance Criteria
+
+- Create `optimization/engine/visualization.py` module following simulation patterns
+- Implement `plot_efficient_frontier()` function generating risk-return scatter plot
+- Highlight maximum Sharpe ratio portfolio with distinct marker/color
+- Save plots to `optimization/charts/` directory with consistent naming
+- Include portfolio weights visualization (pie chart) for selected point
+- Return chart paths for potential API serving (following simulation structure)
+- Handle edge cases: empty frontier, single point, visualization failures
+
+Technical Notes
+
+- Follow simulation visualization patterns from `simulation/engine/visualization.py`
+- Use matplotlib for scatter plot: X-axis=volatility, Y-axis=returns
+- Efficient frontier as connected line/curve with individual points
+- Max Sharpe portfolio as starred/highlighted point with legend
+- Save charts: `optimization/charts/efficient_frontier_{timestamp}.png`
+- Optional: Interactive hover showing portfolio weights for each point
+- Consistent styling with simulation charts (colors, fonts, layout)
+
+**OPT-007: Real-time WebSocket Progress Updates**
+Status: Not Started
+Priority: Medium
+Dependencies: OPT-005
+
+Implement WebSocket-based real-time progress updates for efficient frontier calculations.
+This is the primary WebSocket use case for the entire project, providing live feedback
+during long-running optimization processes (20-40 seconds).
+
+Acceptance Criteria
+
+- Add progress callback parameter to `calculate_efficient_frontier()` function
+- Create WebSocket endpoint `/ws/optimize/progress/{session_id}` for real-time updates
+- Emit progress events: `{"current": 15, "total": 25, "message": "Calculating portfolio 15/25"}`
+- Frontend receives real-time updates and displays progress bar
+- Handle WebSocket connection cleanup on completion or error
+- Session-based progress tracking for multiple concurrent optimizations
+
+Technical Notes
+
+- Modify efficient frontier loop to call `progress_callback(current, total)`
+- Use FastAPI WebSocket with unique session IDs
+- Frontend connects to WebSocket before starting optimization
+- Progress updates every 1-2 seconds as each portfolio point completes
+- Graceful fallback if WebSocket connection failsW
+
+**OPT-008: Production Infrastructure**
+Status: Not Started  
+Priority: Low
+Dependencies: OPT-007
+
+Production-ready deployment enhancements including CI/CD and Docker optimizations.
+
+Acceptance Criteria
+
+- CI/CD pipeline with GitHub Actions (build, test, deploy)
+- Docker multi-stage builds (smaller production images, faster builds)
+- Enhanced logging for optimization performance monitoring
+- Environment-based configuration (dev/prod settings)
+
+Technical Notes
+
+- Multi-stage Docker: separate build stage for Poetry dependencies, lean runtime stage
+- CI/CD: automated testing, Docker image builds, deployment to cloud platforms
+- Logging: optimization timing, solver performance, error tracking
+- Config: environment variables for FRED API, optimization parameters
+
+## Ideas for Advanced Features (Future Considerations)
+
+**Advanced Financial Metrics** (Core Module):
+
+- CAPM Beta calculation against market indices
+- Information Ratio for active return vs tracking error
+- Stress testing with historical crisis scenarios (2008, COVID)
+
+**UI/UX Enhancements** (Frontend):
+
+- Interactive efficient frontier charts with hover details
+- Portfolio comparison tools (side-by-side optimization results)
+- Advanced constraint builder interface (sector limits, position sizes)

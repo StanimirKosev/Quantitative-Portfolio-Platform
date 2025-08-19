@@ -57,7 +57,7 @@ _Principal component analysis identifying dominant risk factors_
 
 **Technology Stack:**
 
-- **Backend**: Python, FastAPI, NumPy, Pandas, Matplotlib, yfinance, pytest (testing), Pydantic (type validation), structured logging
+- **Backend**: Python, FastAPI, NumPy, Pandas, Matplotlib, yfinance, FRED API, CVXPY, pytest, Pydantic, structured logging
 - **Frontend**: React 19, TypeScript, Vite, shadcn/ui, Recharts, TanStack Query, Zustand
 - **Testing & Quality**: pytest, comprehensive test coverage, type hints, linting
 - **Cloud & DevOps**: Docker, Google Cloud Run, Google Artifact Registry
