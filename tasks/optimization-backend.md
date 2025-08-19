@@ -200,7 +200,7 @@ Acceptance Criteria
 
 Technical Notes
 
-- Modify efficient frontier loop to call `progress_callback(current, total)` 
+- Modify efficient frontier loop to call `progress_callback(current, total)`
 - Use FastAPI WebSocket with unique session IDs
 - Frontend connects to WebSocket before starting optimization
 - Progress updates every 1-2 seconds as each portfolio point completes
@@ -244,3 +244,34 @@ Technical Notes
 - Advanced numerical stability for large portfolio optimizations
 - Performance optimization for real-time efficient frontier calculations
 - Database query optimization for portfolio history and caching
+
+OPT-009: FRED API Integration for Risk-Free Rates
+Status: Completed
+Priority: High
+Dependencies: None (core module enhancement)
+
+Replace hardcoded risk-free rates with real-time data from Federal Reserve Economic Data (FRED) API.
+Integrate authoritative risk-free rate sourcing for Sharpe ratio and optimization calculations.
+Add caching and fallback mechanisms for production reliability.
+
+Acceptance Criteria
+
+- Add `fredapi` dependency to Poetry configuration
+- Implement `fetch_risk_free_rate()` function in `core/utils.py`
+- Fetch 3-month Treasury bill rate (DGS3MO) or 10-year Treasury (DGS10) from FRED
+- Implement 24-hour caching to avoid API rate limits and ensure performance
+- Add fallback to reasonable default rate (2-3%) if API fails
+- Log data source usage (cached vs fresh API call)
+- Update Sharpe ratio calculations across optimization engine to use dynamic rate
+- Add configuration for FRED API key via environment variables
+
+Technical Notes
+
+- Install: `poetry add fredapi`
+- FRED series: DGS3MO (3-month Treasury) or DGS10 (10-year Treasury)
+- API usage: `fred = Fred(api_key='KEY'); rate = fred.get_series_latest_release('DGS3MO')`
+- Cache implementation: in-memory with 24h TTL or simple file-based cache
+- Fallback rate: 2.5% (reasonable default for current economic environment)
+- Environment variable: `FRED_API_KEY` for production deployment
+- Convert percentage rate to decimal for calculations (divide by 100)
+- Integration points: optimization Sharpe ratio calculations, efficient frontier metrics

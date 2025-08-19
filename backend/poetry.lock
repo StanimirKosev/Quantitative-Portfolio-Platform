@@ -751,6 +751,21 @@ unicode = ["unicodedata2 (>=15.1.0) ; python_version <= \"3.12\""]
 woff = ["brotli (>=1.0.1) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=0.8.0) ; platform_python_implementation != \"CPython\"", "zopfli (>=0.1.4)"]
 
 [[package]]
+name = "fredapi"
+version = "0.5.2"
+description = "Python API for Federal Reserve Economic Data (FRED) from St. Louis Fed"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "fredapi-0.5.2-py3-none-any.whl", hash = "sha256:961817ec8d70e58886ff7302d3dda908614ad99f77831a59833c4fc3f6150155"},
+    {file = "fredapi-0.5.2.tar.gz", hash = "sha256:405ca048abed4207d93dbc9b7ee8c46d6b473483650323e2f1c094af83d4b247"},
+]
+
+[package.dependencies]
+pandas = "*"
+
+[[package]]
 name = "frozendict"
 version = "2.4.6"
 description = "A simple immutable dictionary"
@@ -2247,6 +2262,21 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-dotenv"
+version = "1.1.1"
+description = "Read key-value pairs from a .env file and set them as environment variables"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "python_dotenv-1.1.1-py3-none-any.whl", hash = "sha256:31f23644fe2602f88ff55e1f5c79ba497e01224ee7737937930c448e4d0e24dc"},
+    {file = "python_dotenv-1.1.1.tar.gz", hash = "sha256:a8a6399716257f45be6a007360200409fce5cda2661e3dec71d23dc15f6189ab"},
+]
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
 name = "pytz"
 version = "2025.2"
 description = "World timezone definitions, modern and historical"
@@ -2730,4 +2760,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "1bcacc34fb701071051d4ebc4887fdaae2d3c2a14fd3cc761cb79508cefb15c1"
+content-hash = "768b6408699825c9a9606cbdb662f6a1058bb1c2e9ab73f25f259841f42802f1"

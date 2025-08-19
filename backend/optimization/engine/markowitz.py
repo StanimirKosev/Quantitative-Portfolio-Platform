@@ -2,6 +2,7 @@ import numpy as np
 import cvxpy as cp
 import pandas as pd
 from typing import Tuple, List, Dict, Union
+from core.utils import fetch_risk_free_rate
 from core.logging_config import log_info, log_error
 
 
@@ -78,7 +79,7 @@ def calculate_efficient_frontier(
         "Starting efficient frontier calculation",
         num_assets=len(mean_returns),
         num_points=num_points,
-        return_range=f"{min_return:.4f} to {max_return:.4f}"
+        return_range=f"{min_return:.4f} to {max_return:.4f}",
     )
 
     for target_return in target_returns:
@@ -126,7 +127,7 @@ def calculate_efficient_frontier(
             "Efficient frontier calculation failed",
             failed_points=failed_points,
             total_points=num_points,
-            num_assets=len(mean_returns)
+            num_assets=len(mean_returns),
         )
         raise ValueError(error_msg)
 
@@ -135,14 +136,16 @@ def calculate_efficient_frontier(
         successful_points=len(efficient_frontier),
         total_points=num_points,
         failed_points=failed_points,
-        success_rate=f"{len(efficient_frontier)/num_points*100:.1f}%"
+        success_rate=f"{len(efficient_frontier)/num_points*100:.1f}%",
     )
 
     return efficient_frontier
 
 
 def maximize_sharpe_portfolio(
-    mean_returns: pd.Series, cov_matrix: pd.DataFrame, risk_free_rate: float = 0.02
+    mean_returns: pd.Series,
+    cov_matrix: pd.DataFrame,
+    risk_free_rate: float = fetch_risk_free_rate(),
 ) -> Union[Dict[str, Union[float, np.ndarray]], None]:
     """
     Find portfolio with maximum Sharpe ratio using convex optimization.
@@ -165,7 +168,7 @@ def maximize_sharpe_portfolio(
     log_info(
         "Starting maximum Sharpe ratio optimization",
         num_assets=len(mean_returns),
-        risk_free_rate=f"{risk_free_rate*100:.1f}%"
+        risk_free_rate=f"{risk_free_rate*100:.1f}%",
     )
 
     daily_risk_free_rate = risk_free_rate / 252
@@ -193,7 +196,7 @@ def maximize_sharpe_portfolio(
             "Maximum Sharpe ratio optimization failed",
             solver_status=problem.status,
             num_assets=len(mean_returns),
-            risk_free_rate=f"{risk_free_rate*100:.1f}%"
+            risk_free_rate=f"{risk_free_rate*100:.1f}%",
         )
         if problem.status == "infeasible":
             raise ValueError(
@@ -227,7 +230,7 @@ def maximize_sharpe_portfolio(
         portfolio_return=f"{portfolio_return*100:.2f}%",
         portfolio_volatility=f"{portfolio_volatility*100:.2f}%",
         sharpe_ratio=f"{sharpe_ratio:.3f}",
-        max_weight=f"{np.max(optimal_weights)*100:.1f}%"
+        max_weight=f"{np.max(optimal_weights)*100:.1f}%",
     )
 
     return {

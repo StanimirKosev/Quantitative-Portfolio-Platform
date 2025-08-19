@@ -5,6 +5,10 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple, Optional, Union
 from core.logging_config import log_info, log_error
+from fredapi import Fred
+from dotenv import load_dotenv
+
+load_dotenv()
 
 HISTORICAL = "Historical"
 GEOPOLITICAL_CRISIS_REGIME_NAME = "Geopolitical Crisis"
@@ -176,6 +180,53 @@ def shrink_covariance(
     return pd.DataFrame(
         shrunk_matrix, index=sample_cov.index, columns=sample_cov.columns
     )
+
+
+def fetch_risk_free_rate() -> float:
+    """
+    Fetch 10-year Treasury rate from FRED with error handling and fallback.
+
+    Returns:
+        float: Risk-free rate as decimal (e.g., 0.045 for 4.5%)
+
+    Environment Variables:
+        FRED_API_KEY: API key from https://fred.stlouisfed.org/
+    """
+    FALLBACK_RATE = 0.02  # 2% default rate
+    FRED_SERIES = "GS10"  # 10-Year Treasury Constant Maturity Rate
+
+    try:
+        api_key = os.getenv("FRED_API_KEY")
+
+        fred = Fred(api_key=api_key)
+        treasury_series = fred.get_series_latest_release(FRED_SERIES)
+
+        if treasury_series is None or treasury_series.empty:
+            log_error(
+                "FRED returned empty Treasury series",
+                series=FRED_SERIES,
+                using_fallback=True,
+            )
+            return FALLBACK_RATE
+
+        # Get most recent rate and convert from percentage to decimal
+        latest_rate = treasury_series.iloc[-1] / 100
+
+        log_info(
+            "Fetched risk-free rate from FRED",
+            rate=f"{latest_rate:.3%}",
+            series=FRED_SERIES,
+        )
+
+        return float(latest_rate)
+
+    except Exception as e:
+        log_error(
+            "Failed to fetch risk-free rate from FRED",
+            error=str(e),
+            using_fallback=True,
+        )
+        return FALLBACK_RATE
 
 
 def save_figure(regime_name: str, prefix: str) -> str:
