@@ -1,12 +1,13 @@
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock, MagicMock
 import pandas as pd
 import numpy as np
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
+import json
 
 from core.utils import InvalidTickersException
-from optimization.api.api_utils import optimize_portfolio_api
+from optimization.api.api_utils import optimize_portfolio_api, ProgressBroadcaster
 from app import app
 
 
@@ -211,3 +212,108 @@ class TestFastApiIntegration:
         assert "frontier_points" in data
         assert "max_sharpe_point" in data
         mock_optimize.assert_called_once()
+
+
+class TestProgressBroadcaster:
+    """Tests for WebSocket progress broadcasting functionality."""
+
+    def setup_method(self):
+        self.broadcaster = ProgressBroadcaster()
+
+    @pytest.mark.asyncio
+    async def test_connect_websocket(self):
+        mock_websocket = AsyncMock()
+
+        await self.broadcaster.connect(mock_websocket)
+
+        mock_websocket.accept.assert_called_once()
+        assert mock_websocket in self.broadcaster.connections
+
+    def test_disconnect_websocket(self):
+        mock_websocket = MagicMock()
+        self.broadcaster.connections.append(mock_websocket)
+
+        self.broadcaster.disconnect(mock_websocket)
+
+        assert mock_websocket not in self.broadcaster.connections
+
+    def test_disconnect_nonexistent_websocket(self):
+        mock_websocket = MagicMock()
+
+        # Should not raise error
+        self.broadcaster.disconnect(mock_websocket)
+        assert len(self.broadcaster.connections) == 0
+
+    @pytest.mark.asyncio
+    async def test_broadcast_progress_no_connections(self):
+        # Should not raise error when no connections
+        await self.broadcaster.broadcast_progress(10, 25, "Testing progress")
+
+    @pytest.mark.asyncio
+    async def test_broadcast_progress_success(self):
+        mock_websocket = AsyncMock()
+        self.broadcaster.connections.append(mock_websocket)
+
+        await self.broadcaster.broadcast_progress(15, 25, "Calculating portfolio 15/25")
+
+        expected_data = {
+            "current": 15,
+            "total": 25,
+            "message": "Calculating portfolio 15/25",
+            "percentage": 60.0,
+        }
+        mock_websocket.send_text.assert_called_once_with(json.dumps(expected_data))
+
+    @pytest.mark.asyncio
+    async def test_broadcast_progress_handles_failed_connections(self):
+        good_websocket = AsyncMock()
+        bad_websocket = AsyncMock()
+        bad_websocket.send_text.side_effect = Exception("Connection broken")
+
+        self.broadcaster.connections.extend([good_websocket, bad_websocket])
+
+        await self.broadcaster.broadcast_progress(5, 10, "Testing")
+
+        # Good connection should receive message
+        good_websocket.send_text.assert_called_once()
+        # Bad connection should be removed
+        assert bad_websocket not in self.broadcaster.connections
+        assert good_websocket in self.broadcaster.connections
+
+    @pytest.mark.asyncio
+    async def test_broadcast_progress_percentage_calculation(self):
+        mock_websocket = AsyncMock()
+        self.broadcaster.connections.append(mock_websocket)
+
+        await self.broadcaster.broadcast_progress(0, 20, "Starting")
+
+        call_args = mock_websocket.send_text.call_args[0][0]
+        data = json.loads(call_args)
+        assert data["percentage"] == 0.0
+
+    @pytest.mark.asyncio
+    async def test_broadcast_progress_zero_total_handling(self):
+        mock_websocket = AsyncMock()
+        self.broadcaster.connections.append(mock_websocket)
+
+        await self.broadcaster.broadcast_progress(1, 0, "Edge case")
+
+        call_args = mock_websocket.send_text.call_args[0][0]
+        data = json.loads(call_args)
+        assert data["percentage"] == 0
+
+
+class TestWebSocketIntegration:
+    """Integration tests for WebSocket endpoints."""
+
+    def setup_method(self):
+        self.client = TestClient(app)
+
+    def test_websocket_progress_endpoint_connection(self):
+        with self.client.websocket_connect("/api/optimize/ws/progress") as websocket:
+            # Connection should be established successfully
+            # Send a test message to keep connection alive
+            websocket.send_text("test")
+
+            # WebSocket should stay connected
+            assert websocket is not None

@@ -57,9 +57,10 @@ _Principal component analysis identifying dominant risk factors_
 
 **Technology Stack:**
 
-- **Backend**: Python, FastAPI, NumPy, Pandas, Matplotlib, yfinance, FRED API, CVXPY, pytest, Pydantic, structured logging
+- **Backend**: Python, FastAPI, WebSockets, AsyncIO, NumPy, Pandas, Matplotlib, yfinance, FRED API, CVXPY
 - **Frontend**: React 19, TypeScript, Vite, shadcn/ui, Recharts, TanStack Query, Zustand
-- **Testing & Quality**: pytest, comprehensive test coverage, type hints, linting
+- **Data & Validation**: Pydantic models, structured logging, comprehensive error handling
+- **Testing**: pytest, async test support, comprehensive coverage, type hints, linting
 - **Cloud & DevOps**: Docker, Google Cloud Run, Google Artifact Registry
 
 ## 🎨 Frontend Features
@@ -107,12 +108,23 @@ _Principal component analysis identifying dominant risk factors_
 
 ## 🚀 API Endpoints
 
+### Core APIs (Portfolio & Validation)
+
 - **`GET /api/portfolio/default`** - Default 6-asset portfolio composition and date range
-- **`POST /api/simulate/{regime}`** - Run Monte Carlo simulation for default portfolio (historical/fiat_debasement/geopolitical_crisis)
-- **`POST /api/simulate/custom`** - Run simulation for fully customizable portfolio with custom regime parameters
 - **`POST /api/portfolio/validate`** - Validate portfolio tickers, weights, and date ranges
 - **`GET /api/regimes`** - Available regime scenarios with descriptions
 - **`GET /api/regimes/{regime}/parameters`** - Regime-specific factor adjustments
+
+### Simulation APIs (Monte Carlo)
+
+- **`POST /api/simulate/{regime}`** - Run Monte Carlo simulation for default portfolio
+- **`POST /api/simulate/custom`** - Run simulation for fully customizable portfolio with custom regime parameters
+
+### Optimization APIs (Efficient Frontier)
+
+- **`POST /api/optimize/{regime}`** - Calculate efficient frontier and maximum Sharpe ratio for default portfolio
+- **`POST /api/optimize/custom`** - Run portfolio optimization for custom assets with regime-specific factors
+- **`WebSocket /api/optimize/ws/progress`** - Real-time progress updates during optimization calculations
 
 ## 📚 Educational Value
 

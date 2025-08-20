@@ -11,11 +11,18 @@ graph TD
         B --> I[optimization/]
         B --> J[app.py - FastAPI main]
         B --> K[Dockerfile]
-        B --> L[requirements.txt]
+        B --> L[pyproject.toml - Poetry]
 
         subgraph Core
             G --> G1[__init__.py]
             G --> G2[logging_config.py]
+            G --> G3[portfolio.py]
+            G --> G4[utils.py]
+            G --> G5[api/]
+            
+            G5 --> G5a[api_utils.py]
+            G5 --> G5b[models.py]
+            G5 --> G5c[routes.py]
         end
 
         subgraph Simulation
@@ -32,6 +39,7 @@ graph TD
             
             H2 --> H2a[api_utils.py]
             H2 --> H2b[models.py]
+            H2 --> H2c[routes.py]
             
             H3 --> H3a[historical/]
             H3 --> H3b[fiat_debasement/]
@@ -43,8 +51,18 @@ graph TD
         end
 
         subgraph Optimization
-            I --> I1[__init__.py]
-            I1 --> I1a[Empty - Future module]
+            I --> I1[engine/]
+            I --> I2[api/]
+            I --> I3[tests/]
+            
+            I1 --> I1a[markowitz.py]
+            
+            I2 --> I2a[api_utils.py]
+            I2 --> I2b[models.py]
+            I2 --> I2c[routes.py]
+            
+            I3 --> I3a[test_api.py]
+            I3 --> I3b[test_markowitz.py]
         end
     end
 
@@ -63,6 +81,8 @@ graph TD
         
         M1 --> M1a[UI components]
         M1 --> M1b[Charts & visualizations]
+        M1 --> M1c[EfficientFrontierChart.tsx]
+        M1 --> M1d[PortfolioCarousel.tsx]
         M2 --> M2a[CustomPortfolioForm.tsx]
         M3 --> M3a[api.ts]
         M3 --> M3b[portfolioUtils.ts]
@@ -81,8 +101,19 @@ graph TD
 
     %% Data/control flows
     M3a -- REST API --> J
+    M3a -- WebSocket --> I2c
     J -- serves static --> H3
-    J -- imports --> H2a
+    J -- imports --> G5c
+    J -- imports --> H2c
+    J -- imports --> I2c
+    G5a -- imports --> G4
     H2a -- imports --> H1a
+    I2a -- imports --> I1a
+    I2a -- imports --> G5a
     H1d -- saves to --> H3
     H1c -- uses --> G2
+    I2c -- WebSocket progress --> M1c
+
+    %% WebSocket connection highlight
+    classDef websocket fill:#ff9999,stroke:#333,stroke-width:2px
+    class I2c websocket

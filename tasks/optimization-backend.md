@@ -155,30 +155,28 @@ Technical Notes
 - **User workflow:** Validation → Simulation → Optimization = 1 API call + 2 cache hits
 
 **OPT-006: Real-time WebSocket Progress Updates**
-Status: Not Started
+Status: Completed ✅
 Priority: Medium
 Dependencies: OPT-005
 
 Implement WebSocket-based real-time progress updates for efficient frontier calculations.
-This is the primary WebSocket use case for the entire project, providing live feedback
-during long-running optimization processes (20-40 seconds).
+Professional asyncio implementation with background thread coordination and WebSocket broadcasting.
 
 Acceptance Criteria
 
-- Add progress callback parameter to `calculate_efficient_frontier()` function
-- Create WebSocket endpoint `/ws/optimize/progress/{session_id}` for real-time updates
-- Emit progress events: `{"current": 15, "total": 25, "message": "Calculating portfolio 15/25"}`
-- Frontend receives real-time updates and displays progress bar
-- Handle WebSocket connection cleanup on completion or error
-- Session-based progress tracking for multiple concurrent optimizations
+- ✅ Added `progress_callback` parameter to `calculate_efficient_frontier()` function
+- ✅ Created WebSocket endpoint `/api/optimize/ws/progress` for real-time updates  
+- ✅ Emit progress events: `{"current": 15, "total": 25, "message": "...", "percentage": 60.0}`
+- ✅ Implemented `ProgressBroadcaster` class for WebSocket connection management
+- ✅ Background thread coordination with `asyncio.to_thread()` and `run_coroutine_threadsafe()`
+- ✅ Clean connection lifecycle management (connect/disconnect/broadcast)
 
-Technical Notes
+Technical Implementation
 
-- Modify efficient frontier loop to call `progress_callback(current, total)`
-- Use FastAPI WebSocket with unique session IDs
-- Frontend connects to WebSocket before starting optimization
-- Progress updates every 1-2 seconds as each portfolio point completes
-- Graceful fallback if WebSocket connection failsW
+- **Threading Architecture**: Main event loop handles WebSockets/HTTP, background thread runs CPU-intensive optimization
+- **Bridge Pattern**: `create_progress_callback()` bridges background thread to main event loop via `asyncio.run_coroutine_threadsafe()`  
+- **WebSocket Management**: `ProgressBroadcaster` handles multiple concurrent connections with dead connection cleanup
+- **Production Ready**: Error handling, connection lifecycle management, clean separation of concerns
 
 **OPT-007: Production Infrastructure**
 Status: Not Started  

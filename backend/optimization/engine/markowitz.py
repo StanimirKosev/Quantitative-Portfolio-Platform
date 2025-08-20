@@ -1,7 +1,7 @@
 import numpy as np
 import cvxpy as cp
 import pandas as pd
-from typing import Tuple, List, Dict, Union
+from typing import Tuple, List, Dict, Union, Optional, Callable
 from core.utils import fetch_risk_free_rate
 from core.logging_config import log_info, log_error
 
@@ -43,7 +43,10 @@ def calculate_portfolio_metrics(
 
 
 def calculate_efficient_frontier(
-    mean_returns: pd.Series, cov_matrix: pd.DataFrame, num_points: int = 25
+    mean_returns: pd.Series,
+    cov_matrix: pd.DataFrame,
+    num_points: int = 25,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
 ) -> List[Dict[str, Union[float, np.ndarray]]]:
     """
     Calculate efficient frontier with multiple optimal portfolios across risk-return spectrum.
@@ -55,6 +58,8 @@ def calculate_efficient_frontier(
         mean_returns (pd.Series): Mean daily returns for each asset
         cov_matrix (pd.DataFrame): Daily covariance matrix between assets
         num_points (int): Number of portfolios along efficient frontier (default: 25)
+        progress_callback (Optional[Callable]): Optional callback function for progress updates.
+            Called with (current, total, message) parameters for real-time progress tracking.
 
     Returns:
         List[Dict]: List of portfolio dictionaries, each containing:
@@ -82,7 +87,12 @@ def calculate_efficient_frontier(
         return_range=f"{min_return:.4f} to {max_return:.4f}",
     )
 
-    for target_return in target_returns:
+    for i, target_return in enumerate(target_returns):
+        # Progress callback for real-time updates
+        if progress_callback:
+            progress_callback(
+                i + 1, num_points, f"Optimizing portfolio {i + 1}/{num_points} points."
+            )
 
         constraints = [
             cp.sum(weights) == 1,  # Budget constraint: must invest 100% of capital
@@ -138,6 +148,10 @@ def calculate_efficient_frontier(
         failed_points=failed_points,
         success_rate=f"{len(efficient_frontier)/num_points*100:.1f}%",
     )
+
+    # Final progress callback
+    if progress_callback:
+        progress_callback(num_points, num_points, "Optimization complete")
 
     return efficient_frontier
 
