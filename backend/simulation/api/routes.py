@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from core.portfolio import get_portfolio
-from simulation.api.utils import run_portfolio_simulation_api
+from simulation.api.api_utils import run_portfolio_simulation_api
 from simulation.api.models import SimulationChartsResponse
 from core.api.models import PortfolioRequestPayload
 

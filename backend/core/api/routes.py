@@ -11,7 +11,7 @@ from core.api.models import (
     RegimesResponse,
     ValidationResponse,
 )
-from core.api.utils import (
+from core.api.api_utils import (
     get_available_regimes,
     get_regime_parameters,
     validate_portfolio,

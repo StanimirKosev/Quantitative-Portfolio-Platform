@@ -24,7 +24,7 @@ from simulation.engine.visualization import (
 from fastapi import HTTPException
 from core.logging_config import log_info
 from simulation.api.models import SimulationChartsResponse
-from core.api.utils import RegimeFactors
+from core.api.api_utils import RegimeFactors
 
 
 def run_portfolio_simulation_api(

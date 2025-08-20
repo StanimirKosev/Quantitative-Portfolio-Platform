@@ -6,18 +6,18 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from core.utils import InvalidTickersException
-from optimization.api.utils import optimize_portfolio_api
+from optimization.api.api_utils import optimize_portfolio_api
 from app import app
 
 
 class TestOptimizePortfolioApi:
     """Tests for the optimization orchestrator function."""
 
-    @patch("optimization.api.utils.maximize_sharpe_portfolio")
-    @patch("optimization.api.utils.calculate_efficient_frontier")
-    @patch("optimization.api.utils.calculate_mean_and_covariance")
-    @patch("optimization.api.utils.transform_to_daily_returns")
-    @patch("optimization.api.utils.fetch_close_prices")
+    @patch("optimization.api.api_utils.maximize_sharpe_portfolio")
+    @patch("optimization.api.api_utils.calculate_efficient_frontier")
+    @patch("optimization.api.api_utils.calculate_mean_and_covariance")
+    @patch("optimization.api.api_utils.transform_to_daily_returns")
+    @patch("optimization.api.api_utils.fetch_close_prices")
     def test_historical_regime_optimization(
         self,
         mock_fetch,
@@ -86,12 +86,12 @@ class TestOptimizePortfolioApi:
         assert exc_info.value.status_code == 400
         assert "Invalid regime name" in str(exc_info.value.detail)
 
-    @patch("optimization.api.utils.maximize_sharpe_portfolio")
-    @patch("optimization.api.utils.calculate_efficient_frontier")
-    @patch("optimization.api.utils.modify_portfolio_for_regime")
-    @patch("optimization.api.utils.calculate_mean_and_covariance")
-    @patch("optimization.api.utils.transform_to_daily_returns")
-    @patch("optimization.api.utils.fetch_close_prices")
+    @patch("optimization.api.api_utils.maximize_sharpe_portfolio")
+    @patch("optimization.api.api_utils.calculate_efficient_frontier")
+    @patch("optimization.api.api_utils.modify_portfolio_for_regime")
+    @patch("optimization.api.api_utils.calculate_mean_and_covariance")
+    @patch("optimization.api.api_utils.transform_to_daily_returns")
+    @patch("optimization.api.api_utils.fetch_close_prices")
     def test_custom_regime_with_factors(
         self,
         mock_fetch,
@@ -145,7 +145,7 @@ class TestOptimizePortfolioApi:
         assert "frontier_points" in resp.dict()
         assert resp.max_sharpe_point.sharpe_ratio == pytest.approx(0.71, abs=1e-9)
 
-    @patch("optimization.api.utils.fetch_close_prices")
+    @patch("optimization.api.api_utils.fetch_close_prices")
     def test_data_fetch_exception_handling(self, mock_fetch):
         tickers = ["INVALID"]
         mock_fetch.side_effect = InvalidTickersException("Invalid ticker: INVALID")

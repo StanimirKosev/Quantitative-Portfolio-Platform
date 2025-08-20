@@ -4,7 +4,7 @@ from optimization.api.models import (
     OptimizationRequestPayload,
     PortfolioOptimizationResponse,
 )
-from optimization.api.utils import optimize_portfolio_api
+from optimization.api.api_utils import optimize_portfolio_api
 
 from core.portfolio import get_portfolio
 

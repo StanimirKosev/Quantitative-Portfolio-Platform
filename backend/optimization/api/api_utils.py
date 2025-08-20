@@ -20,7 +20,7 @@ from optimization.engine.markowitz import (
 from fastapi import HTTPException
 from core.logging_config import log_error, log_info
 from optimization.api.models import PortfolioOptimizationResponse
-from core.api.utils import RegimeFactors
+from core.api.api_utils import RegimeFactors
 
 
 def optimize_portfolio_api(
