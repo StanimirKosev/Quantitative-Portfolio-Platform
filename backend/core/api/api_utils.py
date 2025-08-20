@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from core.portfolio import (
     GEOPOLITICAL_CRISIS_REGIME,
     FIAT_DEBASEMENT_REGIME,
@@ -8,8 +8,10 @@ from core.utils import (
     HISTORICAL,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
     FIAT_DEBASEMENT_REGIME_NAME,
+    calculate_mean_and_covariance,
     get_cached_prices,
     InvalidTickersException,
+    transform_to_daily_returns,
 )
 from fastapi import HTTPException
 from datetime import datetime
@@ -20,6 +22,7 @@ from core.api.models import (
     ValidationResponse,
     RegimeFactors,
 )
+import pandas as pd
 
 
 def get_available_regimes() -> RegimesResponse:
@@ -132,7 +135,7 @@ def validate_portfolio(
     # 7. All tickers fetchable for the given date range (only if no regime test errors)
     if not errors:
         try:
-            tickers_key = ','.join(tickers)
+            tickers_key = ",".join(tickers)
             get_cached_prices(tickers_key, start_date, end_date)
         except InvalidTickersException as e:
             errors.append(str(e))
@@ -212,3 +215,46 @@ def get_regime_parameters(
         raise HTTPException(status_code=404, detail=f"Regime '{regime_key}' not found.")
 
     return regime_map[regime_key]
+
+
+def resolve_regime(
+    regime: str, regime_factors: Optional[RegimeFactors]
+) -> Tuple[str, str, Optional[RegimeFactors]]:
+    """
+    Normalize a regime string and return (regime_key, regime_name, regime_dict).
+    - 'custom' uses the provided regime_factors as its dict (can be None).
+    """
+    regime_key = regime.strip().lower().replace(" ", "_")
+    regime_map = {
+        "historical": (HISTORICAL, None),
+        "fiat_debasement": (FIAT_DEBASEMENT_REGIME_NAME, FIAT_DEBASEMENT_REGIME),
+        "geopolitical_crisis": (
+            GEOPOLITICAL_CRISIS_REGIME_NAME,
+            GEOPOLITICAL_CRISIS_REGIME,
+        ),
+        "custom": ("Custom", regime_factors),
+    }
+    if regime_key not in regime_map:
+        raise HTTPException(status_code=400, detail=f"Invalid regime name: {regime}")
+    regime_name, regime_dict = regime_map[regime_key]
+    return regime_key, regime_name, regime_dict
+
+
+def prepare_market_data(
+    tickers: List[str],
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.DataFrame]:
+    """
+    Fetch close prices, compute daily returns, and compute mean + sample/shrunk covariance.
+    Returns: (daily_returns, mean_returns, cov_sample, cov_shrunk)
+    """
+    try:
+        tickers_key = ",".join(tickers)
+        close_values = get_cached_prices(tickers_key, start_date, end_date)
+    except InvalidTickersException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    daily_returns = transform_to_daily_returns(close_values)
+    mean_returns, cov_sample, cov_shrunk = calculate_mean_and_covariance(daily_returns)
+    return daily_returns, mean_returns, cov_sample, cov_shrunk

@@ -20,7 +20,7 @@ from app import app
 class TestRunPortfolioSimulationApi:
     """Test the main orchestrator function for Monte Carlo simulations."""
 
-    @patch("simulation.api.api_utils.get_cached_prices")
+    @patch("core.api.api_utils.get_cached_prices")
     @patch("simulation.api.api_utils.plot_simulation_results")
     @patch("simulation.api.api_utils.plot_correlation_heatmap")
     @patch("simulation.api.api_utils.plot_portfolio_pca_analysis")
@@ -93,7 +93,7 @@ class TestRunPortfolioSimulationApi:
             # This will fail for all except "Historical" due to mocking requirements,
             # but tests the normalization logic
             if expected_normalized == "historical":
-                with patch("simulation.api.api_utils.get_cached_prices"), patch(
+                with patch("core.api.api_utils.get_cached_prices"), patch(
                     "simulation.api.api_utils.simulate_portfolio_paths"
                 ), patch("simulation.api.api_utils.plot_simulation_results"), patch(
                     "simulation.api.api_utils.plot_correlation_heatmap"
@@ -109,7 +109,7 @@ class TestRunPortfolioSimulationApi:
                             f"HTTPException raised for valid regime: {input_regime}"
                         )
 
-    @patch("simulation.api.api_utils.get_cached_prices")
+    @patch("core.api.api_utils.get_cached_prices")
     def test_data_fetch_exception_handling(self, mock_fetch):
         """Test that data fetching errors are properly converted to HTTPException."""
 
@@ -128,7 +128,7 @@ class TestRunPortfolioSimulationApi:
         assert exc_info.value.status_code == 400
         assert "Invalid ticker" in str(exc_info.value.detail)
 
-    @patch("simulation.api.api_utils.get_cached_prices")
+    @patch("core.api.api_utils.get_cached_prices")
     @patch("simulation.api.api_utils.modify_portfolio_for_regime")
     def test_custom_regime_with_factors(self, mock_modify, mock_fetch):
         """Test custom regime with regime_factors parameter."""

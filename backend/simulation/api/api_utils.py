@@ -24,7 +24,7 @@ from simulation.engine.visualization import (
 from fastapi import HTTPException
 from core.logging_config import log_info
 from simulation.api.models import SimulationChartsResponse
-from core.api.api_utils import RegimeFactors
+from core.api.api_utils import RegimeFactors, prepare_market_data, resolve_regime
 
 
 def run_portfolio_simulation_api(
@@ -63,31 +63,10 @@ def run_portfolio_simulation_api(
         date_range=f"{start_date} to {end_date}",
     )
 
-    regime_key = regime.strip().lower().replace(" ", "_")
+    regime_key, regime_name, regime_dict = resolve_regime(regime, regime_factors)
 
-    regime_map = {
-        "historical": (HISTORICAL, None),
-        "fiat_debasement": (FIAT_DEBASEMENT_REGIME_NAME, FIAT_DEBASEMENT_REGIME),
-        "geopolitical_crisis": (
-            GEOPOLITICAL_CRISIS_REGIME_NAME,
-            GEOPOLITICAL_CRISIS_REGIME,
-        ),
-        "custom": ("Custom", regime_factors),
-    }
-    if regime_key not in regime_map:
-        raise HTTPException(status_code=400, detail=f"Invalid regime name: {regime}")
-
-    regime_name, regime_dict = regime_map[regime_key]
-
-    try:
-        tickers_key = ','.join(tickers)
-        close_values = get_cached_prices(tickers_key, start_date, end_date)
-    except InvalidTickersException as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    daily_returns = transform_to_daily_returns(close_values)
-    historical_mean_returns, historical_cov_matrix, _ = calculate_mean_and_covariance(
-        daily_returns
+    _, historical_mean_returns, historical_cov_matrix, _ = prepare_market_data(
+        tickers, start_date, end_date
     )
 
     if regime_key == "historical":
