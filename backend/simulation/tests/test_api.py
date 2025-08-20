@@ -20,7 +20,7 @@ from app import app
 class TestRunPortfolioSimulationApi:
     """Test the main orchestrator function for Monte Carlo simulations."""
 
-    @patch("simulation.api.api_utils.fetch_close_prices")
+    @patch("simulation.api.api_utils.get_cached_prices")
     @patch("simulation.api.api_utils.plot_simulation_results")
     @patch("simulation.api.api_utils.plot_correlation_heatmap")
     @patch("simulation.api.api_utils.plot_portfolio_pca_analysis")
@@ -93,7 +93,7 @@ class TestRunPortfolioSimulationApi:
             # This will fail for all except "Historical" due to mocking requirements,
             # but tests the normalization logic
             if expected_normalized == "historical":
-                with patch("simulation.api.api_utils.fetch_close_prices"), patch(
+                with patch("simulation.api.api_utils.get_cached_prices"), patch(
                     "simulation.api.api_utils.simulate_portfolio_paths"
                 ), patch("simulation.api.api_utils.plot_simulation_results"), patch(
                     "simulation.api.api_utils.plot_correlation_heatmap"
@@ -109,7 +109,7 @@ class TestRunPortfolioSimulationApi:
                             f"HTTPException raised for valid regime: {input_regime}"
                         )
 
-    @patch("simulation.api.api_utils.fetch_close_prices")
+    @patch("simulation.api.api_utils.get_cached_prices")
     def test_data_fetch_exception_handling(self, mock_fetch):
         """Test that data fetching errors are properly converted to HTTPException."""
 
@@ -128,7 +128,7 @@ class TestRunPortfolioSimulationApi:
         assert exc_info.value.status_code == 400
         assert "Invalid ticker" in str(exc_info.value.detail)
 
-    @patch("simulation.api.api_utils.fetch_close_prices")
+    @patch("simulation.api.api_utils.get_cached_prices")
     @patch("simulation.api.api_utils.modify_portfolio_for_regime")
     def test_custom_regime_with_factors(self, mock_modify, mock_fetch):
         """Test custom regime with regime_factors parameter."""
@@ -181,7 +181,7 @@ class TestValidatePortfolio:
         start_date = "2023-01-01"
         end_date = "2023-12-31"
 
-        with patch("core.api.api_utils.fetch_close_prices") as mock_fetch:
+        with patch("core.api.api_utils.get_cached_prices") as mock_fetch:
             # Mock successful data fetching
             mock_fetch.return_value = pd.DataFrame()
 
@@ -276,7 +276,7 @@ class TestValidatePortfolio:
         assert "Vol factor must be positive" in errors
         assert "between -0.99 and 0.99" in errors
 
-    @patch("core.api.api_utils.fetch_close_prices")
+    @patch("core.api.api_utils.get_cached_prices")
     def test_invalid_tickers_fail_validation(self, mock_fetch):
         """Test that invalid tickers fail validation."""
 
@@ -458,3 +458,107 @@ class TestDualAccessPatterns:
         assert (
             direct_cov.loc["SPYL.DE", "SPYL.DE"] > cov_matrix.loc["SPYL.DE", "SPYL.DE"]
         )
+
+
+class TestCachedPricesFunctionality:
+    """Test the caching functionality for price data fetching."""
+
+    def test_cache_preserves_ticker_order(self):
+        """Test that different ticker orders create separate cache entries."""
+        from core.utils import get_cached_prices
+        import time
+
+        # Clear cache before test
+        get_cached_prices.cache_clear()
+        
+        # Test different ticker orders
+        tickers1 = 'BTC-EUR,AAPL'
+        tickers2 = 'AAPL,BTC-EUR'
+        start, end = '2023-01-01', '2023-02-01'  # Shorter range for faster test
+
+        with patch("core.utils.fetch_close_prices") as mock_fetch:
+            # Mock return value
+            mock_fetch.return_value = pd.DataFrame({
+                'BTC-EUR': [100, 101, 102],
+                'AAPL': [150, 151, 152]
+            })
+
+            # First call - cache miss
+            result1 = get_cached_prices(tickers1, start, end)
+            
+            # Second call with different order - should be cache miss
+            result2 = get_cached_prices(tickers2, start, end)
+            
+            # Third call with original order - should be cache hit
+            result3 = get_cached_prices(tickers1, start, end)
+
+            # Verify cache behavior
+            cache_info = get_cached_prices.cache_info()
+            assert cache_info.hits == 1  # Only the third call was a hit
+            assert cache_info.misses == 2  # First two calls were misses
+            assert cache_info.currsize == 2  # Two entries in cache
+
+            # Verify fetch_close_prices was called twice (not three times)
+            assert mock_fetch.call_count == 2
+
+    def test_cache_performance_improvement(self):
+        """Test that caching provides performance improvement."""
+        from core.utils import get_cached_prices
+        import time
+
+        # Clear cache before test
+        get_cached_prices.cache_clear()
+        
+        tickers = 'BTC-EUR'
+        start, end = '2023-01-01', '2023-02-01'
+
+        with patch("core.utils.fetch_close_prices") as mock_fetch:
+            # Mock slow fetch operation
+            def slow_fetch(*args, **kwargs):
+                time.sleep(0.01)  # Simulate API delay
+                return pd.DataFrame({'BTC-EUR': [100, 101, 102]})
+            
+            mock_fetch.side_effect = slow_fetch
+
+            # First call - should be slow
+            start_time = time.time()
+            result1 = get_cached_prices(tickers, start, end)
+            time1 = time.time() - start_time
+
+            # Second call - should be fast (cached)
+            start_time = time.time()
+            result2 = get_cached_prices(tickers, start, end)
+            time2 = time.time() - start_time
+
+            # Cache should provide significant speedup
+            assert time2 < time1 / 10  # At least 10x faster
+            assert mock_fetch.call_count == 1  # Only called once
+            
+            # Results should be identical
+            pd.testing.assert_frame_equal(result1, result2)
+
+    def test_cache_string_conversion_logic(self):
+        """Test that ticker string conversion works correctly."""
+        from core.utils import get_cached_prices
+
+        # Clear cache before test
+        get_cached_prices.cache_clear()
+
+        with patch("core.utils.fetch_close_prices") as mock_fetch:
+            mock_fetch.return_value = pd.DataFrame({
+                'BTC-EUR': [100, 101],
+                'AAPL': [150, 151],
+                'MSFT': [200, 201]
+            })
+
+            # Test comma-separated string input
+            tickers_str = 'BTC-EUR,AAPL,MSFT'
+            result = get_cached_prices(tickers_str, '2023-01-01', '2023-02-01')
+
+            # Verify that fetch_close_prices was called with correct list
+            expected_tickers = ['BTC-EUR', 'AAPL', 'MSFT']
+            mock_fetch.assert_called_once()
+            args, kwargs = mock_fetch.call_args
+            assert args[0] == expected_tickers
+            assert args[1] == '2023-01-01'
+            assert args[2] == '2023-02-01'

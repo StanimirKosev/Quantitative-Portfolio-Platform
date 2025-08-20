@@ -8,7 +8,7 @@ from core.utils import (
     GEOPOLITICAL_CRISIS_REGIME_NAME,
     FIAT_DEBASEMENT_REGIME_NAME,
     calculate_mean_and_covariance,
-    fetch_close_prices,
+    get_cached_prices,
     transform_to_daily_returns,
     InvalidTickersException,
 )
@@ -79,7 +79,8 @@ def optimize_portfolio_api(
     regime_name, regime_dict = regime_map[regime_key]
 
     try:
-        close_values = fetch_close_prices(tickers, start=start_date, end=end_date)
+        tickers_key = ','.join(tickers)
+        close_values = get_cached_prices(tickers_key, start_date, end_date)
     except InvalidTickersException as e:
         raise HTTPException(status_code=400, detail=str(e))
 

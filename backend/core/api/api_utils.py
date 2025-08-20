@@ -8,7 +8,7 @@ from core.utils import (
     HISTORICAL,
     GEOPOLITICAL_CRISIS_REGIME_NAME,
     FIAT_DEBASEMENT_REGIME_NAME,
-    fetch_close_prices,
+    get_cached_prices,
     InvalidTickersException,
 )
 from fastapi import HTTPException
@@ -132,7 +132,8 @@ def validate_portfolio(
     # 7. All tickers fetchable for the given date range (only if no regime test errors)
     if not errors:
         try:
-            fetch_close_prices(tickers, start=start_date, end=end_date)
+            tickers_key = ','.join(tickers)
+            get_cached_prices(tickers_key, start_date, end_date)
         except InvalidTickersException as e:
             errors.append(str(e))
 

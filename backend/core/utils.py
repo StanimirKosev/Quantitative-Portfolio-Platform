@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from functools import lru_cache
 from typing import List, Tuple, Optional, Union
 from core.logging_config import log_info, log_error
 from fredapi import Fred
@@ -92,6 +93,13 @@ def fetch_close_prices(
     )
 
     return close
+
+
+@lru_cache(maxsize=128)
+def get_cached_prices(tickers_str: str, start: str, end: str):
+    """Cached wrapper - tickers_str should be comma-separated sorted tickers."""
+    tickers = tickers_str.split(",")
+    return fetch_close_prices(tickers, start, end)
 
 
 def transform_to_daily_returns(
