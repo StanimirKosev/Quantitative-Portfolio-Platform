@@ -169,7 +169,7 @@ class ProgressBroadcaster:
             progress_total=total,
             progress_percentage=progress_data["percentage"],
             active_connections=len(self.connections),
-            message=message,
+            progress_message=message,
         )
 
         dead_connections = []

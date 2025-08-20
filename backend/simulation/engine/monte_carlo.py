@@ -303,6 +303,9 @@ def analyze_portfolio_risk_factors(
     """
     eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix.values)
 
+    # Scale eigenvalues by 10000 to match the previous percentage-squared scale
+    eigenvalues = eigenvalues * 10000
+
     # Sort eigenvalues and eigenvectors from largest to smallest
     idx = np.argsort(eigenvalues)[::-1]
     eigenvalues = eigenvalues[idx]
