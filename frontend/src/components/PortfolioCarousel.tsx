@@ -8,6 +8,7 @@ import type { CarouselApi } from "./ui/carousel";
 import { useEffect, useState } from "react";
 import ChartsSlides from "./ChartsSlides";
 import PortfolioOverviewSlide from "./PortfolioOverviewSlide";
+import EfficientFrontierSlide from "./EfficientFrontierSlide";
 
 const PortfolioCarousel = () => {
   const [api, setApi] = useState<CarouselApi>();
@@ -32,6 +33,7 @@ const PortfolioCarousel = () => {
       <Carousel className="w-full max-w-7xl mx-auto" setApi={setApi}>
         <CarouselContent>
           <PortfolioOverviewSlide />
+          <EfficientFrontierSlide />
           <ChartsSlides />
         </CarouselContent>
         <CarouselPrevious className="left-2 sm:left-4" />

@@ -97,6 +97,7 @@ def optimize_portfolio_api(
                 "return_pct": round(point["return"] * 100, 1),
                 "volatility_pct": round(point["volatility"] * 100, 1),
                 "weights_pct": [round(w * 100, 1) for w in point["weights"].tolist()],
+                "tickers": cov_matrix.columns,
             }
             for point in efficient_frontier
         ],
@@ -107,6 +108,7 @@ def optimize_portfolio_api(
             "weights_pct": [
                 round(w * 100, 1) for w in max_sharpe_portfolio["weights"].tolist()
             ],
+            "tickers": cov_matrix.columns,
         },
         risk_free_rate_pct=round(max_sharpe_portfolio["risk_free_rate"] * 100, 1),
     )

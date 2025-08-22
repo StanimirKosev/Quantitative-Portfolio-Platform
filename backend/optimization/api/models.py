@@ -10,6 +10,7 @@ class EfficientFrontierPoint(BaseModel):
     return_pct: float
     volatility_pct: float
     weights_pct: List[float]
+    tickers: List[str]
 
 
 class MaxSharpePoint(BaseModel):
@@ -19,6 +20,7 @@ class MaxSharpePoint(BaseModel):
     volatility_pct: float
     weights_pct: List[float]
     sharpe_ratio: float
+    tickers: List[str]
 
 
 class PortfolioOptimizationResponse(BaseModel):
