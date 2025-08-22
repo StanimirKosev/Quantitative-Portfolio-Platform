@@ -166,13 +166,14 @@ class TestFastApiIntegration:
     def test_default_portfolio_optimization_endpoint(self, mock_optimize):
         mock_optimize.return_value = {
             "frontier_points": [
-                {"return_pct": 8.0, "volatility_pct": 12.0, "weights_pct": [60.0, 40.0]}
+                {"return_pct": 8.0, "volatility_pct": 12.0, "weights_pct": [60.0, 40.0], "tickers": ["BTC-EUR", "SPYL.DE"]}
             ],
             "max_sharpe_point": {
                 "return_pct": 9.0,
                 "volatility_pct": 13.0,
                 "weights_pct": [55.0, 45.0],
                 "sharpe_ratio": 0.7,
+                "tickers": ["BTC-EUR", "SPYL.DE"],
             },
             "risk_free_rate_pct": 2.5,
         }
@@ -189,13 +190,14 @@ class TestFastApiIntegration:
     def test_custom_portfolio_optimization_endpoint(self, mock_optimize):
         mock_optimize.return_value = {
             "frontier_points": [
-                {"return_pct": 7.5, "volatility_pct": 11.0, "weights_pct": [58.0, 42.0]}
+                {"return_pct": 7.5, "volatility_pct": 11.0, "weights_pct": [58.0, 42.0], "tickers": ["BTC-EUR", "SPYL.DE"]}
             ],
             "max_sharpe_point": {
                 "return_pct": 8.6,
                 "volatility_pct": 12.1,
                 "weights_pct": [60.0, 40.0],
                 "sharpe_ratio": 0.72,
+                "tickers": ["BTC-EUR", "SPYL.DE"],
             },
             "risk_free_rate_pct": 2.0,
         }

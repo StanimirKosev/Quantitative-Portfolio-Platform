@@ -55,6 +55,17 @@ def fetch_close_prices(
     # yfinance now defaults auto_adjust=True (adjusted prices). Set explicitly for clarity and to silence FutureWarning.
     data = yf.download(tickers, start=start, end=end, auto_adjust=True)
 
+    # Reorder MultiIndex columns to match input ticker order
+    if isinstance(data.columns, pd.MultiIndex) and data.columns.nlevels == 2:
+        data = data.reindex(
+            columns=[
+                (m, t)
+                for m in data.columns.levels[0]
+                for t in tickers
+                if (m, t) in data.columns
+            ]
+        )
+
     if data is None or data.empty or "Close" not in data:
         log_error(
             "Yahoo Finance returned no data",

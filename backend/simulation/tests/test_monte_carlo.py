@@ -225,7 +225,7 @@ class TestAnalyzePortfolioRiskFactors:
         """Test eigenvalues are sorted from largest to smallest"""
         # Arrange: Simple 2x2 matrix with known eigenvalues
         cov_matrix = pd.DataFrame(
-            [[2.0, 0.0], [0.0, 1.0]],  # Eigenvalues should be 2.0 and 1.0
+            [[2.0, 0.0], [0.0, 1.0]],  # Eigenvalues should be 2.0 and 1.0, scaled to 20000.0 and 10000.0
             index=["A", "B"],
             columns=["A", "B"],
         )
@@ -236,17 +236,17 @@ class TestAnalyzePortfolioRiskFactors:
         # Assert
         eigenvalues = result["eigenvalues"]
         assert eigenvalues[0] > eigenvalues[1]  # Sorted descending
-        assert eigenvalues[0] == pytest.approx(2.0, abs=0.01)
-        assert eigenvalues[1] == pytest.approx(1.0, abs=0.01)
+        assert eigenvalues[0] == pytest.approx(20000.0, abs=0.01)  # 2.0 * 10000
+        assert eigenvalues[1] == pytest.approx(10000.0, abs=0.01)  # 1.0 * 10000
 
     def test_dominant_factors_filtering(self):
         """Test only eigenvalues > 1.0 are considered dominant"""
-        # Arrange: Matrix with one dominant factor (eigenvalue > 1) and one not
+        # Arrange: Matrix with dominant factors (eigenvalue > 1.0 after 10000x scaling) and one not
         cov_matrix = pd.DataFrame(
             [
                 [3.0, 0.0, 0.0],
-                [0.0, 1.5, 0.0],  # Both > 1.0 = dominant
-                [0.0, 0.0, 0.5],  # < 1.0 = not dominant
+                [0.0, 1.5, 0.0],  # Both > 1.0 after scaling = dominant
+                [0.0, 0.0, 0.00005],  # Becomes 0.5 after scaling < 1.0 = not dominant
             ],
             index=["A", "B", "C"],
             columns=["A", "B", "C"],
@@ -257,11 +257,11 @@ class TestAnalyzePortfolioRiskFactors:
 
         # Assert
         dominant_loadings = result["dominant_factor_loadings"]
-        # Should only have 2 factors (eigenvalues 3.0 and 1.5)
+        # Should only have 2 factors (eigenvalues 3.0*10000 and 1.5*10000 after scaling)
         assert len(dominant_loadings) == 2
         assert 1 in dominant_loadings  # PC1
         assert 2 in dominant_loadings  # PC2
-        assert 3 not in dominant_loadings  # PC3 (eigenvalue 0.5 < 1.0)
+        assert 3 not in dominant_loadings  # PC3 (eigenvalue 0.00005*10000 = 0.5 < 1.0)
 
     def test_asset_contribution_calculation(self):
         """Test asset contribution percentages in risk factors"""
