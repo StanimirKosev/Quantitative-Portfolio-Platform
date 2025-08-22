@@ -40,6 +40,7 @@ import {
   type CustomPortfolioFormData,
 } from "../lib/portfolioUtils";
 import { ButtonWithLoggingOnClick } from "../components/withLoggingOnClick";
+import type { PortfolioOptimizationResponse } from "../types/optimization";
 
 type FormFieldPath =
   | keyof CustomPortfolioFormData
@@ -137,6 +138,15 @@ const simulatePortfolio = async (
   );
 };
 
+const optimizePortfolio = async (
+  formState: CustomPortfolioFormData
+): Promise<PortfolioOptimizationResponse> => {
+  return doCustomPortfolioRequest<PortfolioOptimizationResponse>(
+    formState,
+    "optimize/custom"
+  );
+};
+
 const CustomPortfolioForm = () => {
   const navigate = useNavigate();
   const [isPowerUserMode, setIsPowerUserMode] = useState<boolean>(false);
@@ -145,6 +155,7 @@ const CustomPortfolioForm = () => {
     customPortfolio,
     setCustomPortfolio,
     setCustomPortfolioCharts,
+    setCustomPortfolioOptimization,
     isCustomStateActive,
   } = useCustomPortfolioStore();
 
@@ -161,6 +172,18 @@ const CustomPortfolioForm = () => {
     },
   });
 
+  const { mutate: optimize, isPending: isOptimizing } = useMutation<
+    PortfolioOptimizationResponse,
+    Error,
+    CustomPortfolioFormData
+  >({
+    mutationFn: optimizePortfolio,
+    onSuccess: (portfolioOptimization) => {
+      setCustomPortfolioOptimization(portfolioOptimization);
+      simulate(formState);
+    },
+  });
+
   const {
     mutate: validate,
     data: validationData,
@@ -169,7 +192,7 @@ const CustomPortfolioForm = () => {
     mutationFn: validatePortfolio,
     onSuccess: (validationData) => {
       if (!validationData.success) return;
-      simulate(formState);
+      optimize(formState);
     },
   });
 
@@ -511,7 +534,7 @@ const CustomPortfolioForm = () => {
             <ButtonWithLoggingOnClick
               variant="secondary"
               onClick={handleSubmit}
-              disabled={isValidating || isSimulating}
+              disabled={isValidating || isSimulating || isOptimizing}
               className="min-w-[9rem] px-4 py-2 flex items-center justify-center mt-2 md:mt-0"
               logData={{
                 event: "submit_custom_portfolio_form",
@@ -523,7 +546,7 @@ const CustomPortfolioForm = () => {
                 },
               }}
             >
-              {isValidating || isSimulating ? (
+              {isValidating || isSimulating || isOptimizing ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 "Analyze Portfolio"

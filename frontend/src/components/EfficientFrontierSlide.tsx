@@ -23,10 +23,11 @@ const CHART_COLORS = {
 
 const EfficientFrontierSlide = () => {
   const { selectedRegime } = useRegimeStore();
-  const { isCustomStateActive } = useCustomPortfolioStore();
+  const { customPortfolioOptimization, isCustomStateActive } =
+    useCustomPortfolioStore();
 
-  const { data: optimizationResults } = useQuery<PortfolioOptimizationResponse>(
-    {
+  const { data: defaultPortfolioOptimization } =
+    useQuery<PortfolioOptimizationResponse>({
       queryKey: ["optimize", "default", selectedRegime],
       queryFn: async () => {
         const res = await fetch(
@@ -42,8 +43,10 @@ const EfficientFrontierSlide = () => {
         return res.json();
       },
       enabled: !!selectedRegime && !isCustomStateActive(),
-    }
-  );
+    });
+
+  const dataSource =
+    customPortfolioOptimization || defaultPortfolioOptimization;
 
   return (
     <CarouselItem className="px-12 sm:px-16">
@@ -103,7 +106,7 @@ const EfficientFrontierSlide = () => {
 
                 <Scatter
                   name="Efficient Frontier"
-                  data={optimizationResults?.frontier_points}
+                  data={dataSource?.frontier_points}
                   fill={CHART_COLORS.BLUE}
                   line={{ stroke: CHART_COLORS.BLUE, strokeWidth: 2.5 }}
                   shape={(props: { cx?: number; cy?: number }) => {
@@ -116,7 +119,7 @@ const EfficientFrontierSlide = () => {
 
                 <Scatter
                   name="Maximum Sharpe Ratio"
-                  data={[optimizationResults?.max_sharpe_point]}
+                  data={[dataSource?.max_sharpe_point]}
                   fill={CHART_COLORS.ORANGE}
                   shape={(props: { cx?: number; cy?: number }) => {
                     const { cx, cy } = props;
@@ -162,7 +165,7 @@ const EfficientFrontierSlide = () => {
           </div>
 
           <div className="text-gray-400 text-xs sm:text-sm text-center">
-            Risk-free rate: {optimizationResults?.risk_free_rate_pct}%
+            Risk-free rate: {dataSource?.risk_free_rate_pct}%
           </div>
         </CardContent>
       </Card>
