@@ -331,6 +331,10 @@ class LivePriceStreamer:
         Updates the Yahoo Finance subscription to a new set of tickers
         when the frontend requests a portfolio change.
         """
+        if set(custom_tickers) == set(self.default_tickers):
+            log_info(f"Subscription unchanged: {custom_tickers}")
+            return yf_task
+
         yf_task.cancel()
         await yf_websocket.unsubscribe(self.default_tickers)
         await yf_websocket.subscribe(custom_tickers)

@@ -56,7 +56,7 @@ const PortfolioRadarChart = () => {
 
   return (
     <div className={radarChartStyles.container}>
-      <CardHeader className="items-center pb-0">
+      <CardHeader className="items-center pb-0 pt-0">
         <CardTitle className={radarChartStyles.title}>Factor Radar</CardTitle>
       </CardHeader>
       <ChartContainer config={{}} className={radarChartStyles.chartContainer}>

@@ -1,11 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import type { PortfolioResponse } from "../types/portfolio";
-import { CardDescription, CardHeader, CardTitle } from "./ui/card";
+import type { PortfolioAsset } from "../types/portfolio";
+import { CardHeader, CardTitle } from "./ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
 import { Legend, Pie, PieChart } from "recharts";
 import { useRegimeStore } from "../store/regimeStore";
-import { useCustomPortfolioStore } from "../store/customPortfolioStore";
-import { API_BASE_URL } from "../lib/api";
+import type { FC } from "react";
 
 const COLORS = [
   "#C8511F",
@@ -19,26 +17,20 @@ const COLORS = [
 ];
 
 const pieChartStyles = {
-  container: "flex flex-col items-center justify-center w-full lg:w-2/5 min-h-[250px] sm:min-h-[300px]",
+  container:
+    "flex flex-col items-center justify-center w-full lg:w-2/5 min-h-[250px] sm:min-h-[300px]",
   title: "text-lg sm:text-xl lg:text-2xl mb-2",
-  chartContainer: "mx-auto aspect-square w-full max-w-[280px] sm:max-w-[350px] lg:max-w-[380px] p-2 sm:p-4",
-  description: "mt-2 sm:mt-6 text-center w-full text-xs sm:text-sm",
+  chartContainer:
+    "mx-auto aspect-square w-full max-w-[280px] sm:max-w-[350px] lg:max-w-[380px] p-2 sm:p-4",
 };
+interface Props {
+  portfolioAssets: PortfolioAsset[] | undefined;
+}
 
-const PortfolioPieChart = () => {
+const PortfolioPieChart: FC<Props> = ({ portfolioAssets }) => {
   const { selectedRegime } = useRegimeStore();
-  const { customPortfolio, isCustomStateActive } = useCustomPortfolioStore();
 
-  const { data: defaultPortfolio } = useQuery<PortfolioResponse>({
-    queryKey: ["portfolio", "default"],
-    queryFn: () =>
-      fetch(`${API_BASE_URL}/api/portfolio/default`).then((res) => res.json()),
-    enabled: !isCustomStateActive(),
-  });
-
-  const dataSources = customPortfolio || defaultPortfolio;
-
-  const assets = dataSources?.portfolio_assets.map((asset, idx) => ({
+  const assets = portfolioAssets?.map((asset, idx) => ({
     ...asset,
     ticker_pct: `${asset.ticker}: ${asset.weight_pct}%`,
     fill: COLORS[idx % COLORS.length],
@@ -46,13 +38,12 @@ const PortfolioPieChart = () => {
 
   return (
     <div className={pieChartStyles.container}>
-      <CardHeader className="items-center pb-0">
-        <CardTitle className={pieChartStyles.title}>Portfolio Composition</CardTitle>
+      <CardHeader className="items-center pb-0 pt-0">
+        <CardTitle className={pieChartStyles.title}>
+          Portfolio Composition
+        </CardTitle>
       </CardHeader>
-      <ChartContainer
-        config={{}}
-        className={pieChartStyles.chartContainer}
-      >
+      <ChartContainer config={{}} className={pieChartStyles.chartContainer}>
         <PieChart key={selectedRegime}>
           <ChartTooltip
             cursor={false}
@@ -75,24 +66,13 @@ const PortfolioPieChart = () => {
           <Legend
             verticalAlign="bottom"
             height={36}
-            wrapperStyle={{ 
-              fontSize: window.innerWidth < 640 ? "0.8rem" : "1.05rem", 
-              padding: "12px 0" 
+            wrapperStyle={{
+              fontSize: window.innerWidth < 640 ? "0.8rem" : "1.05rem",
+              padding: "12px 0",
             }}
           />
         </PieChart>
       </ChartContainer>
-      <CardDescription
-        className={pieChartStyles.description}
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: window.innerWidth < 640 ? 10 : 30,
-          transform: "translateX(-50%)",
-        }}
-      >
-        Analysis period: {dataSources?.start_date} - {dataSources?.end_date}
-      </CardDescription>
     </div>
   );
 };

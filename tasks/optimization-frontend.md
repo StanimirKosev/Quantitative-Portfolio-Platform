@@ -141,7 +141,7 @@ Portfolio Weights:
 ---
 
 **OPT-F-003: Live Portfolio Ticker**
-Status: Not Started
+Status: Completed
 Priority: Medium
 
 Add real-time asset price ticker using WebSocket connections to show live market data for portfolio assets in the header area.
@@ -150,7 +150,7 @@ Add real-time asset price ticker using WebSocket connections to show live market
 
 **Live Ticker Display:**
 
-- Replace analysis period text with live price ticker: `🟢 LIVE • BTC +2.1% • SPYL -0.8% • 4GLD +0.3% • 5MVW +1.2% • Updated 10:34 AM`
+- Replace analysis period text with live price ticker: `🟢 LIVE • Portfolio: 3/6 assets trading • Net: +0.8% • Updated 10:34 AM`
 - Show live price changes for portfolio assets only (not all possible assets)
 - Color-coded price changes: green (+), red (-), gray (no change)
 - Update frequency: Every 10-15 seconds during market hours
