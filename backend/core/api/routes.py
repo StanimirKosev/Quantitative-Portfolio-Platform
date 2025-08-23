@@ -1,5 +1,4 @@
-from fastapi import APIRouter
-
+from fastapi import APIRouter, WebSocket
 from core.logging_config import log_info
 from core.portfolio import get_portfolio
 from core.utils import DEFAULT_PORTFOLIO_DATES
@@ -15,6 +14,7 @@ from core.api.api_utils import (
     get_available_regimes,
     get_regime_parameters,
     validate_portfolio,
+    LivePriceStreamer,
 )
 
 router = APIRouter(prefix="/api", tags=["core"])
@@ -30,6 +30,17 @@ async def receive_frontend_logs(log_data: LogPayload):
         context=log_data.context,
     )
     return {"status": "logged"}
+
+
+@router.websocket("/ws/live-prices")
+async def websocket_live_prices_endpoint(websocket: WebSocket):
+    """
+    Stream live prices: Yahoo Finance → Backend → Frontend
+
+    Send: ["BTC-EUR", "TSLA"]
+    """
+    streamer = LivePriceStreamer(websocket)
+    await streamer.start()
 
 
 @router.get("/portfolio/default")

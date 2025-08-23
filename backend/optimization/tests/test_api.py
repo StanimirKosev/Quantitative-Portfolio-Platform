@@ -2,12 +2,14 @@ import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 import pandas as pd
 import numpy as np
-from fastapi import HTTPException
+from fastapi import HTTPException, WebSocketDisconnect
 from fastapi.testclient import TestClient
 import json
+import asyncio
 
 from core.utils import InvalidTickersException
-from optimization.api.api_utils import optimize_portfolio_api, ProgressBroadcaster
+from optimization.api.api_utils import optimize_portfolio_api
+from core.api.api_utils import LivePriceStreamer
 from app import app
 
 
@@ -143,7 +145,7 @@ class TestOptimizePortfolioApi:
         resp = optimize_portfolio_api(tickers, regime, custom_factors)
 
         mock_modify.assert_called_once()
-        assert "frontier_points" in resp.dict()
+        assert "frontier_points" in resp.model_dump()
         assert resp.max_sharpe_point.sharpe_ratio == pytest.approx(0.71, abs=1e-9)
 
     @patch("core.api.api_utils.get_cached_prices")
@@ -166,7 +168,12 @@ class TestFastApiIntegration:
     def test_default_portfolio_optimization_endpoint(self, mock_optimize):
         mock_optimize.return_value = {
             "frontier_points": [
-                {"return_pct": 8.0, "volatility_pct": 12.0, "weights_pct": [60.0, 40.0], "tickers": ["BTC-EUR", "SPYL.DE"]}
+                {
+                    "return_pct": 8.0,
+                    "volatility_pct": 12.0,
+                    "weights_pct": [60.0, 40.0],
+                    "tickers": ["BTC-EUR", "SPYL.DE"],
+                }
             ],
             "max_sharpe_point": {
                 "return_pct": 9.0,
@@ -190,7 +197,12 @@ class TestFastApiIntegration:
     def test_custom_portfolio_optimization_endpoint(self, mock_optimize):
         mock_optimize.return_value = {
             "frontier_points": [
-                {"return_pct": 7.5, "volatility_pct": 11.0, "weights_pct": [58.0, 42.0], "tickers": ["BTC-EUR", "SPYL.DE"]}
+                {
+                    "return_pct": 7.5,
+                    "volatility_pct": 11.0,
+                    "weights_pct": [58.0, 42.0],
+                    "tickers": ["BTC-EUR", "SPYL.DE"],
+                }
             ],
             "max_sharpe_point": {
                 "return_pct": 8.6,
@@ -216,106 +228,162 @@ class TestFastApiIntegration:
         mock_optimize.assert_called_once()
 
 
-class TestProgressBroadcaster:
-    """Tests for WebSocket progress broadcasting functionality."""
+class TestLivePriceStreamer:
+    """Tests for WebSocket live price streaming functionality."""
 
     def setup_method(self):
-        self.broadcaster = ProgressBroadcaster()
+        self.mock_websocket = AsyncMock()
+
+    @patch("core.api.api_utils.get_portfolio")
+    def test_streamer_initialization(self, mock_get_portfolio):
+        mock_get_portfolio.return_value = (["BTC-EUR", "SPYL.DE"], [0.6, 0.4])
+
+        streamer = LivePriceStreamer(self.mock_websocket)
+
+        assert streamer.fastapi_websocket == self.mock_websocket
+        assert streamer.default_tickers == ["BTC-EUR", "SPYL.DE"]
 
     @pytest.mark.asyncio
-    async def test_connect_websocket(self):
-        mock_websocket = AsyncMock()
+    @patch("core.api.api_utils.yf.AsyncWebSocket")
+    @patch("core.api.api_utils.get_portfolio")
+    async def test_start_accepts_websocket(
+        self, mock_get_portfolio, mock_yf_websocket_class
+    ):
+        mock_get_portfolio.return_value = (["BTC-EUR"], [1.0])
+        mock_yf_websocket = AsyncMock()
+        mock_yf_websocket_class.return_value.__aenter__.return_value = mock_yf_websocket
 
-        await self.broadcaster.connect(mock_websocket)
+        # Mock the receive_text to raise WebSocketDisconnect immediately
+        self.mock_websocket.receive_text.side_effect = WebSocketDisconnect()
 
-        mock_websocket.accept.assert_called_once()
-        assert mock_websocket in self.broadcaster.connections
+        streamer = LivePriceStreamer(self.mock_websocket)
+        await streamer.start()
 
-    def test_disconnect_websocket(self):
-        mock_websocket = MagicMock()
-        self.broadcaster.connections.append(mock_websocket)
-
-        self.broadcaster.disconnect(mock_websocket)
-
-        assert mock_websocket not in self.broadcaster.connections
-
-    def test_disconnect_nonexistent_websocket(self):
-        mock_websocket = MagicMock()
-
-        # Should not raise error
-        self.broadcaster.disconnect(mock_websocket)
-        assert len(self.broadcaster.connections) == 0
+        # Verify WebSocket was accepted
+        self.mock_websocket.accept.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_broadcast_progress_no_connections(self):
-        # Should not raise error when no connections
-        await self.broadcaster.broadcast_progress(10, 25, "Testing progress")
+    @patch("core.api.api_utils.yf.AsyncWebSocket")
+    @patch("core.api.api_utils.get_portfolio")
+    async def test_start_subscribes_to_default_tickers(
+        self, mock_get_portfolio, mock_yf_websocket_class
+    ):
+        default_tickers = ["BTC-EUR", "SPYL.DE"]
+        mock_get_portfolio.return_value = (default_tickers, [0.6, 0.4])
+
+        mock_yf_websocket = AsyncMock()
+        mock_yf_websocket_class.return_value.__aenter__.return_value = mock_yf_websocket
+
+        # Mock the receive_text to raise WebSocketDisconnect immediately
+        self.mock_websocket.receive_text.side_effect = WebSocketDisconnect()
+
+        streamer = LivePriceStreamer(self.mock_websocket)
+        await streamer.start()
+
+        # Verify Yahoo Finance WebSocket subscription to default tickers
+        mock_yf_websocket.subscribe.assert_called_with(default_tickers)
 
     @pytest.mark.asyncio
-    async def test_broadcast_progress_success(self):
-        mock_websocket = AsyncMock()
-        self.broadcaster.connections.append(mock_websocket)
+    @patch("core.api.api_utils.yf.AsyncWebSocket")
+    @patch("core.api.api_utils.get_portfolio")
+    async def test_start_handles_websocket_disconnect_gracefully(
+        self, mock_get_portfolio, mock_yf_websocket_class
+    ):
+        mock_get_portfolio.return_value = (["BTC-EUR"], [1.0])
+        mock_yf_websocket = AsyncMock()
+        mock_yf_websocket_class.return_value.__aenter__.return_value = mock_yf_websocket
 
-        await self.broadcaster.broadcast_progress(15, 25, "Calculating portfolio 15/25")
+        # Mock WebSocket disconnect
+        self.mock_websocket.receive_text.side_effect = WebSocketDisconnect()
 
-        expected_data = {
-            "current": 15,
-            "total": 25,
-            "message": "Calculating portfolio 15/25",
-            "percentage": 60.0,
-        }
-        mock_websocket.send_text.assert_called_once_with(json.dumps(expected_data))
+        streamer = LivePriceStreamer(self.mock_websocket)
 
-    @pytest.mark.asyncio
-    async def test_broadcast_progress_handles_failed_connections(self):
-        good_websocket = AsyncMock()
-        bad_websocket = AsyncMock()
-        bad_websocket.send_text.side_effect = Exception("Connection broken")
-
-        self.broadcaster.connections.extend([good_websocket, bad_websocket])
-
-        await self.broadcaster.broadcast_progress(5, 10, "Testing")
-
-        # Good connection should receive message
-        good_websocket.send_text.assert_called_once()
-        # Bad connection should be removed
-        assert bad_websocket not in self.broadcaster.connections
-        assert good_websocket in self.broadcaster.connections
+        # Should not raise exception
+        await streamer.start()
 
     @pytest.mark.asyncio
-    async def test_broadcast_progress_percentage_calculation(self):
-        mock_websocket = AsyncMock()
-        self.broadcaster.connections.append(mock_websocket)
+    @patch("core.api.api_utils.yf.AsyncWebSocket")
+    @patch("core.api.api_utils.get_portfolio")
+    async def test_start_handles_subscription_updates(
+        self, mock_get_portfolio, mock_yf_websocket_class
+    ):
+        mock_get_portfolio.return_value = (["BTC-EUR"], [1.0])
+        mock_yf_websocket = AsyncMock()
+        mock_yf_websocket_class.return_value.__aenter__.return_value = mock_yf_websocket
 
-        await self.broadcaster.broadcast_progress(0, 20, "Starting")
+        custom_tickers = ["TSLA", "AAPL"]
 
-        call_args = mock_websocket.send_text.call_args[0][0]
-        data = json.loads(call_args)
-        assert data["percentage"] == 0.0
+        # First call returns custom tickers, second call raises disconnect
+        self.mock_websocket.receive_text.side_effect = [
+            json.dumps(custom_tickers),
+            WebSocketDisconnect(),
+        ]
+
+        streamer = LivePriceStreamer(self.mock_websocket)
+        await streamer.start()
+
+        # Verify subscription was updated
+        mock_yf_websocket.unsubscribe.assert_called_with(["BTC-EUR"])
+        mock_yf_websocket.subscribe.assert_called_with(custom_tickers)
 
     @pytest.mark.asyncio
-    async def test_broadcast_progress_zero_total_handling(self):
-        mock_websocket = AsyncMock()
-        self.broadcaster.connections.append(mock_websocket)
+    async def test_forward_to_frontend(self):
+        streamer = LivePriceStreamer(self.mock_websocket)
+        test_message = {"symbol": "BTC-EUR", "price": 45000.0}
 
-        await self.broadcaster.broadcast_progress(1, 0, "Edge case")
+        # Call the method - this creates a background task
+        streamer._forward_to_frontend(test_message)
 
-        call_args = mock_websocket.send_text.call_args[0][0]
-        data = json.loads(call_args)
-        assert data["percentage"] == 0
+        # Give the async task a moment to complete
+        await asyncio.sleep(0.1)
 
+        # Verify the message was sent to the frontend WebSocket
+        self.mock_websocket.send_text.assert_called_once_with(json.dumps(test_message))
 
-class TestWebSocketIntegration:
-    """Integration tests for WebSocket endpoints."""
+    @pytest.mark.asyncio
+    async def test_update_subscription_cancels_old_task(self):
+        streamer = LivePriceStreamer(self.mock_websocket)
+        streamer.default_tickers = ["BTC-EUR"]
 
-    def setup_method(self):
-        self.client = TestClient(app)
+        mock_yf_websocket = AsyncMock()
+        # Use MagicMock for the task to avoid async mock issues
+        mock_old_task = MagicMock()
+        custom_tickers = ["TSLA", "AAPL"]
 
-    def test_websocket_progress_endpoint_connection(self):
-        with self.client.websocket_connect("/api/optimize/ws/progress") as websocket:
-            # Connection should be established successfully
-            # Send a test message to keep connection alive
-            websocket.send_text("test")
+        new_task = await streamer._update_subscription(
+            mock_yf_websocket, mock_old_task, custom_tickers
+        )
 
-            # WebSocket should stay connected
-            assert websocket is not None
+        # Verify old task was cancelled
+        mock_old_task.cancel.assert_called_once()
+
+        # Verify unsubscription from old tickers and subscription to new ones
+        mock_yf_websocket.unsubscribe.assert_called_once_with(["BTC-EUR"])
+        mock_yf_websocket.subscribe.assert_called_once_with(custom_tickers)
+
+        # Verify default_tickers was updated
+        assert streamer.default_tickers == custom_tickers
+
+        # Verify new task was created
+        assert new_task is not None
+
+    @pytest.mark.asyncio
+    @patch("core.api.api_utils.yf.AsyncWebSocket")
+    @patch("core.api.api_utils.get_portfolio")
+    async def test_start_handles_exceptions_gracefully(
+        self, mock_get_portfolio, mock_yf_websocket_class
+    ):
+        mock_get_portfolio.return_value = (["BTC-EUR"], [1.0])
+
+        # Make yfinance WebSocket raise an exception
+        mock_yf_websocket_class.side_effect = Exception(
+            "Yahoo Finance connection failed"
+        )
+
+        streamer = LivePriceStreamer(self.mock_websocket)
+
+        # Should not raise exception, just log error
+        await streamer.start()
+
+        # WebSocket should still be accepted
+        self.mock_websocket.accept.assert_called_once()

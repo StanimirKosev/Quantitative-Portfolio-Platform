@@ -46,7 +46,6 @@ def calculate_efficient_frontier(
     mean_returns: pd.Series,
     cov_matrix: pd.DataFrame,
     num_points: int = 25,
-    progress_callback: Optional[Callable[[int, int, str], None]] = None,
 ) -> List[Dict[str, Union[float, np.ndarray]]]:
     """
     Calculate efficient frontier with multiple optimal portfolios across risk-return spectrum.
@@ -87,12 +86,7 @@ def calculate_efficient_frontier(
         return_range=f"{min_return:.4f} to {max_return:.4f}",
     )
 
-    for i, target_return in enumerate(target_returns):
-        # Progress callback for real-time updates
-        if progress_callback:
-            progress_callback(
-                i + 1, num_points, f"Optimizing portfolio {i + 1}/{num_points} points."
-            )
+    for target_return in target_returns:
 
         constraints = [
             cp.sum(weights) == 1,  # Budget constraint: must invest 100% of capital
@@ -148,10 +142,6 @@ def calculate_efficient_frontier(
         failed_points=failed_points,
         success_rate=f"{len(efficient_frontier)/num_points*100:.1f}%",
     )
-
-    # Final progress callback
-    if progress_callback:
-        progress_callback(num_points, num_points, "Optimization complete")
 
     return efficient_frontier
 

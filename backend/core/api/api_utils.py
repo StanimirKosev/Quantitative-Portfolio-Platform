@@ -1,4 +1,8 @@
 from typing import List, Optional, Tuple
+import asyncio
+import json
+import yfinance as yf
+from fastapi import WebSocket, WebSocketDisconnect
 from core.portfolio import (
     GEOPOLITICAL_CRISIS_REGIME,
     FIAT_DEBASEMENT_REGIME,
@@ -19,6 +23,7 @@ from core.logging_config import log_info, log_error
 from core.api.models import (
     RegimeParametersResponse,
     RegimesResponse,
+    StockQuote,
     ValidationResponse,
     RegimeFactors,
 )
@@ -258,3 +263,76 @@ def prepare_market_data(
     daily_returns = transform_to_daily_returns(close_values)
     mean_returns, cov_sample, cov_shrunk = calculate_mean_and_covariance(daily_returns)
     return daily_returns, mean_returns, cov_sample, cov_shrunk
+
+
+class LivePriceStreamer:
+    """
+    Streams live price updates from Yahoo Finance to the frontend via WebSocket.
+
+    - On client connection, subscribes to the default portfolio tickers.
+    - Forwards real-time price updates from Yahoo Finance to the frontend.
+    - Listens for subscription change messages from the frontend (custom tickers).
+    - Updates Yahoo Finance subscriptions accordingly and continues streaming.
+    - Handles client disconnects and errors gracefully.
+    """
+
+    def __init__(self, websocket: WebSocket):
+        self.fastapi_websocket = websocket
+        self.default_tickers, _ = get_portfolio()
+
+    async def start(self):
+        """Main entry point - handles everything."""
+
+        await self.fastapi_websocket.accept()
+        log_info(f"Live price client connected: {self.default_tickers}")
+
+        try:
+            async with yf.AsyncWebSocket(verbose=False) as yf_websocket:
+
+                await yf_websocket.subscribe(self.default_tickers)
+
+                # Listen to Yahoo finance for updates
+                yf_task = asyncio.create_task(
+                    yf_websocket.listen(self._forward_to_frontend)
+                )
+
+                # Listen for frontend subscription changes
+                while True:
+                    try:
+                        data = await self.fastapi_websocket.receive_text()
+                        custom_tickers: List[str] = json.loads(data)
+
+                        yf_task = await self._update_subscription(
+                            yf_websocket, yf_task, custom_tickers
+                        )
+
+                    except WebSocketDisconnect:
+                        log_info("Live price client disconnected")
+                        break
+
+                yf_task.cancel()
+
+        except Exception as e:
+            log_error(f"Live price stream error: {str(e)}")
+
+    def _forward_to_frontend(self, yahoo_message: StockQuote):
+        """
+        Forwards a Yahoo Finance message to the frontend WebSocket client.
+        """
+        asyncio.create_task(self.fastapi_websocket.send_text(json.dumps(yahoo_message)))
+
+    async def _update_subscription(
+        self,
+        yf_websocket: yf.AsyncWebSocket,
+        yf_task: asyncio.Task[None],
+        custom_tickers: List[str],
+    ):
+        """
+        Updates the Yahoo Finance subscription to a new set of tickers
+        when the frontend requests a portfolio change.
+        """
+        yf_task.cancel()
+        await yf_websocket.unsubscribe(self.default_tickers)
+        await yf_websocket.subscribe(custom_tickers)
+        self.default_tickers = custom_tickers
+        return asyncio.create_task(yf_websocket.listen(self._forward_to_frontend))

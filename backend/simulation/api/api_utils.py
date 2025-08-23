@@ -1,17 +1,4 @@
 from typing import List, Optional
-from core.portfolio import (
-    GEOPOLITICAL_CRISIS_REGIME,
-    FIAT_DEBASEMENT_REGIME,
-)
-from core.utils import (
-    HISTORICAL,
-    GEOPOLITICAL_CRISIS_REGIME_NAME,
-    FIAT_DEBASEMENT_REGIME_NAME,
-    calculate_mean_and_covariance,
-    get_cached_prices,
-    transform_to_daily_returns,
-    InvalidTickersException,
-)
 from simulation.engine.monte_carlo import (
     simulate_portfolio_paths,
     modify_portfolio_for_regime,
@@ -21,7 +8,6 @@ from simulation.engine.visualization import (
     plot_portfolio_pca_analysis,
     plot_simulation_results,
 )
-from fastapi import HTTPException
 from core.logging_config import log_info
 from simulation.api.models import SimulationChartsResponse
 from core.api.api_utils import RegimeFactors, prepare_market_data, resolve_regime

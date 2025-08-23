@@ -59,3 +59,17 @@ class LogPayload(BaseModel):
     timestamp: str
     route: Optional[str] = None
     context: Optional[Dict] = None
+
+
+class StockQuote(BaseModel):
+    id: str
+    price: float
+    time: str
+    exchange: str
+    quote_type: int
+    market_hours: int
+    change_percent: float
+    day_volume: str
+    change: float
+    last_size: str
+    price_hint: str

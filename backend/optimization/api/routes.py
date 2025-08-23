@@ -1,12 +1,10 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter
 
 from optimization.api.models import (
     OptimizationRequestPayload,
     PortfolioOptimizationResponse,
 )
 from optimization.api.api_utils import (
-    broadcaster,
-    create_progress_callback,
     optimize_portfolio_api,
 )
 
@@ -15,21 +13,6 @@ import asyncio
 
 
 router = APIRouter(prefix="/api/optimize", tags=["optimization"])
-
-
-@router.websocket("/ws/progress")
-async def websocket_progress_endpoint(websocket: WebSocket):
-    """
-    WebSocket endpoint for optimization progress updates.
-    Connect here to receive live progress during efficient frontier calculations.
-    """
-    await broadcaster.connect(websocket)
-    try:
-        while True:
-            await websocket.receive_text()
-
-    except WebSocketDisconnect:
-        broadcaster.disconnect(websocket)
 
 
 @router.post("/custom")
@@ -55,17 +38,13 @@ async def optimize_custom_portfolio_regime(
       - risk_free_rate: Current Treasury rate used in Sharpe calculations
     """
     regime = "custom"
-    progress = create_progress_callback()
 
-    # Move CPU-intensive math to background thread, keep main event loop responsive
-    return await asyncio.to_thread(
-        optimize_portfolio_api,
+    return optimize_portfolio_api(
         request.tickers,
         regime,
         request.regime_factors,
         request.start_date,
         request.end_date,
-        progress,
     )
 
 
@@ -88,12 +67,8 @@ async def optimize_default_portfolio_regime(
       - risk_free_rate: Current Treasury rate used in Sharpe calculations
     """
     tickers, _ = get_portfolio()
-    progress = create_progress_callback()
 
-    # Move CPU-intensive math to background thread, keep main event loop responsive
-    return await asyncio.to_thread(
-        optimize_portfolio_api,
+    return optimize_portfolio_api(
         tickers=tickers,
         regime=regime,
-        progress_callback=progress,
     )
