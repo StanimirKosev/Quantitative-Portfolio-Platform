@@ -278,18 +278,18 @@ class LivePriceStreamer:
 
     def __init__(self, websocket: WebSocket):
         self.fastapi_websocket = websocket
-        self.default_tickers, _ = get_portfolio()
+        self.current_tickers, _ = get_portfolio()
 
     async def start(self):
         """Main entry point - handles everything."""
 
         await self.fastapi_websocket.accept()
-        log_info(f"Live price client connected: {self.default_tickers}")
+        log_info(f"Live price client connected: {self.current_tickers}")
 
         try:
             async with yf.AsyncWebSocket(verbose=False) as yf_websocket:
 
-                await yf_websocket.subscribe(self.default_tickers)
+                await yf_websocket.subscribe(self.current_tickers)
 
                 # Listen to Yahoo finance for updates
                 yf_task = asyncio.create_task(
@@ -302,7 +302,7 @@ class LivePriceStreamer:
                         data = await self.fastapi_websocket.receive_text()
                         custom_tickers: List[str] = json.loads(data)
 
-                        yf_task = await self._update_subscription(
+                        yf_websocket, yf_task = await self._update_subscription(
                             yf_websocket, yf_task, custom_tickers
                         )
 
@@ -326,17 +326,28 @@ class LivePriceStreamer:
         yf_websocket: yf.AsyncWebSocket,
         yf_task: asyncio.Task[None],
         custom_tickers: List[str],
-    ):
+    ) -> tuple[yf.AsyncWebSocket, asyncio.Task[None]]:
         """
         Updates the Yahoo Finance subscription to a new set of tickers
         when the frontend requests a portfolio change.
         """
-        if set(custom_tickers) == set(self.default_tickers):
+        # Skip if subscription unchanged (critical for performance)
+        if set(custom_tickers) == set(self.current_tickers):
             log_info(f"Subscription unchanged: {custom_tickers}")
-            return yf_task
+            return yf_websocket, yf_task
 
+        # Create fresh connection to avoid corrupted state after changes
         yf_task.cancel()
-        await yf_websocket.unsubscribe(self.default_tickers)
-        await yf_websocket.subscribe(custom_tickers)
-        self.default_tickers = custom_tickers
-        return asyncio.create_task(yf_websocket.listen(self._forward_to_frontend))
+        await yf_websocket.close()
+
+        # Create fresh WebSocket connection
+        new_yf_websocket = yf.AsyncWebSocket(verbose=False)
+        await new_yf_websocket.subscribe(custom_tickers)
+
+        # Update current state to new subscription
+        self.current_tickers = custom_tickers
+
+        new_task = asyncio.create_task(
+            new_yf_websocket.listen(self._forward_to_frontend)
+        )
+        return new_yf_websocket, new_task
