@@ -1,45 +1,16 @@
 import { useEffect, useState, type FC } from "react";
-import useWebSocket, { ReadyState } from "react-use-websocket";
+import useWebSocket from "react-use-websocket";
 import type { StockQuote } from "../types/livePrice";
 import { Circle } from "lucide-react";
 import type { PortfolioAsset } from "../types/portfolio";
-
-// Helper functions
-const formatTime = (timestamp: string): string | null => {
-  const parsed = parseInt(timestamp);
-  if (isNaN(parsed)) return null;
-  return new Date(parsed).toLocaleTimeString("en-US", {
-    timeStyle: "short",
-    hour12: false,
-  });
-};
-
-const getValueColor = (value: number): string => {
-  if (Math.abs(value) < 0.05) return "#6b7280";
-  return value > 0 ? "#5A9D15" : "#9D2228";
-};
-
-const getValueText = (value: number): string => {
-  if (Math.abs(value) < 0.05) return "0.0%";
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(1)}%`;
-};
-
-const getStatusColor = (readyState: ReadyState, hasData: boolean): string => {
-  if (readyState === ReadyState.CLOSED) return "#9D2228";
-  if (hasData) return "#5A9D15";
-  return "#B3710C";
-};
-
-const getStatusMessage = (
-  readyState: ReadyState,
-  hasData: boolean
-): string | null => {
-  if (readyState === ReadyState.CLOSED)
-    return "Connection failed • Retrying...";
-  if (hasData) return null;
-  return "Connecting to markets...";
-};
+import {
+  formatTime,
+  getStatusColor,
+  getStatusMessage,
+  getValueColor,
+  getValueText,
+} from "../lib/livePriceUtils";
+import { API_BASE_URL } from "../lib/api";
 
 interface Props {
   portfolioAssets: PortfolioAsset[] | undefined;
@@ -51,8 +22,9 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
   >({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
+  const wsUrl = API_BASE_URL.replace(/^https?/, "ws") + "/api/ws/live-prices";
   const { lastJsonMessage, sendJsonMessage, readyState } =
-    useWebSocket<StockQuote | null>("ws://localhost:8000/api/ws/live-prices");
+    useWebSocket<StockQuote | null>(wsUrl);
 
   useEffect(() => {
     const tickers = portfolioAssets?.map((asset) => asset.ticker);
