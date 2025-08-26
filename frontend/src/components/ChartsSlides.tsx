@@ -1,15 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { CarouselItem } from "./ui/carousel";
+import { Card, CardContent } from "./ui/card";
 import { useRegimeStore } from "../store/regimeStore";
 import type { SimulateChartsResponse } from "../types/portfolio";
 import { useCustomPortfolioStore } from "../store/customPortfolioStore";
 import { API_BASE_URL } from "../lib/api";
 
 const chartStyles = {
-  carouselItem: "flex flex-col items-center px-2 sm:px-4",
-  chartImage: "w-full h-[55vh] sm:h-[60vh] lg:h-[79vh] object-contain rounded-lg shadow-md",
+  carouselItem: "px-12 sm:px-16",
+  card: "h-full bg-black",
+  cardContent: "flex flex-col h-full justify-center items-center p-4",
+  chartImage:
+    "max-w-full max-h-[calc(100vh-200px)] object-contain rounded-lg shadow-lg",
 };
-
 const ChartsSlides = () => {
   const { selectedRegime } = useRegimeStore();
   const { customPortfolioCharts, isCustomStateActive } =
@@ -54,11 +57,15 @@ const ChartsSlides = () => {
     <>
       {chartsData.map((chart, idx) => (
         <CarouselItem key={idx} className={chartStyles.carouselItem}>
-          <img
-            src={chart.src}
-            alt={chart.alt}
-            className={chartStyles.chartImage}
-          />
+          <Card className={chartStyles.card}>
+            <CardContent className={chartStyles.cardContent}>
+              <img
+                src={chart.src}
+                alt={chart.alt}
+                className={chartStyles.chartImage}
+              />
+            </CardContent>
+          </Card>
         </CarouselItem>
       ))}
     </>

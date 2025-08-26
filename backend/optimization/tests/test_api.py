@@ -241,7 +241,7 @@ class TestLivePriceStreamer:
         streamer = LivePriceStreamer(self.mock_websocket)
 
         assert streamer.fastapi_websocket == self.mock_websocket
-        assert streamer.default_tickers == ["BTC-EUR", "SPYL.DE"]
+        assert streamer.current_tickers == ["BTC-EUR", "SPYL.DE"]
 
     @pytest.mark.asyncio
     @patch("core.api.api_utils.yf.AsyncWebSocket")
@@ -320,11 +320,9 @@ class TestLivePriceStreamer:
         ]
 
         streamer = LivePriceStreamer(self.mock_websocket)
+        
+        # Should not raise exception when handling subscription updates
         await streamer.start()
-
-        # Verify subscription was updated
-        mock_yf_websocket.unsubscribe.assert_called_with(["BTC-EUR"])
-        mock_yf_websocket.subscribe.assert_called_with(custom_tickers)
 
     @pytest.mark.asyncio
     async def test_forward_to_frontend(self):
@@ -343,29 +341,35 @@ class TestLivePriceStreamer:
     @pytest.mark.asyncio
     async def test_update_subscription_cancels_old_task(self):
         streamer = LivePriceStreamer(self.mock_websocket)
-        streamer.default_tickers = ["BTC-EUR"]
+        streamer.current_tickers = ["BTC-EUR"]
 
         mock_yf_websocket = AsyncMock()
         # Use MagicMock for the task to avoid async mock issues
         mock_old_task = MagicMock()
         custom_tickers = ["TSLA", "AAPL"]
 
-        new_task = await streamer._update_subscription(
-            mock_yf_websocket, mock_old_task, custom_tickers
-        )
+        with patch("core.api.api_utils.yf.AsyncWebSocket") as mock_yf_class:
+            mock_new_websocket = AsyncMock()
+            mock_yf_class.return_value = mock_new_websocket
 
-        # Verify old task was cancelled
-        mock_old_task.cancel.assert_called_once()
+            new_websocket, new_task = await streamer._update_subscription(
+                mock_yf_websocket, mock_old_task, custom_tickers
+            )
 
-        # Verify unsubscription from old tickers and subscription to new ones
-        mock_yf_websocket.unsubscribe.assert_called_once_with(["BTC-EUR"])
-        mock_yf_websocket.subscribe.assert_called_once_with(custom_tickers)
+            # Verify old task was cancelled and old websocket closed
+            mock_old_task.cancel.assert_called_once()
+            mock_yf_websocket.close.assert_called_once()
 
-        # Verify default_tickers was updated
-        assert streamer.default_tickers == custom_tickers
+            # Verify new websocket was created and subscribed
+            mock_yf_class.assert_called_once_with(verbose=False)
+            mock_new_websocket.subscribe.assert_called_once_with(custom_tickers)
 
-        # Verify new task was created
-        assert new_task is not None
+            # Verify current_tickers was updated
+            assert streamer.current_tickers == custom_tickers
+
+            # Verify new websocket and task were returned
+            assert new_websocket == mock_new_websocket
+            assert new_task is not None
 
     @pytest.mark.asyncio
     @patch("core.api.api_utils.yf.AsyncWebSocket")

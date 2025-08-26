@@ -14,6 +14,11 @@ from simulation.engine.monte_carlo import (
 import seaborn as sns
 from core.utils import get_regime_display_suffix, save_figure
 
+plt.style.use("dark_background")
+plt.rcParams["xtick.color"] = "lightgrey"
+plt.rcParams["ytick.color"] = "lightgrey"
+plt.rcParams["axes.edgecolor"] = "grey"
+
 
 def plot_simulation_results(
     portfolio_paths: List[List[float]], regime_name: str, show: bool = True
@@ -86,7 +91,7 @@ def plot_simulation_results(
     plt.plot(
         x_values,
         portfolio_paths[path_indices["median"]],
-        color="navy",
+        color="#AED6F1",
         linewidth=3,
         label="Median Path",
         zorder=5,
@@ -94,7 +99,7 @@ def plot_simulation_results(
     plt.plot(
         x_values,
         portfolio_paths[path_indices["best"]],
-        color="darkgreen",
+        color="#5A9D15",
         linewidth=2,
         label="Best Case",
         zorder=4,
@@ -102,7 +107,7 @@ def plot_simulation_results(
     plt.plot(
         x_values,
         portfolio_paths[path_indices["worst"]],
-        color="darkred",
+        color="#9D2228",
         linewidth=2,
         label="Worst Case",
         zorder=4,
@@ -136,21 +141,26 @@ def plot_simulation_results(
         verticalalignment="top",
         fontsize=10,
         bbox=dict(
-            boxstyle="round,pad=0.5", facecolor="white", edgecolor="gray", alpha=0.9
+            boxstyle="round,pad=0.5",
+            facecolor="#262626",
+            edgecolor="#666666",
+            alpha=0.9,
         ),
     )
 
     plt.title(
         f"Monte Carlo Portfolio Simulation: \n{len(portfolio_paths)} Scenarios Over {x_values[-1]} Trading Days"
         + get_regime_display_suffix(regime_name),
-        fontsize=16,
+        fontsize=14,
         fontweight="bold",
         pad=20,
     )
-    plt.xlabel("Trading Days", fontsize=12)
-    plt.ylabel("Portfolio Value", fontsize=12)
+    plt.xlabel("Trading Days", fontsize=12, color="lightgrey")
+    plt.ylabel("Portfolio Value", fontsize=12, color="lightgrey")
     plt.grid(True, alpha=0.3)
-    plt.legend()
+    plt.legend(
+        facecolor="#262626", edgecolor="#666666", framealpha=0.9, loc="upper center"
+    )
     plt.margins(x=0)  # Remove horizontal padding to fit the data snugly
 
     plt.tight_layout()
@@ -189,13 +199,13 @@ def plot_correlation_heatmap(
     # Determine status using PSD (Positive Semi-Definite) first, then conditioning
     if not is_psd:
         cond_status = f"Not PSD (min eigenvalue = {min_eigenvalue:.2e})"
-        cond_color = "red"
+        cond_color = "#9D2228"
     elif condition_number < 100:
         cond_status = "Well Conditioned"
         cond_color = "steelblue"
     else:
         cond_status = "Poorly Conditioned"
-        cond_color = "red"
+        cond_color = "#9D2228"
 
     plt.figure(figsize=(8, 6))
     sns.heatmap(
@@ -203,19 +213,20 @@ def plot_correlation_heatmap(
         annot=True,
         fmt=".2f",
         cmap="coolwarm",
+        alpha=0.8,
         vmin=-1,
         vmax=1,
         square=True,
         cbar_kws={"shrink": 0.8},
         linewidths=0.5,
-        linecolor="white",
+        linecolor="grey",
     )
     plt.xticks(rotation=45, ha="right")
     plt.yticks(rotation=0)
 
     plt.title(
         f"Portfolio Correlation Matrix" + get_regime_display_suffix(regime_name),
-        fontsize=16,
+        fontsize=14,
         fontweight="bold",
         pad=20,
     )
@@ -287,7 +298,7 @@ def plot_portfolio_pca_analysis(
     plt.ylabel("Eigenvalue (λ)", fontsize=12)
     plt.title(
         f"Portfolio Risk Factor Analysis" + get_regime_display_suffix(regime_name),
-        fontsize=16,
+        fontsize=14,
         fontweight="bold",
         pad=20,
     )
@@ -315,7 +326,10 @@ def plot_portfolio_pca_analysis(
         horizontalalignment="left",
         fontsize=10,
         bbox=dict(
-            boxstyle="round,pad=0.5", facecolor="white", edgecolor="gray", alpha=0.9
+            boxstyle="round,pad=0.5",
+            facecolor="#262626",
+            edgecolor="#666666",
+            alpha=0.9,
         ),
     )
 
@@ -324,6 +338,7 @@ def plot_portfolio_pca_analysis(
         eigenvalues,
         color=colors,
         edgecolor="black",
+        alpha=0.8,
         linewidth=0.5,
     )
 
@@ -345,9 +360,9 @@ def plot_portfolio_pca_analysis(
                 fontweight="bold",
                 bbox=dict(
                     boxstyle="round,pad=0.3",
-                    facecolor="white",
+                    facecolor="#262626",
                     alpha=0.9,
-                    edgecolor="gray",
+                    edgecolor="#666666",
                 ),
             )
             y_start += asset_height  # Stack asset labels within the bar
