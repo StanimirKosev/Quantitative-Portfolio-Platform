@@ -1,11 +1,12 @@
 import type { ReactNode, ErrorInfo } from "react";
 import { Component } from "react";
-import ErrorPage from "./ErrorPage";
+import ErrorPage from "../pages/ErrorPage";
 import type { LogPayload } from "../types/logging";
 import { API_BASE_URL } from "../lib/api";
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -59,7 +60,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return <ErrorPage error={this.state.error} />;
+      return this.props.fallback || <ErrorPage error={this.state.error} />;
     }
     return this.props.children;
   }

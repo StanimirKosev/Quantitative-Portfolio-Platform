@@ -25,7 +25,7 @@ const FrontierTooltip = ({
       <div>Expected Return: {data.return_pct}%</div>
       <div>Risk (Volatility): {data.volatility_pct}%</div>
       {isMaxSharpe && <div>Sharpe Ratio: {data.sharpe_ratio} (Maximum)</div>}
-      {data.weights_pct && (
+      {data.weights_pct?.length > 0 ? (
         <div className="mt-2">
           <div className="font-semibold">Portfolio Weights:</div>
           {data.weights_pct.map((weight: number, idx: number) => (
@@ -34,7 +34,7 @@ const FrontierTooltip = ({
             </div>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

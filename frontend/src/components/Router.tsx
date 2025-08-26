@@ -4,7 +4,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import App from "../App";
-import ErrorPage from "./ErrorPage";
+import ErrorPage from "../pages/ErrorPage";
 import ErrorBoundary from "./ErrorBoundary";
 import CustomPortfolioForm from "../pages/CustomPortfolioForm";
 

@@ -44,7 +44,11 @@ const PortfolioPieChart: FC<Props> = ({ portfolioAssets }) => {
         </CardTitle>
       </CardHeader>
       <ChartContainer config={{}} className={pieChartStyles.chartContainer}>
-        <PieChart key={selectedRegime}>
+        <PieChart
+          key={
+            selectedRegime
+          } /**Key - Reset animation state when regime changes */
+        >
           <ChartTooltip
             cursor={false}
             content={<ChartTooltipContent hideLabel />}

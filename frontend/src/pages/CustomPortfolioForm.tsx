@@ -556,7 +556,7 @@ const CustomPortfolioForm = () => {
         </CardFooter>
       </Card>
 
-      {validationData?.errors && (
+      {validationData?.errors ? (
         <div className="mt-4 p-4 max-w-2xl mx-auto rounded-lg bg-destructive/15 border border-destructive/30">
           <ul className="list-disc list-inside space-y-1">
             {validationData.errors.map((error: string, index: number) => (
@@ -566,7 +566,7 @@ const CustomPortfolioForm = () => {
             ))}
           </ul>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
