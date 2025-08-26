@@ -7,6 +7,7 @@ import App from "../App";
 import ErrorPage from "../pages/ErrorPage";
 import ErrorBoundary from "./ErrorBoundary";
 import CustomPortfolioForm from "../pages/CustomPortfolioForm";
+import PortfolioAnalysisLoader from "./PortfolioAnalysisLoader";
 
 const Router = () => {
   const router = createBrowserRouter([
@@ -26,7 +27,9 @@ const Router = () => {
       path: "/custom-portfolio-form",
       element: (
         <ErrorBoundary>
-          <CustomPortfolioForm />
+          <PortfolioAnalysisLoader>
+            <CustomPortfolioForm />
+          </PortfolioAnalysisLoader>
         </ErrorBoundary>
       ),
     },

@@ -159,11 +159,12 @@ const CustomPortfolioForm = () => {
     isCustomStateActive,
   } = useCustomPortfolioStore();
 
-  const { mutate: simulate, isPending: isSimulating } = useMutation<
+  const { mutate: simulate } = useMutation<
     SimulateChartsResponse,
     Error,
     CustomPortfolioFormData
   >({
+    mutationKey: ["simulate", "custom"],
     mutationFn: simulatePortfolio,
     onSuccess: (chartData) => {
       setCustomPortfolioCharts(chartData);
@@ -172,11 +173,12 @@ const CustomPortfolioForm = () => {
     },
   });
 
-  const { mutate: optimize, isPending: isOptimizing } = useMutation<
+  const { mutate: optimize } = useMutation<
     PortfolioOptimizationResponse,
     Error,
     CustomPortfolioFormData
   >({
+    mutationKey: ["optimize", "custom"],
     mutationFn: optimizePortfolio,
     onSuccess: (portfolioOptimization) => {
       setCustomPortfolioOptimization(portfolioOptimization);
@@ -534,7 +536,7 @@ const CustomPortfolioForm = () => {
             <ButtonWithLoggingOnClick
               variant="secondary"
               onClick={handleSubmit}
-              disabled={isValidating || isSimulating || isOptimizing}
+              disabled={isValidating}
               className="min-w-[9rem] px-4 py-2 flex items-center justify-center mt-2 md:mt-0"
               logData={{
                 event: "submit_custom_portfolio_form",
@@ -546,7 +548,7 @@ const CustomPortfolioForm = () => {
                 },
               }}
             >
-              {isValidating || isSimulating || isOptimizing ? (
+              {isValidating ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 "Analyze Portfolio"

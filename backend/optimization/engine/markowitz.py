@@ -57,8 +57,6 @@ def calculate_efficient_frontier(
         mean_returns (pd.Series): Mean daily returns for each asset
         cov_matrix (pd.DataFrame): Daily covariance matrix between assets
         num_points (int): Number of portfolios along efficient frontier (default: 25)
-        progress_callback (Optional[Callable]): Optional callback function for progress updates.
-            Called with (current, total, message) parameters for real-time progress tracking.
 
     Returns:
         List[Dict]: List of portfolio dictionaries, each containing:

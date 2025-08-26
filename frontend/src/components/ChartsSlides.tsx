@@ -11,7 +11,7 @@ const chartStyles = {
   card: "h-full bg-black",
   cardContent: "flex flex-col h-full justify-center items-center p-4",
   chartImage:
-    "max-w-full max-h-[calc(100vh-200px)] object-contain rounded-lg shadow-lg",
+    "w-full h-[calc(100vh-200px)] object-contain rounded-lg shadow-lg",
 };
 const ChartsSlides = () => {
   const { selectedRegime } = useRegimeStore();

@@ -5,11 +5,14 @@ import { useCustomPortfolioStore } from "../store/customPortfolioStore";
 import { ButtonWithLoggingOnClick } from "./withLoggingOnClick";
 
 const headerStyles = {
-  header: "flex flex-col lg:flex-row items-center w-full py-4 gap-4 lg:gap-0",
-  leftSection: "w-full lg:w-1/4 flex justify-center lg:justify-start",
+  header:
+    "flex flex-col lg:flex-row items-center w-full py-4 gap-4 lg:gap-0 min-h-[115px]",
+  leftSection:
+    "w-full lg:w-1/4 flex justify-center lg:justify-start items-center",
   centerSection:
     "w-full lg:w-1/2 flex justify-center h-14 items-center order-first lg:order-none",
-  rightSection: "w-full lg:w-1/4 flex justify-center lg:justify-end",
+  rightSection:
+    "w-full lg:w-1/4 flex justify-center lg:justify-end items-center",
   button: "w-full sm:w-auto",
   buttonIcon: "h-4 w-4 sm:h-6 sm:w-6 mr-1 sm:mr-2",
   buttonText: "text-sm sm:text-base",

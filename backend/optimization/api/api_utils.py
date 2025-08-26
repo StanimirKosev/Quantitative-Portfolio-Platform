@@ -34,9 +34,6 @@ def optimize_portfolio_api(
         regime_factors (RegimeFactors, optional): Custom factors for mean/volatility adjustments and correlations.
         start_date (str, optional): Start date for price data in YYYY-MM-DD format.
         end_date (str, optional): End date for price data in YYYY-MM-DD format.
-        progress_callback (Callable[[int, int, str], None], optional):
-            If provided, called as each frontier point completes; use it to stream
-            {"current","total","message"} via WebSocket or logs.
 
     Returns:
         PortfolioOptimizationResponse: Contains efficient frontier points, maximum Sharpe portfolio,
