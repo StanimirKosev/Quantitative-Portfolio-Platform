@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { CarouselItem } from "./ui/carousel";
 import { Card, CardContent } from "./ui/card";
+import { Skeleton } from "./ui/skeleton";
 import { useRegimeStore } from "../store/regimeStore";
 import type { SimulateChartsResponse } from "../types/portfolio";
 import { useCustomPortfolioStore } from "../store/customPortfolioStore";
@@ -65,7 +66,9 @@ const ChartsSlides = () => {
                   alt={chart.alt}
                   className={chartStyles.chartImage}
                 />
-              ) : null}
+              ) : (
+                <Skeleton className={chartStyles.chartImage} />
+              )}
             </CardContent>
           </Card>
         </CarouselItem>
