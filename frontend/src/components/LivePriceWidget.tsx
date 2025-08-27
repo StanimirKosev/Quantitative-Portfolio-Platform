@@ -26,7 +26,7 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
     API_BASE_URL.replace(/^https:/, "wss:").replace(/^http:/, "ws:") +
     "/api/ws/live-prices";
   const { lastJsonMessage, sendJsonMessage, readyState } =
-    useWebSocket<StockQuote | null>(wsUrl);
+    useWebSocket<StockQuote | null>(wsUrl, { shouldReconnect: () => true });
 
   useEffect(() => {
     const tickers = portfolioAssets?.map((asset) => asset.ticker);
@@ -46,8 +46,8 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
       },
     }));
 
-    setLastUpdated((prev) => 
-      (!prev || lastJsonMessage.time > prev) ? lastJsonMessage.time : prev
+    setLastUpdated((prev) =>
+      !prev || lastJsonMessage.time > prev ? lastJsonMessage.time : prev
     );
   }, [lastJsonMessage]);
 

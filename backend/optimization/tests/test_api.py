@@ -241,7 +241,7 @@ class TestLivePriceStreamer:
         streamer = LivePriceStreamer(self.mock_websocket)
 
         assert streamer.fastapi_websocket == self.mock_websocket
-        assert streamer.current_tickers == ["BTC-EUR", "SPYL.DE"]
+        assert streamer.current_tickers == []
 
     @pytest.mark.asyncio
     @patch("core.api.api_utils.yf.AsyncWebSocket")
@@ -274,13 +274,16 @@ class TestLivePriceStreamer:
         mock_yf_websocket = AsyncMock()
         mock_yf_websocket_class.return_value.__aenter__.return_value = mock_yf_websocket
 
-        # Mock the receive_text to raise WebSocketDisconnect immediately
-        self.mock_websocket.receive_text.side_effect = WebSocketDisconnect()
+        # Mock frontend sending tickers, then disconnect
+        self.mock_websocket.receive_text.side_effect = [
+            json.dumps(default_tickers),  # Initial subscription
+            WebSocketDisconnect()         # Then disconnect
+        ]
 
         streamer = LivePriceStreamer(self.mock_websocket)
         await streamer.start()
 
-        # Verify Yahoo Finance WebSocket subscription to default tickers
+        # Verify Yahoo Finance WebSocket subscription to tickers from frontend
         mock_yf_websocket.subscribe.assert_called_with(default_tickers)
 
     @pytest.mark.asyncio

@@ -278,15 +278,20 @@ class LivePriceStreamer:
 
     def __init__(self, websocket: WebSocket):
         self.fastapi_websocket = websocket
-        self.current_tickers, _ = get_portfolio()
+        self.current_tickers = []
 
     async def start(self):
         """Main entry point - handles everything."""
 
         await self.fastapi_websocket.accept()
-        log_info(f"Live price client connected: {self.current_tickers}")
+        log_info("Live price client connected, waiting for subscription")
 
         try:
+            data = await self.fastapi_websocket.receive_text()
+            initial_tickers: List[str] = json.loads(data)
+            self.current_tickers = initial_tickers
+            log_info(f"Initial subscription received: {self.current_tickers}")
+
             async with yf.AsyncWebSocket(verbose=False) as yf_websocket:
 
                 await yf_websocket.subscribe(self.current_tickers)
@@ -300,10 +305,10 @@ class LivePriceStreamer:
                 while True:
                     try:
                         data = await self.fastapi_websocket.receive_text()
-                        custom_tickers: List[str] = json.loads(data)
+                        latest_tickers: List[str] = json.loads(data)
 
                         yf_websocket, yf_task = await self._update_subscription(
-                            yf_websocket, yf_task, custom_tickers
+                            yf_websocket, yf_task, latest_tickers
                         )
 
                     except WebSocketDisconnect:
@@ -325,15 +330,15 @@ class LivePriceStreamer:
         self,
         yf_websocket: yf.AsyncWebSocket,
         yf_task: asyncio.Task[None],
-        custom_tickers: List[str],
+        latest_tickers: List[str],
     ) -> tuple[yf.AsyncWebSocket, asyncio.Task[None]]:
         """
         Updates the Yahoo Finance subscription to a new set of tickers
         when the frontend requests a portfolio change.
         """
         # Skip if subscription unchanged (critical for performance)
-        if set(custom_tickers) == set(self.current_tickers):
-            log_info(f"Subscription unchanged: {custom_tickers}")
+        if set(latest_tickers) == set(self.current_tickers):
+            log_info(f"Subscription unchanged: {latest_tickers}")
             return yf_websocket, yf_task
 
         # Create fresh connection to avoid corrupted state after changes
@@ -342,10 +347,10 @@ class LivePriceStreamer:
 
         # Create fresh WebSocket connection
         new_yf_websocket = yf.AsyncWebSocket(verbose=False)
-        await new_yf_websocket.subscribe(custom_tickers)
+        await new_yf_websocket.subscribe(latest_tickers)
 
         # Update current state to new subscription
-        self.current_tickers = custom_tickers
+        self.current_tickers = latest_tickers
 
         new_task = asyncio.create_task(
             new_yf_websocket.listen(self._forward_to_frontend)
