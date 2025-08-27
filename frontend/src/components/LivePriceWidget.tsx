@@ -29,11 +29,13 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
     useWebSocket<StockQuote | null>(wsUrl, { shouldReconnect: () => true });
 
   useEffect(() => {
+    if (readyState !== 1) return;
+
     const tickers = portfolioAssets?.map((asset) => asset.ticker);
     if (tickers?.length) {
       sendJsonMessage(tickers);
     }
-  }, [portfolioAssets, sendJsonMessage]);
+  }, [portfolioAssets, sendJsonMessage, readyState]);
 
   useEffect(() => {
     if (!lastJsonMessage?.id) return;
