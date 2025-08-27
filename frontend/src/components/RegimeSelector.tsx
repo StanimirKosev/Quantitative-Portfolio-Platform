@@ -31,7 +31,7 @@ const RegimeSelector = () => {
             key={regime.key}
             value={regime.key}
             aria-label={regime.name}
-            className="px-2 py-1 sm:px-3 sm:py-1.5 min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm lg:text-base font-medium whitespace-nowrap"
+            className="px-2 py-1 sm:px-3 sm:py-1.5 min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm lg:text-base font-medium whitespace-nowrap transition-all duration-150 active:scale-95 touch-manipulation hover:scale-[1.02]"
           >
             {regime.name}
           </ToggleGroupItem>

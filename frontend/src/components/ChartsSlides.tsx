@@ -40,15 +40,15 @@ const ChartsSlides = () => {
 
   const chartsData = [
     {
-      src: `${API_BASE_URL}${dataSources?.simulation_chart_path}`,
+      path: dataSources?.simulation_chart_path,
       alt: "Monte Carlo Simulation",
     },
     {
-      src: `${API_BASE_URL}${dataSources?.correlation_matrix_chart_path}`,
+      path: dataSources?.correlation_matrix_chart_path,
       alt: "Correlation Matrix",
     },
     {
-      src: `${API_BASE_URL}${dataSources?.risk_factors_chart_path}`,
+      path: dataSources?.risk_factors_chart_path,
       alt: "Risk Factor Analysis",
     },
   ];
@@ -59,11 +59,13 @@ const ChartsSlides = () => {
         <CarouselItem key={idx} className={chartStyles.carouselItem}>
           <Card className={chartStyles.card}>
             <CardContent className={chartStyles.cardContent}>
-              <img
-                src={chart.src}
-                alt={chart.alt}
-                className={chartStyles.chartImage}
-              />
+              {chart.path ? (
+                <img
+                  src={`${API_BASE_URL}${chart.path}`}
+                  alt={chart.alt}
+                  className={chartStyles.chartImage}
+                />
+              ) : null}
             </CardContent>
           </Card>
         </CarouselItem>

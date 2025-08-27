@@ -1,16 +1,15 @@
-# Monte Carlo Portfolio Simulation
+# Quantitative Portfolio Platform
 
-Full-stack Monte Carlo simulation platform with **Python simulation engine**, **FastAPI backend**, and **React frontend**. Features regime-dependent risk modeling, customizable portfolios, and interactive visualizations. Explore how macroeconomic shifts impact portfolio outcomes through real market data, advanced financial mathematics, and intuitive web interface.
+Full-stack quantitative finance platform with **Python optimization & simulation engine**, **FastAPI backend**, and **React frontend**. Features Monte Carlo simulation, portfolio optimization, regime-dependent risk modeling, customizable portfolios and real-time WebSocket updates. Test your portfolio strategies using real market data, professional financial mathematics, and an intuitive web interface.
 
 ## 🎯 Project Overview
 
-- **Full-stack architecture**: Python simulation engine + FastAPI + React dashboard
-- **Default portfolio simulation** with pre-configured 6-asset portfolio across 3 regimes (historical, fiat debasement, geopolitical crisis)
+- **Portfolio optimization**: Efficient frontier calculation with maximum Sharpe ratio identification using CVXPY
+- **Monte Carlo simulation**: 1000 paths showing potential portfolio outcomes with VaR/CVaR risk metrics and confidence intervals
 - **Fully customizable portfolios** with interactive web interface - modify tickers, weights, asset count, mean/volatility factors, and correlation adjustments
-- **Advanced financial mathematics**: Regime-dependent risk modeling with sophisticated correlation adjustments
-- **Professional visualizations**: Interactive charts with Monte Carlo paths, correlation matrices, and risk analysis
-- **Real-time portfolio validation** with form feedback and error handling
-- **Cloud-native deployment**: Containerized with Docker, deployed on Google Cloud Run (GCP)
+- **Real-time WebSocket updates**: Live market data widget showing current portfolio performance and asset prices during trading hours
+- **Professional visualizations**: Interactive charts with Monte Carlo paths, efficient frontiers, correlation matrices, and risk analysis
+- **Modern DevOps**: Poetry dependency management, Docker containerization, GCP Cloud Run deployment, CI/CD ready
 
 ## 📸 Screenshots & Demo
 
@@ -21,6 +20,11 @@ Full-stack Monte Carlo simulation platform with **Python simulation engine**, **
 
 ![Portfolio Interface](screenshots/default-portfolio-geopolitical-crisis.png)
 _Interactive dashboard with portfolio composition and regime analysis_
+
+### Portfolio Optimization Results
+
+![Efficient Frontier](screenshots/efficient-frontier-fiat-debasement.png)
+_Efficient frontier showing optimal risk-return portfolios with maximum Sharpe ratio highlighted_
 
 ### Monte Carlo Simulation Results
 
@@ -49,27 +53,28 @@ _Principal component analysis identifying dominant risk factors_
 
 **Modular Monolith Architecture:**
 
-- **Backend** (`backend/`) - Organized monolith with modular structure: simulation engine, shared core utilities, and FastAPI API layer
-  - `core/` - Shared utilities (logging, data fetching, risk metrics)
-  - `simulation/` - Monte Carlo engine with comprehensive test coverage
-  - `optimization/` - Future portfolio optimization module
+- **Backend** (`backend/`) - Organized monolith with modular structure: simulation & optimization engines, shared core utilities, and FastAPI API layer
+  - `core/` - Shared utilities (logging, data fetching, risk metrics, FRED API, WebSocket live prices)
+  - `simulation/` - Monte Carlo engine with regime-dependent risk modeling
+  - `optimization/` - CVXPY-based portfolio optimization with efficient frontier calculation
 - **Frontend** (`frontend/src/`) - React dashboard with TypeScript, interactive visualizations, and real-time validation
 
 **Technology Stack:**
 
-- **Backend**: Python, FastAPI, WebSockets, AsyncIO, NumPy, Pandas, Matplotlib, yfinance, FRED API, CVXPY
+- **Backend**: Python, FastAPI, WebSockets, CVXPY, NumPy, Pandas, yfinance, FRED API, Poetry
 - **Frontend**: React 19, TypeScript, Vite, shadcn/ui, Recharts, TanStack Query, Zustand
-- **Data & Validation**: Pydantic models, structured logging, comprehensive error handling
-- **Testing**: pytest, async test support, comprehensive coverage, type hints, linting
-- **Cloud & DevOps**: Docker, Google Cloud Run, Google Artifact Registry
+- **Testing & Quality**: pytest, comprehensive test coverage, type hints
+- **DevOps**: Docker, Google Cloud Run, Poetry dependency management
 
 ## 🎨 Frontend Features
 
 **Interactive Portfolio Dashboard:**
 
 - **Portfolio Composition Chart** - Pie chart visualization of asset weights
+- **Live Price Widget** - Real-time market data showing current portfolio performance during trading hours
 - **Regime Factors Radar Chart** - Visual comparison of mean/volatility factors and correlation adjustments
-- **Three Generated Visualizations** - Monte Carlo simulation paths, correlation matrix heatmap, PCA risk factor analysis
+- **Efficient Frontier Visualization** - Interactive scatter plot showing optimal risk-return portfolios with maximum Sharpe ratio
+- **Monte Carlo Analysis** - Simulation paths, correlation matrix heatmap, and PCA risk factor analysis
 
 **Fully Customizable Form:**
 
@@ -84,19 +89,21 @@ _Principal component analysis identifying dominant risk factors_
 
 **Generated Outputs (each regime produces):**
 
+- **Efficient frontier charts** - Optimal risk-return portfolios with maximum Sharpe ratio identification
 - **Monte Carlo simulation paths** - Confidence intervals, key trajectories, risk metrics (VaR, CVaR)
 - **Correlation matrix heatmap** - Asset correlations with matrix conditioning analysis
 - **PCA risk factor analysis** - Principal components, explained variance, factor loadings
 
 **Key Metrics:**
 
-- Complete portfolio performance statistics (median, mean, best/worst case outcomes)
-- Professional risk assessment with confidence intervals and stress testing
-- Systematic risk factor identification and asset contribution analysis
+- **Portfolio performance**: Expected returns, volatility, Sharpe ratios for all optimization points
+- **Risk assessment**: VaR/CVaR calculations, confidence intervals, Monte Carlo stress testing
+- **Risk factor analysis**: PCA identification of dominant factors and asset contribution analysis
 
 **Advanced Mathematical Methodology:**
 
 - **Data Foundation**: Historical daily returns from Yahoo Finance API with comprehensive data validation
+- **Efficient Frontier**: Quadratic optimization minimizing portfolio variance w^T·Σ·w subject to return constraints μ^T·w = target, using convex programming to find optimal risk-return tradeoffs
 - **Regime Modeling**: Two-stage covariance adjustment process:
   - _Stage 1_: Scale each covariance element Σ[i,j] by vol_factor[i] × vol_factor[j], preserving correlation structure while adjusting joint risk magnitudes
   - _Stage 2_: Extract correlation matrix, apply regime-specific correlation_move_pct to off-diagonal elements, then reconstruct covariance with numerical clipping to [-1,1]
@@ -114,6 +121,7 @@ _Principal component analysis identifying dominant risk factors_
 - **`POST /api/portfolio/validate`** - Validate portfolio tickers, weights, and date ranges
 - **`GET /api/regimes`** - Available regime scenarios with descriptions
 - **`GET /api/regimes/{regime}/parameters`** - Regime-specific factor adjustments
+- **`WebSocket /api/ws/live-prices`** - Real-time market data streaming for portfolio assets
 
 ### Simulation APIs (Monte Carlo)
 
@@ -124,7 +132,6 @@ _Principal component analysis identifying dominant risk factors_
 
 - **`POST /api/optimize/{regime}`** - Calculate efficient frontier and maximum Sharpe ratio for default portfolio
 - **`POST /api/optimize/custom`** - Run portfolio optimization for custom assets with regime-specific factors
-- **`WebSocket /api/optimize/ws/progress`** - Real-time progress updates during optimization calculations
 
 ## 📚 Educational Value
 
@@ -154,8 +161,8 @@ This project shows how foundational math and programming knowledge can be applie
 
 ## 🚀 Installation & Setup
 
-**Prerequisites (local dev):** Python 3.8+, Node.js 18+
-**Prerequisites (containers/cloud):** Docker Desktop, gcloud CLI, a GCP project with Cloud Run and Artifact Registry APIs enabled
+**Prerequisites (local dev):** Python 3.13+, Node.js 18+, Poetry
+**Prerequisites (production):** GitHub repository with CI/CD secrets configured (see `.github/SETUP.md`)
 
 ### Backend Setup
 
@@ -195,43 +202,38 @@ Start services using the commands in Installation & Setup above, then open:
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8000
 
-### Docker + GCP (Artifact Registry + Cloud Run)
+### Automated Deployment (CI/CD)
 
-1. Configure gcloud and create a repo (example region europe-west1):
+**Production deployment is fully automated via GitHub Actions:**
+
+1. **One-time setup**: Configure GitHub Secrets (see `.github/SETUP.md` for details)
+2. **Deploy**: Simply push to `main` branch - GitHub Actions handles testing and deployment automatically
+3. **Monitor**: Check GitHub Actions tab for deployment status and logs
+
+**Manual deployment** (if needed):
 
 ```bash
+# Configure gcloud and create repository
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
 gcloud config set run/region europe-west1
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com
 gcloud artifacts repositories create mc --repository-format=docker --location=europe-west1
 gcloud auth configure-docker europe-west1-docker.pkg.dev
-```
 
-2. Build and push backend image:
-
-```bash
+# Build and deploy backend
 docker build -t montecarlo-backend ./backend
 docker tag montecarlo-backend europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-backend:latest
 docker push europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-backend:latest
-```
-
-3. Deploy backend to Cloud Run (copy the resulting URL):
-
-```bash
 gcloud run deploy mc-backend \
   --image europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-backend:latest \
   --allow-unauthenticated
-```
 
-4. Build frontend with backend URL baked in, push, deploy:
-
-```bash
-# Replace BACKEND_URL with the Cloud Run URL from step 3
-docker build --build-arg VITE_API_URL=BACKEND_URL -t montecarlo-frontend ./frontend
+# Get backend URL and deploy frontend
+BACKEND_URL=$(gcloud run services describe mc-backend --region=europe-west1 --format='value(status.url)')
+docker build --build-arg VITE_API_URL=$BACKEND_URL -t montecarlo-frontend ./frontend
 docker tag montecarlo-frontend europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-frontend:latest
 docker push europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-frontend:latest
-
 gcloud run deploy mc-frontend \
   --image europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/mc/montecarlo-frontend:latest \
   --allow-unauthenticated

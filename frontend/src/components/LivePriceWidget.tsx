@@ -22,7 +22,9 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
   >({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-  const wsUrl = API_BASE_URL.replace(/^https?/, "ws") + "/api/ws/live-prices";
+  const wsUrl =
+    API_BASE_URL.replace(/^https:/, "wss:").replace(/^http:/, "ws:") +
+    "/api/ws/live-prices";
   const { lastJsonMessage, sendJsonMessage, readyState } =
     useWebSocket<StockQuote | null>(wsUrl);
 
@@ -44,7 +46,9 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
       },
     }));
 
-    setLastUpdated(formatTime(lastJsonMessage.time));
+    setLastUpdated((prev) => 
+      (!prev || lastJsonMessage.time > prev) ? lastJsonMessage.time : prev
+    );
   }, [lastJsonMessage]);
 
   // Calculate metrics
@@ -90,7 +94,7 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
             {totalTrading}/{totalAssets} trading
           </span>
           <span>•</span>
-          <span>{lastUpdated}</span>
+          <span>{lastUpdated ? formatTime(lastUpdated) : null}</span>
         </>
       )}
     </div>

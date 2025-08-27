@@ -1,20 +1,31 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VENV_IN_PROJECT=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
 
 WORKDIR /app
 
-# Only curl for healthcheck; drop compilers to keep image small
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
   && rm -rf /var/lib/apt/lists/*
 
-# Leverage layer caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Poetry
+RUN pip install poetry==1.8.3
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock ./
+
+# Install dependencies only first (for better caching)
+RUN poetry install --only=main --no-root && rm -rf $POETRY_CACHE_DIR
 
 # App code
 COPY . .
+
+# Install the backend package itself (core, simulation, optimization modules)
+RUN poetry install --only=main
 
 # Ensure charts directory exists for runtime-generated images
 RUN mkdir -p simulation/charts
@@ -31,4 +42,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD sh -c 'curl -fsS http://localhost:${PORT:-8000}/ || exit 1'
 
 # Use PORT if provided (Cloud Run), default to 8000 locally
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "poetry run uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]

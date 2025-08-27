@@ -3,7 +3,11 @@ name = "monte-carlo-backend"
 version = "0.1.0"
 description = "Monte Carlo portfolio simulation backend"
 authors = ["Your Name <your.email@example.com>"]
-package-mode = false
+packages = [
+    { include = "core" },
+    { include = "simulation" },
+    { include = "optimization" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.13"
