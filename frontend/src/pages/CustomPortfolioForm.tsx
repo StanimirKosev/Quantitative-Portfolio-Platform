@@ -17,7 +17,6 @@ import type {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useReducer, useState } from "react";
 import { Input } from "../components/ui/input";
-import { Skeleton } from "../components/ui/skeleton";
 import { set, isEqual, omit, cloneDeep } from "lodash";
 import { Progress } from "../components/ui/progress";
 import { Badge } from "../components/ui/badge";
@@ -207,7 +206,7 @@ const CustomPortfolioForm = () => {
     validate(formState);
   };
 
-  const { data: defaultPortfolio, isLoading } = useQuery<PortfolioResponse>({
+  const { data: defaultPortfolio } = useQuery<PortfolioResponse>({
     queryKey: ["portfolio", "default"],
     queryFn: () =>
       fetch(`${API_BASE_URL}/api/portfolio/default`).then((res) => res.json()),
@@ -325,141 +324,130 @@ const CustomPortfolioForm = () => {
               <Badge
                 variant={totalWeight === 100 ? "secondary" : "destructive"}
               >
-                {totalWeight.toFixed(1)}%
+                {totalWeight > 100 ? "100%+" : `${totalWeight.toFixed(1)}%`}
               </Badge>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-0 px-6">
           <div className="space-y-2">
-            {isLoading ? (
-              <>
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-              </>
-            ) : (
-              formState.portfolio_assets.map((asset, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-[1fr_120px_40px] gap-x-4 gap-y-2 items-center"
-                >
-                  <Input
-                    placeholder="Enter ticker (e.g., BTC-EUR)"
-                    value={asset.ticker}
-                    onChange={(e) => {
-                      dispatch({
-                        type: "UPDATE_FIELD",
-                        payload: {
-                          field: `portfolio_assets.${index}.ticker`,
-                          value: e.target.value,
-                        },
-                      });
-
-                      dispatch({
-                        type: "UPDATE_FIELD",
-                        payload: {
-                          field: `portfolio_factors.${index}.ticker`,
-                          value: e.target.value,
-                        },
-                      });
-                    }}
-                  />
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      value={
-                        asset.weight_pct == null ? "" : String(asset.weight_pct)
-                      }
-                      onChange={(e) =>
-                        handleNumberFieldChange(
-                          e.target.value,
-                          `portfolio_assets.${index}.weight_pct`,
-                          DECIMAL_PRECISION.WEIGHT
-                        )
-                      }
-                      className="pr-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                      %
-                    </span>
-                  </div>
-                  <ButtonWithLoggingOnClick
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      dispatch({ type: "REMOVE_ASSET", payload: { index } })
-                    }
-                    logData={{
-                      event: "remove_asset_from_portfolio",
-                      route: window.location.pathname,
-                      context: {
-                        asset_index: index,
-                        asset_ticker: asset.ticker,
-                        total_assets: formState.portfolio_assets.length,
+            {formState.portfolio_assets.map((asset, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-[1fr_120px_40px] gap-x-4 gap-y-2 items-center"
+              >
+                <Input
+                  placeholder="Enter ticker (e.g., BTC-EUR)"
+                  value={asset.ticker}
+                  onChange={(e) => {
+                    dispatch({
+                      type: "UPDATE_FIELD",
+                      payload: {
+                        field: `portfolio_assets.${index}.ticker`,
+                        value: e.target.value,
                       },
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </ButtonWithLoggingOnClick>
+                    });
 
-                  <Collapsible open={isPowerUserMode}>
-                    <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2 data-[state=open]:fade-in data-[state=open]:duration-300 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top-2 data-[state=closed]:fade-out data-[state=closed]:duration-200">
-                      <div className="pb-3">
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-0 pl-4 border-l-2 border-muted">
-                          <div className="space-y-1">
-                            <label
-                              htmlFor={`mean-factor-${index}`}
-                              className="text-xs font-medium"
-                            >
-                              Mean Factor
-                            </label>
-                            <Input
-                              id={`mean-factor-${index}`}
-                              type="number"
-                              className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              value={getFactorDisplayValue(
-                                index,
-                                "mean_factor"
-                              )}
-                              onChange={(e) =>
-                                handleNumberFieldChange(
-                                  e.target.value,
-                                  `portfolio_factors.${index}.mean_factor`,
-                                  DECIMAL_PRECISION.FACTOR
-                                )
-                              }
-                            />
-                          </div>
+                    dispatch({
+                      type: "UPDATE_FIELD",
+                      payload: {
+                        field: `portfolio_factors.${index}.ticker`,
+                        value: e.target.value,
+                      },
+                    });
+                  }}
+                />
+                <div className="relative">
+                  <Input
+                    type="number"
+                    value={
+                      asset.weight_pct == null ? "" : String(asset.weight_pct)
+                    }
+                    onChange={(e) =>
+                      handleNumberFieldChange(
+                        e.target.value,
+                        `portfolio_assets.${index}.weight_pct`,
+                        DECIMAL_PRECISION.WEIGHT
+                      )
+                    }
+                    className="pr-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    %
+                  </span>
+                </div>
+                <ButtonWithLoggingOnClick
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    dispatch({ type: "REMOVE_ASSET", payload: { index } })
+                  }
+                  logData={{
+                    event: "remove_asset_from_portfolio",
+                    route: window.location.pathname,
+                    context: {
+                      asset_index: index,
+                      asset_ticker: asset.ticker,
+                      total_assets: formState.portfolio_assets.length,
+                    },
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </ButtonWithLoggingOnClick>
 
-                          <div className="space-y-1">
-                            <label
-                              htmlFor={`vol-factor-${index}`}
-                              className="text-xs font-medium"
-                            >
-                              Vol Factor
-                            </label>
-                            <Input
-                              id={`vol-factor-${index}`}
-                              type="number"
-                              className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              value={getFactorDisplayValue(index, "vol_factor")}
-                              onChange={(e) =>
-                                handleNumberFieldChange(
-                                  e.target.value,
-                                  `portfolio_factors.${index}.vol_factor`,
-                                  DECIMAL_PRECISION.FACTOR
-                                )
-                              }
-                            />
-                          </div>
+                <Collapsible open={isPowerUserMode}>
+                  <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2 data-[state=open]:fade-in data-[state=open]:duration-300 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top-2 data-[state=closed]:fade-out data-[state=closed]:duration-200">
+                    <div className="pb-3">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-0 pl-4 border-l-2 border-muted">
+                        <div className="space-y-1">
+                          <label
+                            htmlFor={`mean-factor-${index}`}
+                            className="text-xs font-medium"
+                          >
+                            Mean Factor
+                          </label>
+                          <Input
+                            id={`mean-factor-${index}`}
+                            type="number"
+                            className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            value={getFactorDisplayValue(index, "mean_factor")}
+                            onChange={(e) =>
+                              handleNumberFieldChange(
+                                e.target.value,
+                                `portfolio_factors.${index}.mean_factor`,
+                                DECIMAL_PRECISION.FACTOR
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label
+                            htmlFor={`vol-factor-${index}`}
+                            className="text-xs font-medium"
+                          >
+                            Vol Factor
+                          </label>
+                          <Input
+                            id={`vol-factor-${index}`}
+                            type="number"
+                            className="h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            value={getFactorDisplayValue(index, "vol_factor")}
+                            onChange={(e) =>
+                              handleNumberFieldChange(
+                                e.target.value,
+                                `portfolio_factors.${index}.vol_factor`,
+                                DECIMAL_PRECISION.FACTOR
+                              )
+                            }
+                          />
                         </div>
                       </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-              ))
-            )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            ))}
             <ButtonWithLoggingOnClick
               onClick={() => dispatch({ type: "ADD_ASSET" })}
               variant="outline"

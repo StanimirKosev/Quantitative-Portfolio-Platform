@@ -10,14 +10,14 @@ export const formatTime = (timestamp: string): string | null => {
 };
 
 export const getValueColor = (value: number): string => {
-  if (Math.abs(value) < 0.05) return "#6b7280";
+  if (Math.abs(value) < 0.005) return "#6b7280";
   return value > 0 ? "#5A9D15" : "#9D2228";
 };
 
 export const getValueText = (value: number): string => {
-  if (Math.abs(value) < 0.05) return "0.0%";
+  if (Math.abs(value) < 0.005) return "0.00%";
   const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(1)}%`;
+  return `${sign}${value.toFixed(2)}%`;
 };
 
 export const getStatusColor = (

@@ -10,7 +10,7 @@ interface Props {
 const styles = {
   container: "relative",
   overlay:
-    "absolute inset-0 bg-black/80 flex items-center justify-center z-50 animate-in fade-in-0 duration-300 backdrop-blur-sm",
+    "absolute inset-0 flex items-center justify-center z-50 animate-in fade-in-0 duration-300 backdrop-blur-sm",
   modal:
     "bg-card p-4 sm:p-6 md:p-8 rounded-2xl border shadow-2xl max-w-sm sm:max-w-md w-full mx-3 sm:mx-4 animate-in fade-in-0 zoom-in-95 duration-300 slide-in-from-bottom-8 sm:slide-in-from-bottom-0",
   title:
@@ -71,7 +71,10 @@ const PortfolioAnalysisLoader: FC<Props> = ({ children }) => {
     <div className={styles.container}>
       {children}
       {shouldShowModal ? (
-        <div className={styles.overlay}>
+        <div
+          className={styles.overlay}
+          style={{ backgroundColor: "hsl(var(--background) / 0.9)" }}
+        >
           <div className={styles.modal}>
             <h3 className={styles.title}>Analyzing Portfolio</h3>
 
