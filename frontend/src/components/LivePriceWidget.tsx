@@ -38,7 +38,7 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
   }, [portfolioAssets, sendJsonMessage, readyState]);
 
   useEffect(() => {
-    if (!lastJsonMessage?.id) return;
+    if (!lastJsonMessage?.id || !lastJsonMessage.market_hours) return;
 
     setLivePrices((prev) => ({
       ...prev,
@@ -53,17 +53,20 @@ const LivePriceWidget: FC<Props> = ({ portfolioAssets }) => {
     );
   }, [lastJsonMessage]);
 
+  useEffect(() => {
+    setLivePrices({});
+    setLastUpdated(null);
+  }, [portfolioAssets]);
+
   // Calculate metrics
   const totalAssets = portfolioAssets?.length || 0;
 
-  const totalTrading = Object.values(livePrices).filter(
-    (price) => price.market_hours === 1
-  ).length;
+  const totalTrading = Object.keys(livePrices).length;
 
   const totalValue =
     portfolioAssets?.reduce((sum, asset) => {
       const priceData = livePrices[asset.ticker];
-      if (!priceData || priceData.market_hours !== 1) return sum;
+      if (!priceData) return sum;
 
       return sum + ((priceData.change_percent ?? 0) * asset.weight_pct) / 100;
     }, 0) || 0;
