@@ -12,7 +12,7 @@ const chartStyles = {
   card: "h-full bg-black",
   cardContent: "flex flex-col h-full justify-center items-center p-4",
   chartImage:
-    "w-full h-[calc(100vh-200px)] object-contain rounded-lg shadow-lg",
+    "w-full h-full max-h-[70vh] object-contain rounded-lg shadow-lg",
 };
 const ChartsSlides = () => {
   const { selectedRegime } = useRegimeStore();
@@ -62,7 +62,7 @@ const ChartsSlides = () => {
             <CardContent className={chartStyles.cardContent}>
               {chart.path ? (
                 <img
-                  src={`${API_BASE_URL}${chart.path}`}
+                  src={`${API_BASE_URL}${chart.path}?t=${Date.now()}`}
                   alt={chart.alt}
                   className={chartStyles.chartImage}
                 />
