@@ -11,8 +11,7 @@ const chartStyles = {
   carouselItem: "px-12 sm:px-16",
   card: "h-full bg-black",
   cardContent: "flex flex-col h-full justify-center items-center p-4",
-  chartImage:
-    "w-full h-full max-h-[70vh] object-contain rounded-lg shadow-lg",
+  chartImage: "w-full h-full max-h-[70vh] object-contain rounded-lg shadow-lg",
 };
 const ChartsSlides = () => {
   const { selectedRegime } = useRegimeStore();
@@ -32,7 +31,24 @@ const ChartsSlides = () => {
         const errorData = await res.json();
         throw new Error(`HTTP ${res.status}: ${errorData.detail}`);
       }
-      return res.json();
+
+      const data = await res.json();
+
+      // Verify chart files are available before returning data
+      const imageCheck = await fetch(
+        `${API_BASE_URL}${data.simulation_chart_path}`,
+        {
+          method: "HEAD",
+        }
+      );
+
+      if (!imageCheck.ok) {
+        throw new Error(
+          "Chart generation in progress. Please wait a moment and try again."
+        );
+      }
+
+      return data;
     },
     enabled: !!selectedRegime && !isCustomStateActive(),
   });
@@ -62,7 +78,7 @@ const ChartsSlides = () => {
             <CardContent className={chartStyles.cardContent}>
               {chart.path ? (
                 <img
-                  src={`${API_BASE_URL}${chart.path}?t=${Date.now()}`}
+                  src={`${API_BASE_URL}${chart.path}`}
                   alt={chart.alt}
                   className={chartStyles.chartImage}
                 />
